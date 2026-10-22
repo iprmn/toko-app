@@ -258,14 +258,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                   {stores.length > 1 && (
                     <button
                       type="button"
-                      onClick={() => {
-                        const confirmed = window.confirm(
-                          `⚠️ KONFIRMASI HAPUS TOKO\n\nApakah Anda yakin ingin menghapus toko "${store.name}"?\nData barang dan transaksi pada toko ini akan dihapus.`
-                        );
-                        if (confirmed) {
-                          onDeleteStore(store.id);
-                        }
-                      }}
+                      onClick={() => onDeleteStore(store.id)}
                       className="p-2.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 border border-slate-200 sm:border-transparent rounded-xl transition-colors cursor-pointer shrink-0 flex items-center justify-center"
                       title="Hapus cabang toko ini"
                     >

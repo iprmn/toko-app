@@ -156,14 +156,7 @@ export const SalesHistoryView: React.FC<SalesHistoryViewProps> = ({
             {valid7DaysTransactions.length > 0 && (
               <button
                 type="button"
-                onClick={() => {
-                  const confirmed = window.confirm(
-                    '⚠️ KONFIRMASI KOSONGKAN RIWAYAT\n\nApakah Anda yakin ingin mengosongkan semua riwayat penjualan?\nData omzet dan kas 7 hari terakhir akan direset.'
-                  );
-                  if (confirmed) {
-                    onClearHistory();
-                  }
-                }}
+                onClick={onClearHistory}
                 className="w-full sm:w-auto h-10 px-3.5 bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 rounded-xl font-bold text-xs flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
                 title="Kosongkan seluruh riwayat penjualan"
               >

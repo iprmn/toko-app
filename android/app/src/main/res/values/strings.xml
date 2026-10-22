@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">Toko App</string>
+    <string name="title_activity_main">Toko App</string>
+    <string name="package_name">com.iprmn.tokoapp</string>
+    <string name="custom_url_scheme">com.iprmn.tokoapp</string>
+</resources>

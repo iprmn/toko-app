@@ -28,16 +28,9 @@ export const ProductCard: React.FC<ProductCardProps> = ({
     >
       {/* Top Header: Category & Stock Status Badge */}
       <div className="flex items-center justify-between gap-1 mb-1.5">
-        <div className="flex items-center gap-1 min-w-0 max-w-[68%] truncate">
-          <span className="text-[10px] font-semibold text-slate-500 uppercase tracking-wider truncate">
-            {product.category}
-          </span>
-          {product.shelf && (
-            <span className="text-[9px] font-bold text-amber-800 bg-amber-100/80 px-1.5 py-0.5 rounded border border-amber-200 truncate shrink-0" title={`Rak: ${product.shelf}`}>
-              🏷️ {product.shelf}
-            </span>
-          )}
-        </div>
+        <span className="text-[10px] font-semibold text-slate-500 uppercase tracking-wider truncate">
+          {product.category}
+        </span>
 
         {/* Stock Status Badge: Only 'Ready' or 'Habis' */}
         {isOutOfStock ? (
@@ -63,7 +56,9 @@ export const ProductCard: React.FC<ProductCardProps> = ({
           <img
             src={product.imageUrl}
             alt={product.name}
-            className={`w-full h-full object-cover rounded-xl ${isOutOfStock ? 'opacity-60 grayscale-[0.6]' : ''}`}
+            className={`w-full h-full object-cover rounded-xl ${
+              isOutOfStock ? 'opacity-60 grayscale-[0.6]' : ''
+            }`}
           />
         ) : (
           <span className={`text-3xl sm:text-4xl drop-shadow-2xs ${isOutOfStock ? 'opacity-60' : ''}`}>
@@ -72,8 +67,19 @@ export const ProductCard: React.FC<ProductCardProps> = ({
         )}
       </div>
 
-      {/* Product Title & Price */}
+      {/* Shelf Info (Above Product Title), Product Title & Price */}
       <div className="mt-2.5 space-y-1">
+        {product.shelf && (
+          <div>
+            <span
+              className="inline-block text-[10px] font-bold text-amber-800 bg-amber-100/80 px-1.5 py-0.5 rounded border border-amber-200 max-w-full truncate"
+              title={`Rak: ${product.shelf}`}
+            >
+              🏷️ {product.shelf}
+            </span>
+          </div>
+        )}
+
         <h4
           className={`text-xs sm:text-sm font-bold line-clamp-1 leading-normal ${
             isOutOfStock ? 'text-slate-600' : 'text-slate-900'
@@ -99,7 +105,6 @@ export const ProductCard: React.FC<ProductCardProps> = ({
 
       {/* Bottom Action Controls: Direct stock number with unit below & CTA */}
       <div className="mt-3 pt-2.5 border-t border-slate-200/80 flex items-center justify-between gap-1.5">
-        {/* Quantity on top, unit underneath (no 'Stok Ready' label) */}
         <div className="min-w-0 flex flex-col justify-center">
           <span
             className={`text-sm sm:text-base font-black tabular-nums leading-none ${
@@ -134,7 +139,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({
             className="h-7 sm:h-8 px-3 rounded-xl font-bold text-[11px] sm:text-xs flex items-center justify-center gap-1 shadow-xs bg-emerald-700 hover:bg-emerald-800 text-white shadow-emerald-900/10 cursor-pointer active:scale-95 transition-all"
             title="Masukkan ke kasir"
           >
-            <ShoppingCart className="w-3 h-3" />
+            <ShoppingCart className="w-3.5 h-3.5" />
             <span>Jual</span>
           </button>
         )}

@@ -1,22 +1,39 @@
 import tailwindcss from '@tailwindcss/vite';
 import react from '@vitejs/plugin-react';
 import path from 'path';
-import {defineConfig} from 'vite';
+import { defineConfig, Plugin } from 'vite';
+import { createApiApp } from './server/api';
+
+function sqliteApiPlugin(): Plugin {
+  return {
+    name: 'sqlite-api-plugin',
+    configureServer(server) {
+      const apiApp = createApiApp();
+      server.middlewares.use('/api', apiApp);
+    },
+    configurePreviewServer(server) {
+      const apiApp = createApiApp();
+      server.middlewares.use('/api', apiApp);
+    },
+  };
+}
 
 export default defineConfig(() => {
   return {
-    plugins: [react(), tailwindcss()],
+    plugins: [react(), tailwindcss(), sqliteApiPlugin()],
     resolve: {
       alias: {
         '@': path.resolve(__dirname, '.'),
       },
     },
     server: {
-      // HMR is disabled in AI Studio via DISABLE_HMR env var.
-      // Do not modify—file watching is disabled to prevent flickering during agent edits.
       hmr: process.env.DISABLE_HMR !== 'true',
-      // Disable file watching when DISABLE_HMR is true to save CPU during agent edits.
-      watch: process.env.DISABLE_HMR === 'true' ? null : {},
+      watch:
+        process.env.DISABLE_HMR === 'true'
+          ? null
+          : {
+              ignored: ['**/database/**', '**/*.db', '**/*.db-wal', '**/*.db-shm'],
+            },
     },
   };
 });
