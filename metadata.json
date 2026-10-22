@@ -1,0 +1,6 @@
+{
+  "name": "WarungPintar - Toko Kelontong Sederhana",
+  "description": "Aplikasi pembukuan stok dan kasir toko kelontong yang sangat simpel, visual, dan ramah ibu-ibu.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
