@@ -49,13 +49,14 @@ jobs:
 
       - name: Rename APK
         run: |
+          cp android/app/build/outputs/apk/debug/app-debug.apk "./Toko App.apk"
           cp android/app/build/outputs/apk/debug/app-debug.apk ./toko-app-offline.apk
 
       - name: Upload APK Artifact
         uses: actions/upload-artifact@v4
         with:
-          name: toko-app-offline-apk
-          path: ./toko-app-offline.apk
+          name: Toko-App
+          path: "./Toko App.apk"
           retention-days: 30
 
       - name: Publish APK to GitHub Releases (Latest)
@@ -63,7 +64,9 @@ jobs:
         with:
           tag_name: v1.0.0-apk
           target_commitish: ${{ github.sha }}
-          name: "Toko App Android APK (Offline DB)"
-          body: "Download file **toko-app-offline.apk** di bawah ini untuk menginstal aplikasi Toko App di perangkat Android (100% Offline dengan Database Lokal & Ikon Toko Hijau-Oren)."
-          files: ./toko-app-offline.apk
+          name: "Toko App"
+          body: "Download file **Toko App.apk** di bawah ini untuk menginstal aplikasi **Toko App** di perangkat Android."
+          files: |
+            ./Toko App.apk
+            ./toko-app-offline.apk
           prerelease: false

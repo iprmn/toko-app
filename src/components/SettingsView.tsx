@@ -96,6 +96,10 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
       setActiveStoreName(activeStore.name);
       setActiveCategory(activeStore.categoryOrType || 'Toko Kelontong');
       setActiveLogoUrl(activeStore.logoUrl);
+    } else {
+      setActiveStoreName('');
+      setActiveCategory('');
+      setActiveLogoUrl(undefined);
     }
   }, [activeStoreId, activeStore]);
 
@@ -123,7 +127,15 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
 
   const handleSaveActiveStore = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!activeStore) return;
+    if (!activeStore) {
+      onAddStore({
+        name: activeStoreName.trim() || 'Toko Saya',
+        ownerName: '-',
+        categoryOrType: activeCategory.trim() || 'Toko Kelontong',
+        logoUrl: activeLogoUrl,
+      });
+      return;
+    }
     onUpdateStore(activeStore.id, {
       name: activeStoreName.trim() || 'Toko Saya',
       categoryOrType: activeCategory.trim() || 'Toko Kelontong',
@@ -189,6 +201,11 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
 
         {/* List of Existing Stores */}
         <div className="space-y-2.5 sm:space-y-3">
+          {stores.length === 0 && !isAddingStore && (
+            <div className="p-4 rounded-2xl bg-slate-50 border border-dashed border-slate-200 text-center text-xs sm:text-sm text-slate-500 font-medium">
+              Belum ada toko terdaftar. Klik tombol <span className="font-bold text-emerald-800">+ Tambah Toko</span> untuk membuat toko pertama Anda.
+            </div>
+          )}
           {stores.map((store) => {
             const isActive = store.id === activeStoreId;
             return (

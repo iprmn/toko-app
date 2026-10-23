@@ -33,7 +33,7 @@ export default function App() {
   // --- Database-Backed State (SQLite on Server / Device DB on Offline APK) ---
   const [isLoadingDb, setIsLoadingDb] = useState<boolean>(true);
   const [stores, setStores] = useState<StoreAccount[]>([]);
-  const [activeStoreId, setActiveStoreId] = useState<string>('store-1');
+  const [activeStoreId, setActiveStoreId] = useState<string>('');
   const [productsMap, setProductsMap] = useState<{ [storeId: string]: Product[] }>({});
   const [transactionsMap, setTransactionsMap] = useState<{ [storeId: string]: Transaction[] }>({});
   const [fontSizeLevel, setFontSizeLevel] = useState<number>(2);
@@ -46,7 +46,7 @@ export default function App() {
     try {
       const data = await dataService.bootstrap();
       setStores(data.stores || []);
-      setActiveStoreId(data.activeStoreId || data.stores?.[0]?.id || 'store-1');
+      setActiveStoreId(data.activeStoreId || data.stores?.[0]?.id || '');
       setProductsMap(data.productsMap || {});
       setTransactionsMap(data.transactionsMap || {});
       if (data.fontSizeLevel && data.fontSizeLevel >= 1 && data.fontSizeLevel <= 4) {
@@ -68,8 +68,8 @@ export default function App() {
     return (
       stores.find((s) => s.id === activeStoreId) ||
       stores[0] || {
-        id: 'store-1',
-        name: 'Memuat Toko...',
+        id: '',
+        name: 'Belum Ada Toko',
         ownerName: '-',
         categoryOrType: 'Toko',
         createdAt: new Date().toISOString(),
@@ -640,6 +640,24 @@ export default function App() {
         if (soundEnabled) playSound.tap();
 
         const nowIso = new Date().toISOString();
+        let targetStoreId = activeStoreId;
+
+        if (!targetStoreId || stores.length === 0) {
+          targetStoreId = 'store-' + Date.now();
+          const autoStore: StoreAccount = {
+            id: targetStoreId,
+            name: 'Toko Saya',
+            ownerName: '-',
+            categoryOrType: 'Toko Kelontong',
+            createdAt: nowIso,
+          };
+          await dataService.createStore(autoStore);
+          setStores([autoStore]);
+          setActiveStoreId(targetStoreId);
+          setProductsMap((prev) => ({ ...prev, [targetStoreId]: [] }));
+          setTransactionsMap((prev) => ({ ...prev, [targetStoreId]: [] }));
+        }
+
         let savedProduct: Product;
 
         if (isEdit) {
@@ -668,18 +686,24 @@ export default function App() {
           };
         }
 
-        const ok = await dataService.upsertProduct(activeStoreId, savedProduct);
+        const ok = await dataService.upsertProduct(targetStoreId, savedProduct);
         if (ok) {
           if (isEdit) {
-            setStoreProducts((prev) =>
-              prev.map((p) => (p.id === savedProduct.id ? savedProduct : p))
-            );
+            setProductsMap((prevMap) => ({
+              ...prevMap,
+              [targetStoreId]: (prevMap[targetStoreId] || []).map((p) =>
+                p.id === savedProduct.id ? savedProduct : p
+              ),
+            }));
             showSuccessPopup(
               'Data Barang Diperbarui!',
               `Rincian barang "${savedProduct.name}" telah berhasil diperbarui di Database.`
             );
           } else {
-            setStoreProducts((prev) => [savedProduct, ...prev]);
+            setProductsMap((prevMap) => ({
+              ...prevMap,
+              [targetStoreId]: [savedProduct, ...(prevMap[targetStoreId] || [])],
+            }));
             showSuccessPopup(
               'Barang Baru Ditambahkan!',
               `"${savedProduct.name}" berhasil ditambahkan dan tersimpan di Database.`

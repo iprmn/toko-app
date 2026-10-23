@@ -1,11 +1,6 @@
 import { Product, StoreAccount, Transaction } from '../types/store';
-import {
-  SAMPLE_STORES,
-  SAMPLE_PRODUCTS_BY_STORE,
-  getSampleTransactionsByStore,
-} from '../../server/seedData';
 
-const DB_NAME = 'toko_app_device_db_v1';
+const DB_NAME = 'toko_app_db_v2';
 const DB_VERSION = 1;
 
 interface StoredProduct extends Product {
@@ -67,52 +62,6 @@ function openDeviceDb(): Promise<IDBDatabase> {
   return cachedDbPromise;
 }
 
-async function seedDeviceDbIfEmpty(db: IDBDatabase): Promise<void> {
-  const existingStores = await new Promise<StoreAccount[]>((resolve, reject) => {
-    const tx = db.transaction('stores', 'readonly');
-    const req = tx.objectStore('stores').getAll();
-    req.onsuccess = () => resolve(req.result || []);
-    req.onerror = () => reject(req.error);
-  });
-
-  if (existingStores.length > 0) return;
-
-  const sampleTxsByStore = getSampleTransactionsByStore();
-
-  await new Promise<void>((resolve, reject) => {
-    const tx = db.transaction(
-      ['app_settings', 'stores', 'products', 'transactions'],
-      'readwrite'
-    );
-
-    tx.objectStore('app_settings').put({ key: 'active_store_id', value: 'store-1' });
-
-    const storesOs = tx.objectStore('stores');
-    for (const s of SAMPLE_STORES) {
-      storesOs.put(s);
-    }
-
-    const productsOs = tx.objectStore('products');
-    for (const [storeId, products] of Object.entries(SAMPLE_PRODUCTS_BY_STORE)) {
-      for (const p of products) {
-        const record: StoredProduct = { ...p, storeId };
-        productsOs.put(record);
-      }
-    }
-
-    const txsOs = tx.objectStore('transactions');
-    for (const [storeId, txs] of Object.entries(sampleTxsByStore)) {
-      for (const t of txs) {
-        const record: StoredTransaction = { ...t, status: t.status || 'completed', storeId };
-        txsOs.put(record);
-      }
-    }
-
-    tx.oncomplete = () => resolve();
-    tx.onerror = () => reject(tx.error);
-  });
-}
-
 export const deviceDb = {
   async bootstrap(): Promise<{
     stores: StoreAccount[];
@@ -122,7 +71,6 @@ export const deviceDb = {
     transactionsMap: { [storeId: string]: Transaction[] };
   }> {
     const db = await openDeviceDb();
-    await seedDeviceDbIfEmpty(db);
 
     return new Promise((resolve, reject) => {
       const tx = db.transaction(
@@ -140,8 +88,11 @@ export const deviceDb = {
         const stores: StoreAccount[] = (storesReq.result || []).sort((a, b) =>
           a.createdAt.localeCompare(b.createdAt)
         );
-        const activeStoreId: string =
-          activeReq.result?.value || stores[0]?.id || 'store-1';
+        const validActiveId =
+          activeReq.result?.value && stores.some((s) => s.id === activeReq.result.value)
+            ? activeReq.result.value
+            : stores[0]?.id || '';
+        const activeStoreId: string = validActiveId;
         const parsedFont = Number(fontReq.result?.value);
         const fontSizeLevel: number =
           parsedFont >= 1 && parsedFont <= 4 ? parsedFont : 2;

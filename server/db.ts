@@ -2,7 +2,6 @@ import { DatabaseSync } from 'node:sqlite';
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { SAMPLE_STORES, SAMPLE_PRODUCTS_BY_STORE, getSampleTransactionsByStore } from './seedData';
 import { Product, StoreAccount, Transaction, TransactionItem } from '../src/types/store';
 
 const __filename = fileURLToPath(import.meta.url);
@@ -13,7 +12,7 @@ if (!fs.existsSync(DB_DIR)) {
   fs.mkdirSync(DB_DIR, { recursive: true });
 }
 
-export const DB_PATH = path.join(DB_DIR, 'toko.db');
+export const DB_PATH = path.join(DB_DIR, 'toko_clean.db');
 
 const db = new DatabaseSync(DB_PATH);
 
@@ -91,122 +90,19 @@ try {
 }
 
 export function seedDatabaseIfEmpty() {
-  const countRow = db.prepare('SELECT COUNT(*) as count FROM stores').get() as { count: number };
-  if (countRow && countRow.count > 0) {
-    return;
-  }
-
-  console.log('[DB] Seeding initial sample data into SQLite database...');
-  db.exec('BEGIN TRANSACTION;');
-  try {
-    const insertSetting = db.prepare('INSERT OR REPLACE INTO app_settings (key, value) VALUES (?, ?)');
-    insertSetting.run('active_store_id', 'store-1');
-
-    const insertStore = db.prepare(`
-      INSERT INTO stores (id, name, owner_name, category_or_type, tagline, logo_url, created_at)
-      VALUES (?, ?, ?, ?, ?, ?, ?)
-    `);
-
-    for (const s of SAMPLE_STORES) {
-      insertStore.run(
-        s.id,
-        s.name,
-        s.ownerName,
-        s.categoryOrType,
-        s.tagline ?? null,
-        s.logoUrl ?? null,
-        s.createdAt
-      );
-    }
-
-    const insertProduct = db.prepare(`
-      INSERT INTO products (
-        id, store_id, name, category, sell_price, buy_price, stock, min_stock,
-        unit, barcode, image_url, shelf, icon_type, bg_color, updated_at
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-    `);
-
-    for (const [storeId, products] of Object.entries(SAMPLE_PRODUCTS_BY_STORE)) {
-      for (const p of products) {
-        insertProduct.run(
-          p.id,
-          storeId,
-          p.name,
-          p.category,
-          p.sellPrice,
-          p.buyPrice,
-          p.stock,
-          p.minStock,
-          p.unit,
-          p.barcode ?? null,
-          p.imageUrl ?? null,
-          p.shelf ?? null,
-          p.iconType,
-          p.bgColor,
-          p.updatedAt
-        );
-      }
-    }
-
-    const insertTx = db.prepare(`
-      INSERT INTO transactions (
-        id, store_id, timestamp, total_amount, total_profit, cash_paid, change_amount, notes, status
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
-    `);
-
-    const insertTxItem = db.prepare(`
-      INSERT INTO transaction_items (
-        transaction_id, product_id, product_name, sell_price, buy_price, quantity, unit
-      ) VALUES (?, ?, ?, ?, ?, ?, ?)
-    `);
-
-    const sampleTxsByStore = getSampleTransactionsByStore();
-    for (const [storeId, txs] of Object.entries(sampleTxsByStore)) {
-      for (const tx of txs) {
-        insertTx.run(
-          tx.id,
-          storeId,
-          tx.timestamp,
-          tx.totalAmount,
-          tx.totalProfit,
-          tx.cashPaid,
-          tx.change,
-          tx.notes ?? null,
-          tx.status || 'completed'
-        );
-        for (const item of tx.items) {
-          insertTxItem.run(
-            tx.id,
-            item.productId,
-            item.productName,
-            item.sellPrice,
-            item.buyPrice,
-            item.quantity,
-            item.unit
-          );
-        }
-      }
-    }
-
-    db.exec('COMMIT;');
-    console.log('[DB] Sample data seeded successfully.');
-  } catch (err) {
-    db.exec('ROLLBACK;');
-    console.error('[DB] Error seeding database:', err);
-    throw err;
-  }
+  // Default database starts completely empty (0 stores, 0 products, 0 transactions)
 }
-
-// Automatically seed on startup if empty
-seedDatabaseIfEmpty();
 
 // --- Data Access Helpers ---
 
 export function getActiveStoreId(): string {
   const row = db.prepare('SELECT value FROM app_settings WHERE key = ?').get('active_store_id') as { value: string } | undefined;
-  if (row?.value) return row.value;
   const firstStore = db.prepare('SELECT id FROM stores ORDER BY created_at ASC LIMIT 1').get() as { id: string } | undefined;
-  return firstStore?.id || 'store-1';
+  if (row?.value) {
+    const exists = db.prepare('SELECT id FROM stores WHERE id = ?').get(row.value) as { id: string } | undefined;
+    if (exists) return row.value;
+  }
+  return firstStore?.id || '';
 }
 
 export function setActiveStoreIdInDb(storeId: string): void {

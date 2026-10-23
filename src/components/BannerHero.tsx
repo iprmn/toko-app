@@ -115,10 +115,12 @@ export const BannerHero: React.FC<BannerHeroProps> = ({
 
                 <div className="min-w-0">
                   <h1 className="text-base sm:text-lg font-black text-white truncate tracking-tight leading-snug">
-                    {activeStore?.name || 'Toko Saya'}
+                    {activeStore?.name || 'Belum Ada Toko'}
                   </h1>
                   <p className="text-xs text-emerald-100/90 font-medium truncate leading-normal">
-                    {activeStore?.categoryOrType || 'Toko Kelontong'} · ({stores.length}/3 toko)
+                    {activeStore
+                      ? `${activeStore.categoryOrType || 'Toko Kelontong'} · (${stores.length}/3 toko)`
+                      : `Ketuk untuk tambah toko · (0/3 toko)`}
                   </p>
                 </div>
               </div>
@@ -232,58 +234,64 @@ export const BannerHero: React.FC<BannerHeroProps> = ({
             </div>
 
             <div className="space-y-2 max-h-[55vh] overflow-y-auto">
-              {stores.map((store) => {
-                const isActive = store.id === activeStoreId;
-                return (
-                  <button
-                    key={store.id}
-                    type="button"
-                    onClick={() => {
-                      onSelectStore(store.id);
-                      setIsStoreModalOpen(false);
-                    }}
-                    className={`w-full p-3 sm:p-3.5 rounded-xl flex items-center justify-between text-left transition-all cursor-pointer border ${
-                      isActive
-                        ? 'bg-emerald-50 text-emerald-900 font-bold border-emerald-200/80 shadow-2xs'
-                        : 'hover:bg-slate-50 text-slate-700 border-slate-100'
-                    }`}
-                  >
-                    <div className="flex items-center gap-3 min-w-0">
-                      <div
-                        className={`w-10 h-10 rounded-xl flex items-center justify-center font-bold text-sm shrink-0 overflow-hidden ${
-                          isActive
-                            ? 'bg-emerald-700 text-white'
-                            : 'bg-slate-100 text-slate-600'
-                        }`}
-                      >
-                        {store.logoUrl ? (
-                          <img
-                            src={store.logoUrl}
-                            alt={store.name}
-                            className="w-full h-full object-cover"
-                          />
-                        ) : (
-                          <Store className="w-5 h-5" />
-                        )}
-                      </div>
-                      <div className="min-w-0">
-                        <div className="text-sm sm:text-base font-bold truncate leading-snug">
-                          {store.name}
+              {stores.length === 0 ? (
+                <div className="py-5 px-3 text-center rounded-2xl bg-slate-50 border border-dashed border-slate-200 text-xs sm:text-sm text-slate-500 font-medium">
+                  Belum ada toko terdaftar. Silakan tambah toko baru di bawah ini.
+                </div>
+              ) : (
+                stores.map((store) => {
+                  const isActive = store.id === activeStoreId;
+                  return (
+                    <button
+                      key={store.id}
+                      type="button"
+                      onClick={() => {
+                        onSelectStore(store.id);
+                        setIsStoreModalOpen(false);
+                      }}
+                      className={`w-full p-3 sm:p-3.5 rounded-xl flex items-center justify-between text-left transition-all cursor-pointer border ${
+                        isActive
+                          ? 'bg-emerald-50 text-emerald-900 font-bold border-emerald-200/80 shadow-2xs'
+                          : 'hover:bg-slate-50 text-slate-700 border-slate-100'
+                      }`}
+                    >
+                      <div className="flex items-center gap-3 min-w-0">
+                        <div
+                          className={`w-10 h-10 rounded-xl flex items-center justify-center font-bold text-sm shrink-0 overflow-hidden ${
+                            isActive
+                              ? 'bg-emerald-700 text-white'
+                              : 'bg-slate-100 text-slate-600'
+                          }`}
+                        >
+                          {store.logoUrl ? (
+                            <img
+                              src={store.logoUrl}
+                              alt={store.name}
+                              className="w-full h-full object-cover"
+                            />
+                          ) : (
+                            <Store className="w-5 h-5" />
+                          )}
                         </div>
-                        <div className="text-xs sm:text-sm text-slate-500 truncate leading-snug mt-0.5">
-                          {store.categoryOrType || 'Usaha Toko'}
+                        <div className="min-w-0">
+                          <div className="text-sm sm:text-base font-bold truncate leading-snug">
+                            {store.name}
+                          </div>
+                          <div className="text-xs sm:text-sm text-slate-500 truncate leading-snug mt-0.5">
+                            {store.categoryOrType || 'Usaha Toko'}
+                          </div>
                         </div>
                       </div>
-                    </div>
 
-                    {isActive && (
-                      <div className="w-6 h-6 rounded-full bg-emerald-700 text-white flex items-center justify-center shrink-0 ml-2">
-                        <Check className="w-3.5 h-3.5 stroke-[3]" />
-                      </div>
-                    )}
-                  </button>
-                );
-              })}
+                      {isActive && (
+                        <div className="w-6 h-6 rounded-full bg-emerald-700 text-white flex items-center justify-center shrink-0 ml-2">
+                          <Check className="w-3.5 h-3.5 stroke-[3]" />
+                        </div>
+                      )}
+                    </button>
+                  );
+                })
+              )}
             </div>
 
             {stores.length < 3 && (
