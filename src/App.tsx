@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo, useCallback } from 'react';
+import React, { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import { BannerHero } from './components/BannerHero';
 import { CategoryFilter } from './components/CategoryFilter';
 import { ProductCard } from './components/ProductCard';
@@ -112,11 +112,15 @@ export default function App() {
 
   // Toast feedback state (for quick non-blocking actions like +1 cart or quick stepper)
   const [toastMessage, setToastMessage] = useState<string | null>(null);
+  const toastTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const showToast = (msg: string) => {
     setToastMessage(msg);
-    setTimeout(() => {
-      setToastMessage((current) => (current === msg ? null : current));
+    if (toastTimerRef.current) {
+      clearTimeout(toastTimerRef.current);
+    }
+    toastTimerRef.current = setTimeout(() => {
+      setToastMessage(null);
     }, 2400);
   };
 
@@ -458,13 +462,21 @@ export default function App() {
       return;
     }
 
+    const existing = cart.find((item) => item.product.id === product.id);
+    if (existing && existing.quantity >= product.stock) {
+      if (soundEnabled) playSound.warning();
+      showToast(`Maksimal stok tersedia (${product.stock} ${product.unit})`);
+      return;
+    }
+
     if (soundEnabled) playSound.tap();
 
+    const nextQty = existing ? existing.quantity + 1 : 1;
+
     setCart((prev) => {
-      const existing = prev.find((item) => item.product.id === product.id);
-      if (existing) {
-        if (existing.quantity >= product.stock) {
-          showToast(`Maksimal stok tersedia (${product.stock} ${product.unit})`);
+      const currentExisting = prev.find((item) => item.product.id === product.id);
+      if (currentExisting) {
+        if (currentExisting.quantity >= product.stock) {
           return prev;
         }
         return prev.map((item) =>
@@ -475,7 +487,7 @@ export default function App() {
       }
     });
 
-    showToast(`+1 ${product.name} dimasukkan ke kasir`);
+    showToast(`+${nextQty} ${product.name} dimasukkan ke keranjang`);
   };
 
   const handleUpdateCartQuantity = (productId: string, quantity: number) => {
@@ -822,18 +834,23 @@ export default function App() {
                 </div>
               ) : (
                 <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-2 sm:gap-4 items-end">
-                  {filteredProducts.map((product) => (
-                    <ProductCard
-                      key={product.id}
-                      product={product}
-                      onAddToCart={handleAddToCart}
-                      onRestockProduct={(p) => {
-                        if (soundEnabled) playSound.tap();
-                        setRestockProductId(p.id);
-                        setIsRestockModalOpen(true);
-                      }}
-                    />
-                  ))}
+                  {filteredProducts.map((product) => {
+                    const inCartQty =
+                      cart.find((item) => item.product.id === product.id)?.quantity || 0;
+                    return (
+                      <ProductCard
+                        key={product.id}
+                        product={product}
+                        cartQuantity={inCartQty}
+                        onAddToCart={handleAddToCart}
+                        onRestockProduct={(p) => {
+                          if (soundEnabled) playSound.tap();
+                          setRestockProductId(p.id);
+                          setIsRestockModalOpen(true);
+                        }}
+                      />
+                    );
+                  })}
                 </div>
               )}
             </div>

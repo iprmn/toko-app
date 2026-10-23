@@ -213,7 +213,7 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
               Keranjang Masih Kosong
             </h3>
             <p className="text-xs text-slate-500 mt-1 max-w-xs">
-              Pilih barang di etalase dan tekan tombol "Jual" untuk mencatat transaksi.
+              Pilih barang di etalase dan tekan tombol "Keranjangin" untuk mencatat transaksi.
             </p>
             <button
               type="button"
@@ -238,21 +238,21 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
                 return (
                   <div
                     key={item.product.id}
-                    className="p-3 rounded-2xl bg-slate-50 border border-slate-100 flex items-center justify-between gap-2.5"
+                    className="p-3 rounded-2xl bg-slate-50 border border-slate-100 flex items-center justify-between gap-3"
                   >
-                    {/* Item Title & Unit Price */}
-                    <div className="min-w-0 flex-1">
-                      <h4 className="text-xs sm:text-sm font-bold text-slate-900 leading-snug break-words">
-                        {item.product.name}
-                      </h4>
-                      <div className="text-[11px] sm:text-xs text-slate-500 font-medium mt-0.5">
-                        {formatRupiah(item.product.sellPrice)} / {item.product.unit}
+                    {/* Kiri: Judul Barang, Harga Jual, dan Input Jumlah di Bawah Harga Jual */}
+                    <div className="min-w-0 flex-1 space-y-2">
+                      <div>
+                        <h4 className="text-xs sm:text-sm font-bold text-slate-900 leading-snug break-words">
+                          {item.product.name}
+                        </h4>
+                        <div className="text-[11px] sm:text-xs text-slate-500 font-medium mt-0.5">
+                          {formatRupiah(item.product.sellPrice)} / {item.product.unit}
+                        </div>
                       </div>
-                    </div>
 
-                    {/* Quantity Stepper (Manual Input + Buttons) & Subtotal */}
-                    <div className="flex items-center gap-2.5 shrink-0">
-                      <div className="flex items-center bg-white rounded-xl border border-slate-200 p-0.5 shadow-2xs">
+                      {/* Quantity Stepper (Manual Input + Buttons) di bawah harga jual */}
+                      <div className="inline-flex items-center bg-white rounded-xl border border-slate-200 p-0.5 shadow-2xs">
                         <button
                           type="button"
                           onClick={() => {
@@ -332,11 +332,12 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
                           <Plus className="w-3.5 h-3.5" />
                         </button>
                       </div>
+                    </div>
 
-                      <div className="text-right min-w-[72px]">
-                        <div className="text-xs sm:text-sm font-black text-slate-900 tabular-nums">
-                          {formatRupiah(itemSubtotal)}
-                        </div>
+                    {/* Kanan: Subtotal Harga */}
+                    <div className="text-right shrink-0">
+                      <div className="text-xs sm:text-sm font-black text-slate-900 tabular-nums">
+                        {formatRupiah(itemSubtotal)}
                       </div>
                     </div>
                   </div>
