@@ -1,31 +1,26 @@
 @import "tailwindcss";
 
-@layer base {
-  body {
-    font-family: 'Plus Jakarta Sans', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
-    -webkit-tap-highlight-color: transparent;
-    background-color: #e9eee7;
-    color: #0f172a;
-    line-height: 1.625;
-    letter-spacing: -0.01em;
-  }
-
-  h1, h2, h3, h4, h5, h6 {
-    line-height: 1.35;
-    letter-spacing: -0.02em;
-  }
-
-  p, span, label, input, button {
-    letter-spacing: -0.01em;
+/* Scale up all font sizes by 1 step on Mobile & Tablet devices (< 1024px) for better visibility */
+@media (max-width: 1023px) {
+  html {
+    font-size: 18px;
   }
 }
 
-/* Hide scrollbar for category horizontal carousel */
-.no-scrollbar::-webkit-scrollbar {
-  display: none;
+html,
+body {
+  touch-action: pan-x pan-y;
+  -webkit-text-size-adjust: 100%;
+  overscroll-behavior-x: none;
 }
 
-.no-scrollbar {
-  -ms-overflow-style: none;
-  scrollbar-width: none;
+/* Custom utility to hide scrollbars on category filter tabs */
+@layer utilities {
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+  .no-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
 }

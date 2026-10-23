@@ -20,6 +20,7 @@ function sqliteApiPlugin(): Plugin {
 
 export default defineConfig(() => {
   return {
+    base: './',
     plugins: [react(), tailwindcss(), sqliteApiPlugin()],
     resolve: {
       alias: {
@@ -27,6 +28,8 @@ export default defineConfig(() => {
       },
     },
     server: {
+      host: true,
+      allowedHosts: true,
       hmr: process.env.DISABLE_HMR !== 'true',
       watch:
         process.env.DISABLE_HMR === 'true'

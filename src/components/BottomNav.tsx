@@ -1,5 +1,5 @@
 import React from 'react';
-import { ShoppingCart, LayoutGrid, Package, History, Store } from 'lucide-react';
+import { Store, Package, ShoppingCart, ClipboardList, Settings } from 'lucide-react';
 import { formatRupiah } from '../utils/format';
 
 interface BottomNavProps {
@@ -19,86 +19,95 @@ export const BottomNav: React.FC<BottomNavProps> = ({
 }) => {
   return (
     <>
-      {/* Floating Action Button (Earth Green Circular Cart Button) */}
-      <div className="fixed bottom-20 right-4 sm:right-8 z-40">
-        <button
-          type="button"
-          onClick={onOpenCart}
-          className="relative w-15 h-15 sm:w-16 sm:h-16 rounded-full bg-emerald-700 hover:bg-emerald-800 active:scale-90 text-white shadow-xl shadow-emerald-900/30 flex items-center justify-center transition-all cursor-pointer border-2 border-white"
-          title="Buka Kasir / Keranjang"
-          aria-label="Keranjang Kasir"
-        >
-          <ShoppingCart className="w-7 h-7" />
+      {/* Floating Cart Bar (Muncul saat ada barang di keranjang kasir) */}
+      {cartItemCount > 0 && (
+        <div className="fixed bottom-20 left-0 right-0 z-30 px-4 pointer-events-none">
+          <div className="max-w-lg mx-auto pointer-events-auto">
+            <button
+              type="button"
+              onClick={onOpenCart}
+              className="w-full p-3.5 sm:p-4 bg-emerald-900 hover:bg-emerald-950 text-white rounded-2xl shadow-xl shadow-emerald-950/30 flex items-center justify-between transition-all active:scale-98 cursor-pointer border border-emerald-700"
+            >
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-xl bg-amber-400 text-amber-950 font-black text-base flex items-center justify-center shadow-xs">
+                  {cartItemCount}
+                </div>
+                <div className="text-left">
+                  <div className="text-xs font-semibold text-emerald-200 uppercase tracking-wider">
+                    Keranjang Kasir Aktif
+                  </div>
+                  <div className="text-base sm:text-lg font-black text-white tabular-nums">
+                    {formatRupiah(cartTotalAmount)}
+                  </div>
+                </div>
+              </div>
 
-          {/* Cart Count Badge */}
-          {cartItemCount > 0 && (
-            <span className="absolute -top-1 -right-1 min-w-[22px] h-[22px] px-1 bg-amber-400 text-slate-950 font-black text-xs rounded-full flex items-center justify-center border-2 border-white shadow-sm animate-bounce">
-              {cartItemCount}
-            </span>
-          )}
-        </button>
-
-        {/* Small floating subtotal pill if cart has items */}
-        {cartItemCount > 0 && (
-          <div
-            onClick={onOpenCart}
-            className="hidden sm:block absolute -top-8 right-0 bg-slate-900 text-white text-[11px] font-bold px-2.5 py-0.5 rounded-full whitespace-nowrap shadow-md cursor-pointer"
-          >
-            {formatRupiah(cartTotalAmount)}
+              <div className="flex items-center gap-2 bg-white text-emerald-950 px-3.5 py-2 rounded-xl font-bold text-xs sm:text-sm shadow-xs">
+                <ShoppingCart className="w-4 h-4 text-emerald-800" />
+                <span>Bayar / Hitung</span>
+              </div>
+            </button>
           </div>
-        )}
-      </div>
+        </div>
+      )}
 
-      {/* Fixed Bottom Bar on Mobile/Tablet */}
-      <nav className="fixed bottom-0 left-0 right-0 z-30 bg-white/95 backdrop-blur-md border-t border-slate-200/90 shadow-lg">
-        <div className="max-w-md mx-auto grid grid-cols-4 items-center h-16 px-2">
-          
-          {/* Tab 1: Etalase / Kasir */}
+      {/* Main Bottom Navigation Bar (4 Main Tabs) */}
+      <nav className="fixed bottom-0 left-0 right-0 z-30 bg-white/95 backdrop-blur-md border-t border-stone-200/80 shadow-lg">
+        <div className="max-w-lg mx-auto px-2 h-16 grid grid-cols-4 gap-1 items-center">
+          {/* 1. Etalase / Jualan */}
           <button
             type="button"
             onClick={() => onSelectTab('catalog')}
-            className={`flex flex-col items-center justify-center h-full transition-colors cursor-pointer ${
-              activeTab === 'catalog' ? 'text-emerald-800 font-bold' : 'text-slate-500 hover:text-slate-800'
+            className={`h-13 rounded-2xl flex flex-col items-center justify-center gap-0.5 transition-all cursor-pointer ${
+              activeTab === 'catalog'
+                ? 'bg-emerald-50 text-emerald-800 font-bold'
+                : 'text-slate-500 hover:text-slate-900'
             }`}
           >
-            <LayoutGrid className="w-5 h-5 mb-0.5" />
-            <span className="text-[10px] tracking-tight">Etalase</span>
+            <Store className="w-5 h-5" />
+            <span className="text-xs lg:text-[11px] leading-tight">Etalase</span>
           </button>
 
-          {/* Tab 2: Stok Gudang */}
+          {/* 2. Stok Barang */}
           <button
             type="button"
             onClick={() => onSelectTab('inventory')}
-            className={`flex flex-col items-center justify-center h-full transition-colors cursor-pointer ${
-              activeTab === 'inventory' ? 'text-emerald-800 font-bold' : 'text-slate-500 hover:text-slate-800'
+            className={`h-13 rounded-2xl flex flex-col items-center justify-center gap-0.5 transition-all cursor-pointer ${
+              activeTab === 'inventory'
+                ? 'bg-emerald-50 text-emerald-800 font-bold'
+                : 'text-slate-500 hover:text-slate-900'
             }`}
           >
-            <Package className="w-5 h-5 mb-0.5" />
-            <span className="text-[10px] tracking-tight">Stok Barang</span>
+            <Package className="w-5 h-5" />
+            <span className="text-xs lg:text-[11px] leading-tight">Stok Barang</span>
           </button>
 
-          {/* Tab 3: Penjualan */}
+          {/* 3. Catatan Kas (7 Hari) */}
           <button
             type="button"
             onClick={() => onSelectTab('history')}
-            className={`flex flex-col items-center justify-center h-full transition-colors cursor-pointer ${
-              activeTab === 'history' ? 'text-emerald-800 font-bold' : 'text-slate-500 hover:text-slate-800'
+            className={`h-13 rounded-2xl flex flex-col items-center justify-center gap-0.5 transition-all cursor-pointer ${
+              activeTab === 'history'
+                ? 'bg-emerald-50 text-emerald-800 font-bold'
+                : 'text-slate-500 hover:text-slate-900'
             }`}
           >
-            <History className="w-5 h-5 mb-0.5" />
-            <span className="text-[10px] tracking-tight">Penjualan</span>
+            <ClipboardList className="w-5 h-5" />
+            <span className="text-xs lg:text-[11px] leading-tight">Catatan Kas</span>
           </button>
 
-          {/* Tab 4: Info Toko */}
+          {/* 4. Pengaturan & Multi-Toko */}
           <button
             type="button"
             onClick={() => onSelectTab('settings')}
-            className={`flex flex-col items-center justify-center h-full transition-colors cursor-pointer ${
-              activeTab === 'settings' ? 'text-emerald-800 font-bold' : 'text-slate-500 hover:text-slate-800'
+            className={`h-13 rounded-2xl flex flex-col items-center justify-center gap-0.5 transition-all cursor-pointer ${
+              activeTab === 'settings'
+                ? 'bg-emerald-50 text-emerald-800 font-bold'
+                : 'text-slate-500 hover:text-slate-900'
             }`}
           >
-            <Store className="w-5 h-5 mb-0.5" />
-            <span className="text-[10px] tracking-tight">Toko Saya</span>
+            <Settings className="w-5 h-5" />
+            <span className="text-xs lg:text-[11px] leading-tight">Kelola Toko</span>
           </button>
         </div>
       </nav>

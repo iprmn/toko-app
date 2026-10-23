@@ -1,14 +1,34 @@
-import React, { useState, useMemo } from 'react';
-import { TrendingUp, Calendar, Copy, Trash2, ArrowLeft, BarChart3, Clock, Coins, ShoppingBag, CheckCircle, ChevronDown, ChevronUp } from 'lucide-react';
+import React, { useMemo } from 'react';
+import {
+  TrendingUp,
+  Calendar,
+  Trash2,
+  Clock,
+  Receipt,
+  Copy,
+  BarChart3,
+  ShieldCheck,
+  ArrowLeft,
+} from 'lucide-react';
 import { Transaction } from '../types/store';
-import { formatRupiah, formatDateIndo, formatTime } from '../utils/format';
+import { formatRupiah } from '../utils/format';
 
 interface SalesHistoryViewProps {
   transactions: Transaction[];
   onClearHistory: () => void;
   storeName: string;
-  onBackToCatalog?: () => void;
+  onBackToCatalog: () => void;
 }
+
+const MONDAY_TO_SUNDAY = [
+  { dayOfWeek: 1, dayLabel: 'Sen', fullDayName: 'Senin' },
+  { dayOfWeek: 2, dayLabel: 'Sel', fullDayName: 'Selasa' },
+  { dayOfWeek: 3, dayLabel: 'Rab', fullDayName: 'Rabu' },
+  { dayOfWeek: 4, dayLabel: 'Kam', fullDayName: 'Kamis' },
+  { dayOfWeek: 5, dayLabel: 'Jum', fullDayName: 'Jumat' },
+  { dayOfWeek: 6, dayLabel: 'Sab', fullDayName: 'Sabtu' },
+  { dayOfWeek: 0, dayLabel: 'Min', fullDayName: 'Minggu' },
+];
 
 export const SalesHistoryView: React.FC<SalesHistoryViewProps> = ({
   transactions,
@@ -16,461 +36,340 @@ export const SalesHistoryView: React.FC<SalesHistoryViewProps> = ({
   storeName,
   onBackToCatalog,
 }) => {
-  const [selectedDayIndex, setSelectedDayIndex] = useState<number | null>(null);
-  const [expandedTxIds, setExpandedTxIds] = useState<string[]>([]);
+  const todayStr = new Date().toDateString();
 
-  const toggleTxExpand = (id: string) => {
-    setExpandedTxIds((prev) =>
-      prev.includes(id) ? prev.filter((item) => item !== id) : [...prev, id]
-    );
-  };
+  // Filter today's transactions
+  const todayTransactions = useMemo(
+    () => transactions.filter((t) => new Date(t.timestamp).toDateString() === todayStr),
+    [transactions, todayStr]
+  );
 
-  // 1. Enforce 7-day limit: Transactions within the last 7 days only
-  const now = new Date();
-  const SEVEN_DAYS_MS = 7 * 24 * 60 * 60 * 1000;
+  const todayRevenue = todayTransactions.reduce((sum, t) => sum + t.totalAmount, 0);
+  const todayProfit = todayTransactions.reduce((sum, t) => sum + t.totalProfit, 0);
 
-  const valid7DaysTransactions = useMemo(() => {
-    const cutoff = Date.now() - SEVEN_DAYS_MS;
-    return transactions.filter((t) => {
-      const time = new Date(t.timestamp).getTime();
-      return time >= cutoff && time <= Date.now() + 60000;
-    });
-  }, [transactions, SEVEN_DAYS_MS]);
+  const weekRevenue = transactions.reduce((sum, t) => sum + t.totalAmount, 0);
+  const weekProfit = transactions.reduce((sum, t) => sum + t.totalProfit, 0);
 
-  // 2. Prepare 7 daily buckets for the visual chart (from 6 days ago up to today)
-  const last7DaysData = useMemo(() => {
-    const days = [];
-    for (let i = 6; i >= 0; i--) {
-      const d = new Date();
-      d.setDate(d.getDate() - i);
-      const dateStr = d.toDateString();
+  // Build 7-day daily chart buckets ordered from Monday (Senin) to Sunday (Minggu) by default
+  const dailyStats = useMemo(() => {
+    const now = new Date();
+    const currentDayOfWeek = now.getDay(); // 0 (Min) .. 6 (Sab)
+    // Calculate Monday of the current week
+    const diffToMonday = currentDayOfWeek === 0 ? -6 : 1 - currentDayOfWeek;
+    const monday = new Date(now);
+    monday.setDate(now.getDate() + diffToMonday);
+    monday.setHours(0, 0, 0, 0);
 
-      // Find transactions on this specific date
-      const dayTransactions = valid7DaysTransactions.filter(
-        (t) => new Date(t.timestamp).toDateString() === dateStr
+    return MONDAY_TO_SUNDAY.map((dayInfo, idx) => {
+      const targetDate = new Date(monday);
+      targetDate.setDate(monday.getDate() + idx);
+
+      const dateLabel = `${targetDate.getDate()}/${targetDate.getMonth() + 1}`;
+      const isToday = currentDayOfWeek === dayInfo.dayOfWeek;
+
+      // Match transactions falling on this day of the week within the 7-day window
+      const dayTxs = transactions.filter(
+        (t) => new Date(t.timestamp).getDay() === dayInfo.dayOfWeek
       );
+      const revenue = dayTxs.reduce((sum, t) => sum + t.totalAmount, 0);
+      const profit = dayTxs.reduce((sum, t) => sum + t.totalProfit, 0);
 
-      const dayRevenue = dayTransactions.reduce((acc, t) => acc + t.totalAmount, 0);
-      const dayProfit = dayTransactions.reduce((acc, t) => acc + t.totalProfit, 0);
+      return {
+        dateStr: targetDate.toDateString(),
+        dayLabel: dayInfo.dayLabel,
+        fullDayName: dayInfo.fullDayName,
+        dateLabel,
+        revenue,
+        profit,
+        count: dayTxs.length,
+        isToday,
+      };
+    });
+  }, [transactions]);
 
-      // Short day name in Indonesian
-      const dayNames = ['Min', 'Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab'];
-      const shortDayName = i === 0 ? 'Hari Ini' : i === 1 ? 'Kemarin' : dayNames[d.getDay()];
-      const dayDateLabel = `${d.getDate()}/${d.getMonth() + 1}`;
-
-      days.push({
-        index: 6 - i,
-        date: d,
-        dateStr,
-        dayName: shortDayName,
-        dayDateLabel,
-        revenue: dayRevenue,
-        profit: dayProfit,
-        transactionCount: dayTransactions.length,
-        transactions: dayTransactions,
-      });
-    }
-    return days;
-  }, [valid7DaysTransactions]);
-
-  // Max daily revenue to calculate chart bar percentages
-  const maxRevenue = useMemo(() => {
-    const max = Math.max(...last7DaysData.map((d) => d.revenue));
-    return max > 0 ? max : 100000; // minimum baseline
-  }, [last7DaysData]);
-
-  // Total 7 days metrics
-  const total7DayRevenue = useMemo(() => {
-    return valid7DaysTransactions.reduce((acc, t) => acc + t.totalAmount, 0);
-  }, [valid7DaysTransactions]);
-
-  const total7DayProfit = useMemo(() => {
-    return valid7DaysTransactions.reduce((acc, t) => acc + t.totalProfit, 0);
-  }, [valid7DaysTransactions]);
-
-  const averageDailyRevenue = Math.round(total7DayRevenue / 7);
-
-  // Active filtered transactions (either all 7 days or one selected day)
-  const displayedTransactions = useMemo(() => {
-    if (selectedDayIndex !== null && last7DaysData[selectedDayIndex]) {
-      return last7DaysData[selectedDayIndex].transactions;
-    }
-    return valid7DaysTransactions;
-  }, [selectedDayIndex, last7DaysData, valid7DaysTransactions]);
-
-  // Copy WhatsApp summary report
-  const handleCopyReport = () => {
-    const isTodayOnly = selectedDayIndex === 6;
-    const title = isTodayOnly ? 'LAPORAN PENJUALAN HARI INI' : 'LAPORAN KAS & PENJUALAN 7 HARI';
-    
-    const lines = [
-      `📊 *${title}*`,
-      `🏪 Toko: ${storeName}`,
-      `📅 Tanggal: ${formatDateIndo(new Date().toISOString())}`,
-      `--------------------------------`,
-      `💰 *Total Omzet Masuk:* ${formatRupiah(selectedDayIndex !== null ? last7DaysData[selectedDayIndex].revenue : total7DayRevenue)}`,
-      `📈 *Estimasi Keuntungan:* ${formatRupiah(selectedDayIndex !== null ? last7DaysData[selectedDayIndex].profit : total7DayProfit)}`,
-      `🧾 *Jumlah Transaksi:* ${displayedTransactions.length} transaksi`,
-      `--------------------------------`,
-      `*Rincian Penjualan Terakhir:*`,
-      ...displayedTransactions.slice(0, 15).map((t, idx) => {
-        const itemNames = t.items.map((i) => `${i.quantity}x ${i.productName}`).join(', ');
-        return `${idx + 1}. [${formatTime(t.timestamp)}] ${formatRupiah(t.totalAmount)} - ${itemNames}`;
-      }),
-    ];
-
-    if (displayedTransactions.length > 15) {
-      lines.push(`...dan ${displayedTransactions.length - 15} transaksi lainnya.`);
-    }
-
-    navigator.clipboard.writeText(lines.join('\n'));
-    alert('Laporan 7 hari berhasil disalin! Siap ditempel ke WhatsApp.');
-  };
+  const maxDailyRevenue = Math.max(...dailyStats.map((d) => d.revenue), 1);
 
   return (
-    <div className="max-w-4xl mx-auto space-y-6 pb-6">
-      
-      {/* Top Page Header Banner */}
-      <div className="bg-white rounded-3xl p-5 sm:p-6 border border-stone-200/90 shadow-sm space-y-4">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-          <div className="flex items-center gap-3">
-            <div className="w-12 h-12 rounded-2xl bg-emerald-800 text-white flex items-center justify-center font-bold text-xl shadow-sm shadow-emerald-950/20 shrink-0">
-              <TrendingUp className="w-6 h-6" />
-            </div>
-            <div>
-              <h2 className="text-lg sm:text-xl font-bold text-slate-900 leading-normal">
-                Penjualan
-              </h2>
-            </div>
+    <div className="space-y-5 pb-6">
+      {/* Page Title & Action Header */}
+      <div className="bg-white rounded-3xl p-4 sm:p-5 border border-stone-200/90 shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+        <div className="flex items-center gap-3">
+          <button
+            type="button"
+            onClick={onBackToCatalog}
+            className="w-10 h-10 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 flex items-center justify-center transition-colors cursor-pointer shrink-0 sm:hidden"
+            title="Kembali ke Etalase"
+          >
+            <ArrowLeft className="w-5 h-5" />
+          </button>
+          <div className="w-11 h-11 rounded-2xl bg-emerald-800 text-white hidden sm:flex items-center justify-center shadow-sm shadow-emerald-950/20 shrink-0">
+            <Receipt className="w-5 h-5" />
           </div>
-
-          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 shrink-0 w-full sm:w-auto">
-            <button
-              type="button"
-              onClick={handleCopyReport}
-              className="h-10 px-3.5 bg-emerald-700 hover:bg-emerald-800 active:scale-95 text-white rounded-xl font-bold text-xs flex items-center justify-center gap-1.5 shadow-sm transition-all cursor-pointer"
-            >
-              <Copy className="w-3.5 h-3.5" />
-              <span>Salin Laporan WA</span>
-            </button>
-            {valid7DaysTransactions.length > 0 && (
-              <button
-                type="button"
-                onClick={onClearHistory}
-                className="w-full sm:w-auto h-10 px-3.5 bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 rounded-xl font-bold text-xs flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
-                title="Kosongkan seluruh riwayat penjualan"
-              >
-                <Trash2 className="w-3.5 h-3.5" />
-                <span>Kosongkan Riwayat</span>
-              </button>
-            )}
-          </div>
-        </div>
-
-        {/* 7-Day Rule Notice Badge */}
-        <div className="bg-amber-50/80 border border-amber-200/90 rounded-2xl p-3 sm:p-3.5 flex items-start gap-2.5">
-          <Clock className="w-4 h-4 text-amber-800 shrink-0 mt-0.5" />
-          <p className="text-xs text-amber-900 font-medium leading-relaxed">
-            <strong>Aturan 7 Hari:</strong> Riwayat transaksi otomatis disimpan dan ditampilkan untuk <strong>7 hari terakhir</strong>. Transaksi yang lebih lama dari 7 hari otomatis direset dari awal agar pencatatan warung tetap rapi dan ringan.
-          </p>
-        </div>
-      </div>
-
-      {/* 4 Metric Summary Cards */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4">
-        
-        {/* Total Omzet 7 Hari */}
-        <div className="bg-white rounded-2xl p-4 sm:p-5 border border-stone-200/90 shadow-sm space-y-1.5">
-          <div className="flex items-center gap-2 text-slate-500 text-xs font-semibold">
-            <Coins className="w-4 h-4 text-emerald-800" />
-            <span>Omzet 7 Hari</span>
-          </div>
-          <div className="text-lg sm:text-xl font-black text-slate-900 tabular-nums leading-normal">
-            {formatRupiah(total7DayRevenue)}
-          </div>
-          <div className="text-[11px] text-slate-400 font-medium leading-normal">
-            Total uang masuk kas
-          </div>
-        </div>
-
-        {/* Total Keuntungan 7 Hari */}
-        <div className="bg-white rounded-2xl p-4 sm:p-5 border border-stone-200/90 shadow-sm space-y-1.5">
-          <div className="flex items-center gap-2 text-emerald-800 text-xs font-bold">
-            <TrendingUp className="w-4 h-4 text-emerald-700" />
-            <span>Untung Bersih</span>
-          </div>
-          <div className="text-lg sm:text-xl font-black text-emerald-800 tabular-nums leading-normal">
-            +{formatRupiah(total7DayProfit)}
-          </div>
-          <div className="text-[11px] text-emerald-600 font-medium leading-normal">
-            Selisih harga jual & modal
-          </div>
-        </div>
-
-        {/* Total Transaksi 7 Hari */}
-        <div className="bg-white rounded-2xl p-4 sm:p-5 border border-stone-200/90 shadow-sm space-y-1.5">
-          <div className="flex items-center gap-2 text-slate-500 text-xs font-semibold">
-            <ShoppingBag className="w-4 h-4 text-indigo-700" />
-            <span>Total Transaksi</span>
-          </div>
-          <div className="text-lg sm:text-xl font-black text-slate-900 tabular-nums leading-normal">
-            {valid7DaysTransactions.length} <span className="text-xs font-normal text-slate-500">kali</span>
-          </div>
-          <div className="text-[11px] text-slate-400 font-medium leading-normal">
-            Aktivitas kasir toko
-          </div>
-        </div>
-
-        {/* Rata-Rata per Hari */}
-        <div className="bg-white rounded-2xl p-4 sm:p-5 border border-stone-200/90 shadow-sm space-y-1.5">
-          <div className="flex items-center gap-2 text-slate-500 text-xs font-semibold">
-            <BarChart3 className="w-4 h-4 text-amber-700" />
-            <span>Rata-Rata / Hari</span>
-          </div>
-          <div className="text-lg sm:text-xl font-black text-slate-900 tabular-nums leading-normal">
-            {formatRupiah(averageDailyRevenue)}
-          </div>
-          <div className="text-[11px] text-slate-400 font-medium leading-normal">
-            Estimasi harian
-          </div>
-        </div>
-      </div>
-
-      {/* 7-Day Visual Sales Chart */}
-      <div className="bg-white rounded-3xl p-5 sm:p-6 border border-stone-200/90 shadow-sm space-y-4">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-100 pb-3">
           <div>
-            <h3 className="text-sm sm:text-base font-bold text-slate-900 leading-normal flex items-center gap-2">
-              <BarChart3 className="w-4 h-4 text-emerald-800" />
-              <span>Grafik Penjualan 7 Hari Terakhir</span>
-            </h3>
-            <p className="text-xs text-slate-500 leading-relaxed">
-              Klik salah satu hari untuk melihat rincian transaksi hari tersebut
+            <div className="flex items-center gap-2 flex-wrap">
+              <h2 className="text-lg sm:text-xl font-black text-slate-900 leading-tight">
+                Laporan Kas & Penjualan
+              </h2>
+              <span className="inline-flex items-center gap-1 text-xs font-bold bg-emerald-100 text-emerald-800 px-2.5 py-0.5 rounded-full">
+                <ShieldCheck className="w-3.5 h-3.5" />
+                Senin – Minggu (7 Hari)
+              </span>
+            </div>
+            <p className="text-xs sm:text-sm text-slate-500 font-medium mt-0.5">
+              Toko Aktif: <strong className="text-slate-700">{storeName}</strong> · Laporan mingguan mulai hari Senin s/d Minggu
             </p>
           </div>
         </div>
 
-        {/* Visual Bar Chart */}
-        <div className="pt-4">
-          <div className="grid grid-cols-7 gap-2 sm:gap-3 items-end h-48 sm:h-56 pb-2">
-            {last7DaysData.map((d, idx) => {
-              const isSelected = selectedDayIndex === idx;
-              const heightPercent = maxRevenue > 0 ? Math.max(12, Math.round((d.revenue / maxRevenue) * 100)) : 12;
-              const hasSales = d.revenue > 0;
-
-              return (
-                <div
-                  key={d.dateStr}
-                  onClick={() => setSelectedDayIndex(isSelected ? null : idx)}
-                  className="flex flex-col items-center h-full justify-end group cursor-pointer"
-                  title={`${d.dayName} (${d.dayDateLabel}): ${formatRupiah(d.revenue)}`}
-                >
-                  {/* Tooltip / Value on top of bar */}
-                  <div
-                    className={`text-[9px] sm:text-[10px] font-bold mb-1.5 transition-all truncate text-center ${
-                      isSelected
-                        ? 'text-emerald-900 scale-105 font-black'
-                        : hasSales
-                        ? 'text-slate-700'
-                        : 'text-slate-300'
-                    }`}
-                  >
-                    {hasSales ? (
-                      d.revenue >= 1000000
-                        ? `${(d.revenue / 1000000).toFixed(1)}jt`
-                        : `${Math.round(d.revenue / 1000)}rb`
-                    ) : (
-                      '0'
-                    )}
-                  </div>
-
-                  {/* Vertical Bar */}
-                  <div className="w-full max-w-[42px] sm:max-w-[50px] bg-slate-100 rounded-t-xl overflow-hidden flex items-end h-full">
-                    <div
-                      style={{ height: `${hasSales ? heightPercent : 6}%` }}
-                      className={`w-full rounded-t-xl transition-all duration-300 ${
-                        isSelected
-                          ? 'bg-emerald-700 ring-2 ring-emerald-900 shadow-md scale-y-[1.02]'
-                          : hasSales
-                          ? 'bg-linear-to-t from-emerald-800 to-emerald-600 group-hover:from-emerald-700 group-hover:to-emerald-500'
-                          : 'bg-slate-200/80'
-                      }`}
-                    />
-                  </div>
-
-                  {/* Day Label Below */}
-                  <div className="mt-2 text-center">
-                    <span
-                      className={`block text-[11px] sm:text-xs font-bold leading-tight ${
-                        isSelected ? 'text-emerald-900' : 'text-slate-800'
-                      }`}
-                    >
-                      {d.dayName}
-                    </span>
-                    <span className="block text-[9px] sm:text-[10px] text-slate-400 font-medium">
-                      {d.dayDateLabel}
-                    </span>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        </div>
-
-        {/* Selected Day Summary Pill */}
-        {selectedDayIndex !== null && (
-          <div className="bg-emerald-50 border border-emerald-200/90 rounded-2xl p-3.5 flex items-center justify-between gap-3 animate-in fade-in duration-150">
-            <div>
-              <span className="text-[11px] font-bold text-emerald-800 uppercase tracking-wider">
-                Hari Terpilih: {last7DaysData[selectedDayIndex].dayName} ({last7DaysData[selectedDayIndex].dayDateLabel})
-              </span>
-              <div className="text-sm font-extrabold text-slate-900 mt-0.5">
-                Omzet: {formatRupiah(last7DaysData[selectedDayIndex].revenue)} · Untung: +{formatRupiah(last7DaysData[selectedDayIndex].profit)}
-              </div>
-            </div>
-            <button
-              type="button"
-              onClick={() => setSelectedDayIndex(null)}
-              className="text-xs bg-white text-emerald-800 font-bold px-3 py-1.5 rounded-xl border border-emerald-200 hover:bg-emerald-100 transition-colors cursor-pointer"
-            >
-              Lihat Semua
-            </button>
-          </div>
+        {transactions.length > 0 && (
+          <button
+            type="button"
+            onClick={onClearHistory}
+            className="self-start sm:self-auto px-3.5 py-2 rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-700 font-bold text-xs sm:text-sm flex items-center gap-1.5 transition-colors cursor-pointer shrink-0"
+          >
+            <Trash2 className="w-4 h-4" />
+            <span>Kosongkan Riwayat</span>
+          </button>
         )}
       </div>
 
-      {/* Transactions List */}
-      <div className="bg-white rounded-3xl p-5 sm:p-6 border border-stone-200/90 shadow-sm space-y-4">
-        <div className="flex items-center justify-between border-b border-slate-100 pb-3">
-          <div>
-            <h3 className="text-sm sm:text-base font-bold text-slate-900 leading-normal">
-              {selectedDayIndex !== null
-                ? `Transaksi: ${last7DaysData[selectedDayIndex].dayName} (${displayedTransactions.length})`
-                : `Semua Transaksi 7 Hari Terakhir (${displayedTransactions.length})`}
-            </h3>
-            <p className="text-xs text-slate-500 leading-relaxed">
-              Daftar struk dan transaksi yang telah selesai di kasir
-            </p>
+      {/* Summary Cards Grid (Hari Ini vs 7 Hari Terakhir) */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+        {/* Card 1: Hari Ini */}
+        <div className="bg-linear-to-br from-emerald-800 to-emerald-950 text-white p-5 rounded-3xl shadow-sm shadow-emerald-950/15 flex flex-col justify-between">
+          <div className="flex items-center justify-between">
+            <span className="text-xs font-bold uppercase tracking-wider text-emerald-200 bg-white/10 px-2.5 py-1 rounded-lg">
+              Hari Ini ({todayTransactions.length} Transaksi)
+            </span>
+            <TrendingUp className="w-5 h-5 text-emerald-300" />
+          </div>
+
+          <div className="my-3">
+            <div className="text-xs sm:text-sm text-emerald-100/80 font-medium">
+              Uang Kas Masuk Hari Ini:
+            </div>
+            <div className="text-2xl sm:text-3xl font-black tracking-tight tabular-nums mt-0.5">
+              {formatRupiah(todayRevenue)}
+            </div>
+          </div>
+
+          <div className="pt-3 border-t border-white/15 flex items-center justify-between text-xs sm:text-sm">
+            <span className="text-emerald-100 font-medium">Perkiraan Untung Bersih:</span>
+            <span className="font-black text-amber-300 text-sm sm:text-base tabular-nums">
+              +{formatRupiah(todayProfit)}
+            </span>
           </div>
         </div>
 
-        {displayedTransactions.length === 0 ? (
-          <div className="text-center py-12 bg-slate-50 rounded-2xl border border-dashed border-slate-200 space-y-2">
-            <Calendar className="w-10 h-10 text-slate-400 mx-auto" />
-            <h4 className="text-sm font-bold text-slate-700">
-              Belum ada transaksi pada periode ini
+        {/* Card 2: Total 7 Hari Terakhir (Senin - Minggu) */}
+        <div className="bg-white p-5 rounded-3xl border border-stone-200/90 shadow-sm flex flex-col justify-between">
+          <div className="flex items-center justify-between">
+            <span className="text-xs font-bold uppercase tracking-wider text-slate-600 bg-slate-100 px-2.5 py-1 rounded-lg">
+              Minggu Ini · Senin – Minggu ({transactions.length} Nota)
+            </span>
+            <Calendar className="w-5 h-5 text-emerald-700" />
+          </div>
+
+          <div className="my-3">
+            <div className="text-xs sm:text-sm text-slate-500 font-medium">
+              Total Omzet 7 Hari (Sen – Min):
+            </div>
+            <div className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight tabular-nums mt-0.5">
+              {formatRupiah(weekRevenue)}
+            </div>
+          </div>
+
+          <div className="pt-3 border-t border-slate-100 flex items-center justify-between text-xs sm:text-sm">
+            <span className="text-slate-500 font-medium">Total Untung 7 Hari:</span>
+            <span className="font-black text-emerald-700 text-sm sm:text-base tabular-nums">
+              +{formatRupiah(weekProfit)}
+            </span>
+          </div>
+        </div>
+      </div>
+
+      {/* 7-Day Visual Bar Chart (Default: Senin s/d Minggu) */}
+      <div className="bg-white rounded-3xl p-5 border border-stone-200/90 shadow-sm">
+        <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center gap-2">
+            <BarChart3 className="w-5 h-5 text-emerald-800" />
+            <h3 className="text-sm sm:text-base font-bold text-slate-800">
+              Grafik Omzet Mingguan (Senin – Minggu)
+            </h3>
+          </div>
+          <span className="text-xs text-slate-400 font-semibold">
+            Sen s/d Min
+          </span>
+        </div>
+
+        <div className="grid grid-cols-7 gap-2 sm:gap-3 items-end h-40 pt-6 pb-1 px-1">
+          {dailyStats.map((day, idx) => {
+            const heightPercent =
+              day.revenue > 0 ? Math.max(14, Math.round((day.revenue / maxDailyRevenue) * 100)) : 6;
+            return (
+              <div key={idx} className="flex flex-col items-center h-full justify-end group">
+                {/* Amount label above bar */}
+                <span
+                  className={`text-[11px] sm:text-xs font-bold tabular-nums mb-1 truncate max-w-full ${
+                    day.isToday ? 'text-emerald-800' : 'text-slate-500'
+                  }`}
+                >
+                  {day.revenue > 0 ? `${Math.round(day.revenue / 1000)}rb` : '-'}
+                </span>
+
+                {/* Bar column */}
+                <div className="w-full max-w-[40px] bg-slate-100 rounded-t-xl h-24 flex items-end p-0.5 overflow-hidden">
+                  <div
+                    style={{ height: `${heightPercent}%` }}
+                    className={`w-full rounded-t-lg transition-all duration-300 ${
+                      day.isToday
+                        ? 'bg-emerald-700'
+                        : day.revenue > 0
+                        ? 'bg-emerald-500/70 group-hover:bg-emerald-600'
+                        : 'bg-slate-200'
+                    }`}
+                    title={`${day.fullDayName} (${day.dateLabel}): ${formatRupiah(day.revenue)} (${day.count} transaksi)`}
+                  />
+                </div>
+
+                {/* Day label (Sen .. Min) */}
+                <div className="mt-1.5 text-center">
+                  <div
+                    className={`text-xs font-bold leading-none ${
+                      day.isToday ? 'text-emerald-800' : 'text-slate-700'
+                    }`}
+                  >
+                    {day.dayLabel}
+                  </div>
+                  <div className="text-[11px] text-slate-400 font-medium mt-0.5">
+                    {day.dateLabel}
+                  </div>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* Transactions List */}
+      <div className="space-y-3">
+        <h3 className="text-sm sm:text-base font-bold text-slate-700 uppercase tracking-wider px-1">
+          Daftar Nota Transaksi ({transactions.length} Transaksi)
+        </h3>
+
+        {transactions.length === 0 ? (
+          <div className="text-center py-12 bg-white rounded-3xl border border-stone-200/90 p-6 shadow-2xs">
+            <div className="w-16 h-16 rounded-full bg-slate-100 text-slate-400 flex items-center justify-center mx-auto mb-3">
+              <Calendar className="w-8 h-8" />
+            </div>
+            <h4 className="text-base sm:text-lg font-bold text-slate-700">
+              Belum Ada Penjualan Minggu Ini
             </h4>
-            <p className="text-xs text-slate-500 max-w-sm mx-auto leading-relaxed">
-              Setiap transaksi kasir di etalase toko akan otomatis dicatat dan ditampilkan di sini.
+            <p className="text-xs sm:text-sm text-slate-500 mt-1 max-w-xs mx-auto">
+              Transaksi dari kasir akan otomatis tercatat di sini untuk laporan Senin hingga Minggu.
             </p>
           </div>
         ) : (
-          <div className="space-y-2.5">
-            {displayedTransactions.map((t) => {
-              const dateObj = new Date(t.timestamp);
-              const isExpanded = expandedTxIds.includes(t.id);
-              const totalItems = t.items.reduce((acc, i) => acc + i.quantity, 0);
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+            {transactions.map((tx) => {
+              const dateObj = new Date(tx.timestamp);
+              const isTxToday = dateObj.toDateString() === todayStr;
+              const formattedTime = dateObj.toLocaleTimeString('id-ID', {
+                hour: '2-digit',
+                minute: '2-digit',
+              });
+              const formattedDate = isTxToday
+                ? 'Hari Ini'
+                : dateObj.toLocaleDateString('id-ID', {
+                    weekday: 'short',
+                    day: 'numeric',
+                    month: 'short',
+                  });
 
               return (
                 <div
-                  key={t.id}
-                  className={`border rounded-2xl transition-all overflow-hidden ${
-                    isExpanded
-                      ? 'bg-white border-emerald-300 shadow-sm'
-                      : 'bg-slate-50/80 hover:bg-slate-100/80 border-slate-200/90'
-                  }`}
+                  key={tx.id}
+                  className="p-4 rounded-2xl bg-white border border-stone-200/90 shadow-2xs hover:shadow-md transition-shadow flex flex-col justify-between space-y-3"
                 >
-                  {/* ACCORDION HEADER (Hanya nampilin jam tanggal dan total transaksi) */}
-                  <button
-                    type="button"
-                    onClick={() => toggleTxExpand(t.id)}
-                    className="w-full p-3.5 sm:p-4 flex items-center justify-between gap-3 text-left cursor-pointer transition-colors"
-                  >
-                    {/* Kiri: Jam & Tanggal */}
-                    <div className="flex items-center gap-2.5 min-w-0">
-                      <div className="w-8 h-8 rounded-xl bg-slate-200/70 text-slate-700 flex items-center justify-center shrink-0">
-                        <Clock className="w-4 h-4 text-slate-600" />
-                      </div>
-                      <div className="min-w-0">
-                        <div className="text-xs sm:text-sm font-bold text-slate-900 tabular-nums">
-                          {formatTime(t.timestamp)}
-                        </div>
-                        <div className="text-[11px] text-slate-500 font-medium truncate">
-                          {dateObj.toLocaleDateString('id-ID', {
-                            weekday: 'short',
-                            day: 'numeric',
-                            month: 'short',
-                            year: 'numeric',
-                          })}
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* Kanan: Total Transaksi & Icon Dropdown */}
-                    <div className="flex items-center gap-2.5 shrink-0">
-                      <span className="text-sm sm:text-base font-black text-slate-900 tabular-nums">
-                        {formatRupiah(t.totalAmount)}
-                      </span>
-                      <div className={`w-7 h-7 rounded-lg flex items-center justify-center transition-transform ${
-                        isExpanded ? 'bg-emerald-100 text-emerald-800 rotate-180' : 'bg-slate-200/60 text-slate-500'
-                      }`}>
-                        <ChevronDown className="w-4 h-4" />
-                      </div>
-                    </div>
-                  </button>
-
-                  {/* ACCORDION BODY: List kebawah barang transaksi & Untungnya berapa */}
-                  {isExpanded && (
-                    <div className="px-4 pb-4 pt-1 border-t border-slate-100 space-y-3 bg-white animate-in slide-in-from-top-1 duration-150">
-                      {/* List Barang yang Dibeli */}
-                      <div className="space-y-1.5 pt-1">
-                        <div className="flex items-center justify-between text-[11px] font-bold text-slate-500 uppercase tracking-wider pb-1 border-b border-slate-100">
-                          <span>Daftar Barang ({totalItems} item)</span>
-                          <span>Subtotal</span>
-                        </div>
-
-                        {t.items.map((item, idx) => (
-                          <div
-                            key={idx}
-                            className="flex items-center justify-between gap-2 text-xs py-1 border-b border-slate-50 last:border-0"
-                          >
-                            <div className="min-w-0">
-                              <span className="font-bold text-slate-800">
-                                {item.quantity}x {item.productName}
-                              </span>
-                              <span className="text-[11px] text-slate-400 block">
-                                @ {formatRupiah(item.sellPrice)} / {item.unit}
-                              </span>
-                            </div>
-                            <span className="font-bold text-slate-800 tabular-nums shrink-0">
-                              {formatRupiah(item.sellPrice * item.quantity)}
-                            </span>
-                          </div>
-                        ))}
-                      </div>
-
-                      {/* Detail Keuntungan & Pembayaran */}
-                      <div className="pt-2 border-t border-slate-100 bg-emerald-50/70 p-3 rounded-xl flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-                        <div className="flex items-center gap-1.5">
-                          <Coins className="w-4 h-4 text-emerald-700 shrink-0" />
-                          <span className="text-xs font-bold text-emerald-950">
-                            Keuntungan Transaksi:
-                          </span>
-                        </div>
-                        <span className="text-xs sm:text-sm font-black text-emerald-800 tabular-nums">
-                          +{formatRupiah(t.totalProfit)}
+                  <div>
+                    {/* Top row */}
+                    <div className="flex items-center justify-between border-b border-slate-100 pb-2.5">
+                      <div className="flex items-center gap-2">
+                        <span
+                          className={`text-xs font-bold px-2.5 py-0.5 rounded-md ${
+                            isTxToday
+                              ? 'bg-emerald-100 text-emerald-800'
+                              : 'bg-slate-100 text-slate-700'
+                          }`}
+                        >
+                          {formattedDate}
+                        </span>
+                        <span className="text-xs font-semibold text-slate-500 flex items-center gap-1">
+                          <Clock className="w-3.5 h-3.5" />
+                          {formattedTime}
                         </span>
                       </div>
 
-                      {/* Info Bayar Tunai & Kembalian jika ada */}
-                      {t.cashPaid > 0 && (
-                        <div className="text-[11px] text-slate-500 flex items-center justify-between px-1">
-                          <span>Tunai Diterima: {formatRupiah(t.cashPaid)}</span>
-                          <span>Kembalian: {formatRupiah(t.change)}</span>
-                        </div>
-                      )}
+                      <div className="flex items-center gap-2">
+                        <span className="text-xs font-mono text-slate-400">
+                          #{tx.id.slice(-6)}
+                        </span>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            const itemsText = tx.items
+                              .map(
+                                (i) =>
+                                  `- ${i.quantity}x ${i.productName}: ${formatRupiah(
+                                    i.sellPrice * i.quantity
+                                  )}`
+                              )
+                              .join('\n');
+                            const receipt = `*NOTA PENJUALAN - ${storeName}*\nWaktu: ${formattedDate}, ${formattedTime}\n${itemsText}\n*Total: ${formatRupiah(
+                              tx.totalAmount
+                            )}*`;
+                            navigator.clipboard.writeText(receipt);
+                            alert('Salinan nota berhasil disalin ke clipboard!');
+                          }}
+                          className="p-1.5 text-slate-400 hover:text-emerald-700 rounded-lg hover:bg-slate-100 transition-colors cursor-pointer"
+                          title="Salin Nota ke WhatsApp"
+                        >
+                          <Copy className="w-4 h-4" />
+                        </button>
+                      </div>
                     </div>
-                  )}
+
+                    {/* Items Sold */}
+                    <div className="space-y-1.5 pt-2.5">
+                      {tx.items.map((item, idx) => (
+                        <div
+                          key={idx}
+                          className="flex justify-between items-center text-xs sm:text-sm text-slate-700"
+                        >
+                          <span className="truncate max-w-[210px]">
+                            <strong className="text-slate-900">{item.quantity}x</strong>{' '}
+                            {item.productName}
+                          </span>
+                          <span className="tabular-nums font-medium text-slate-600">
+                            {formatRupiah(item.sellPrice * item.quantity)}
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Bottom Total & Profit */}
+                  <div className="pt-2.5 border-t border-dashed border-slate-200 flex items-center justify-between">
+                    <span className="text-xs font-bold text-emerald-700 bg-emerald-50 px-2.5 py-0.5 rounded-md">
+                      Untung +{formatRupiah(tx.totalProfit)}
+                    </span>
+                    <div className="text-right">
+                      <span className="text-xs text-slate-400 mr-1.5">Total:</span>
+                      <span className="text-sm sm:text-base font-black text-slate-900 tabular-nums">
+                        {formatRupiah(tx.totalAmount)}
+                      </span>
+                    </div>
+                  </div>
                 </div>
               );
             })}

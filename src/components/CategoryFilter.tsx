@@ -119,7 +119,7 @@ export const CategoryFilter: React.FC<CategoryFilterProps> = ({
             value={selectedShelf}
             onChange={(e) => onSelectShelf(e.target.value)}
             aria-label="Filter Lokasi Rak"
-            className={`min-h-[44px] pl-3.5 pr-9 py-2 rounded-2xl text-xs sm:text-sm font-semibold appearance-none transition-all cursor-pointer outline-none border ${
+            className={`min-h-[46px] pl-3.5 pr-9 py-2 rounded-2xl text-sm font-semibold appearance-none transition-all cursor-pointer outline-none border ${
               selectedShelf !== 'all'
                 ? 'bg-amber-800 text-white border-amber-900 shadow-sm'
                 : 'bg-white hover:bg-slate-100 text-slate-700 border-slate-200/80 shadow-2xs'
@@ -170,7 +170,7 @@ export const CategoryFilter: React.FC<CategoryFilterProps> = ({
               if (dragStateRef.current.hasMoved) return;
               onSelectCategory(cat.id);
             }}
-            className={`min-h-[44px] px-3.5 sm:px-4 py-2 rounded-2xl text-xs sm:text-sm font-semibold flex items-center gap-2 shrink-0 transition-all cursor-pointer ${
+            className={`min-h-[46px] px-3.5 sm:px-4 py-2 rounded-2xl text-sm font-semibold flex items-center gap-2 shrink-0 transition-all cursor-pointer ${
               isSelected
                 ? 'bg-emerald-700 text-white shadow-sm shadow-emerald-800/20 scale-[1.02]'
                 : 'bg-white hover:bg-slate-100 text-slate-700 border border-slate-200/80 shadow-2xs'
@@ -180,7 +180,7 @@ export const CategoryFilter: React.FC<CategoryFilterProps> = ({
             <span className="whitespace-nowrap">{cat.label}</span>
             {count > 0 && (
               <span
-                className={`text-[11px] font-bold px-1.5 py-0.5 rounded-full ${
+                className={`text-xs font-bold px-2 py-0.5 rounded-full ${
                   isSelected
                     ? 'bg-white/25 text-white'
                     : 'bg-slate-100 text-slate-600'
