@@ -232,7 +232,7 @@ export const BannerHero: React.FC<BannerHeroProps> = ({
             </div>
 
             <div className="space-y-2 max-h-[55vh] overflow-y-auto">
-              {stores.map((store, index) => {
+              {stores.map((store) => {
                 const isActive = store.id === activeStoreId;
                 return (
                   <button
@@ -263,7 +263,7 @@ export const BannerHero: React.FC<BannerHeroProps> = ({
                             className="w-full h-full object-cover"
                           />
                         ) : (
-                          <span>{index + 1}</span>
+                          <Store className="w-5 h-5" />
                         )}
                       </div>
                       <div className="min-w-0">

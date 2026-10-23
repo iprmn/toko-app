@@ -36,6 +36,11 @@ export default function App() {
   const [activeStoreId, setActiveStoreId] = useState<string>('store-1');
   const [productsMap, setProductsMap] = useState<{ [storeId: string]: Product[] }>({});
   const [transactionsMap, setTransactionsMap] = useState<{ [storeId: string]: Transaction[] }>({});
+  const [fontSizeLevel, setFontSizeLevel] = useState<number>(2);
+
+  useEffect(() => {
+    document.documentElement.setAttribute('data-font-level', String(fontSizeLevel));
+  }, [fontSizeLevel]);
 
   const loadFromDatabase = useCallback(async () => {
     try {
@@ -44,6 +49,9 @@ export default function App() {
       setActiveStoreId(data.activeStoreId || data.stores?.[0]?.id || 'store-1');
       setProductsMap(data.productsMap || {});
       setTransactionsMap(data.transactionsMap || {});
+      if (data.fontSizeLevel && data.fontSizeLevel >= 1 && data.fontSizeLevel <= 4) {
+        setFontSizeLevel(data.fontSizeLevel);
+      }
     } catch (err) {
       console.error('Database fetch error:', err);
     } finally {
@@ -225,6 +233,14 @@ export default function App() {
   const totalCartAmount = cart.reduce((sum, item) => sum + item.product.sellPrice * item.quantity, 0);
 
   // --- Multi-Store Actions (Saved to DB) ---
+  const handleFontSizeChange = async (level: number) => {
+    const clamped = Math.max(1, Math.min(4, Math.round(level)));
+    if (clamped === fontSizeLevel) return;
+    if (soundEnabled) playSound.tap();
+    setFontSizeLevel(clamped);
+    await dataService.setFontSizeLevel(clamped);
+  };
+
   const handleSelectStore = async (storeId: string) => {
     if (storeId === activeStoreId) return;
     const targetStore = stores.find((s) => s.id === storeId);
@@ -903,6 +919,8 @@ export default function App() {
             onDeleteStore={handleDeleteStore}
             products={products}
             transactions={transactions}
+            fontSizeLevel={fontSizeLevel}
+            onChangeFontSizeLevel={handleFontSizeChange}
           />
         )}
       </main>

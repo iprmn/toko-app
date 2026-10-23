@@ -3,6 +3,8 @@ import {
   getAllStores,
   getActiveStoreId,
   setActiveStoreIdInDb,
+  getFontSizeLevel,
+  setFontSizeLevelInDb,
   getProductsByStore,
   getTransactionsByStore,
   createStore,
@@ -34,6 +36,7 @@ export function createApiApp() {
     try {
       const stores = getAllStores();
       const activeStoreId = getActiveStoreId();
+      const fontSizeLevel = getFontSizeLevel();
       const productsMap: { [storeId: string]: Product[] } = {};
       const transactionsMap: { [storeId: string]: Transaction[] } = {};
 
@@ -45,6 +48,7 @@ export function createApiApp() {
       res.json({
         stores,
         activeStoreId,
+        fontSizeLevel,
         productsMap,
         transactionsMap,
       });
@@ -64,6 +68,17 @@ export function createApiApp() {
       }
       setActiveStoreIdInDb(storeId);
       res.json({ activeStoreId: storeId });
+    } catch (err: any) {
+      res.status(500).json({ error: err.message });
+    }
+  });
+
+  // Set font size level in DB (1..4, default 2)
+  app.put('/settings/font-size', (req, res) => {
+    try {
+      const level = Number(req.body?.level) || 2;
+      setFontSizeLevelInDb(level);
+      res.json({ fontSizeLevel: level });
     } catch (err: any) {
       res.status(500).json({ error: err.message });
     }

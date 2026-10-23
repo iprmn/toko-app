@@ -1,5 +1,5 @@
 import React, { useState, useRef } from 'react';
-import { Store, Save, Plus, Trash2, ShieldAlert, CheckCircle2, Camera } from 'lucide-react';
+import { Store, Save, Plus, Trash2, ShieldAlert, Camera } from 'lucide-react';
 import { StoreAccount, Product, Transaction } from '../types/store';
 import { formatRupiah } from '../utils/format';
 
@@ -12,7 +12,16 @@ interface SettingsViewProps {
   onDeleteStore: (storeId: string) => void;
   products: Product[];
   transactions: Transaction[];
+  fontSizeLevel: number;
+  onChangeFontSizeLevel: (level: number) => void;
 }
+
+const FONT_CHECKPOINTS = [
+  { level: 1, label: 'Kecil' },
+  { level: 2, label: 'Normal' },
+  { level: 3, label: 'Besar' },
+  { level: 4, label: 'Ekstra' },
+];
 
 // Client-side image compression for store logo
 const compressStoreLogo = (file: File): Promise<string> => {
@@ -62,11 +71,12 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
   onUpdateStore,
   onDeleteStore,
   products,
+  fontSizeLevel,
+  onChangeFontSizeLevel,
 }) => {
   const activeStore = stores.find((s) => s.id === activeStoreId) || stores[0];
 
   const [activeStoreName, setActiveStoreName] = useState(activeStore?.name || '');
-  const [activeOwnerName, setActiveOwnerName] = useState(activeStore?.ownerName || '');
   const [activeCategory, setActiveCategory] = useState(activeStore?.categoryOrType || '');
   const [activeLogoUrl, setActiveLogoUrl] = useState<string | undefined>(activeStore?.logoUrl);
   const [isSaved, setIsSaved] = useState(false);
@@ -74,7 +84,6 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
   // New store form state
   const [isAddingStore, setIsAddingStore] = useState(false);
   const [newStoreName, setNewStoreName] = useState('');
-  const [newOwnerName, setNewOwnerName] = useState('');
   const [newCategory, setNewCategory] = useState('Sembako & Kelontong');
   const [newLogoUrl, setNewLogoUrl] = useState<string | undefined>(undefined);
 
@@ -85,7 +94,6 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
   React.useEffect(() => {
     if (activeStore) {
       setActiveStoreName(activeStore.name);
-      setActiveOwnerName(activeStore.ownerName);
       setActiveCategory(activeStore.categoryOrType || 'Toko Kelontong');
       setActiveLogoUrl(activeStore.logoUrl);
     }
@@ -118,7 +126,6 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
     if (!activeStore) return;
     onUpdateStore(activeStore.id, {
       name: activeStoreName.trim() || 'Toko Saya',
-      ownerName: activeOwnerName.trim() || 'Ibu Warung',
       categoryOrType: activeCategory.trim() || 'Toko Kelontong',
       logoUrl: activeLogoUrl,
     });
@@ -139,13 +146,12 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
 
     onAddStore({
       name: newStoreName.trim(),
-      ownerName: newOwnerName.trim() || activeStore?.ownerName || 'Pengelola Toko',
+      ownerName: '-',
       categoryOrType: newCategory.trim() || 'Toko Kelontong',
       logoUrl: newLogoUrl,
     });
 
     setNewStoreName('');
-    setNewOwnerName('');
     setNewLogoUrl(undefined);
     setIsAddingStore(false);
   };
@@ -183,7 +189,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
 
         {/* List of Existing Stores */}
         <div className="space-y-2.5 sm:space-y-3">
-          {stores.map((store, idx) => {
+          {stores.map((store) => {
             const isActive = store.id === activeStoreId;
             return (
               <div
@@ -209,7 +215,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                         className="w-full h-full object-cover"
                       />
                     ) : (
-                      <span>{idx + 1}</span>
+                      <Store className="w-5 h-5" />
                     )}
                   </div>
 
@@ -218,18 +224,9 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                       <h4 className="text-sm sm:text-base font-bold text-slate-900 truncate leading-normal">
                         {store.name}
                       </h4>
-                      {isActive && (
-                        <span className="text-[10px] bg-emerald-700 text-white font-bold px-2 py-0.5 rounded-full inline-flex items-center gap-1 shrink-0">
-                          <CheckCircle2 className="w-3 h-3" />
-                          Aktif
-                        </span>
-                      )}
                     </div>
                     <p className="text-xs text-slate-500 font-medium leading-relaxed truncate">
                       {store.categoryOrType || 'Usaha Toko'}
-                    </p>
-                    <p className="text-xs text-slate-500 font-medium leading-relaxed truncate">
-                      Informasi Pemilik: <span className="text-slate-800 font-semibold">{store.ownerName}</span>
                     </p>
                   </div>
                 </div>
@@ -308,38 +305,23 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                 />
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <div>
-                  <label className="block text-xs font-bold text-slate-700 mb-1 leading-normal">
-                    Nama Pemilik / Kasir:
-                  </label>
-                  <input
-                    type="text"
-                    value={newOwnerName}
-                    onChange={(e) => setNewOwnerName(e.target.value)}
-                    placeholder="Contoh: Ibu Siti / Pak Budi"
-                    className="w-full h-10 sm:h-11 px-3 bg-white border border-slate-300 focus:border-emerald-600 rounded-xl text-xs sm:text-sm font-semibold text-slate-900 outline-none leading-normal"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-xs font-bold text-slate-700 mb-1 leading-normal">
-                    Jenis Toko / Usaha:
-                  </label>
-                  <select
-                    value={newCategory}
-                    onChange={(e) => setNewCategory(e.target.value)}
-                    className="w-full h-10 sm:h-11 px-3 bg-white border border-slate-300 focus:border-emerald-600 rounded-xl text-xs sm:text-sm font-semibold text-slate-900 outline-none cursor-pointer leading-normal"
-                  >
-                    <option value="Sembako & Kelontong">🍚 Sembako & Kelontong</option>
-                    <option value="Elektronik & Gadget">⚡ Elektronik & Gadget</option>
-                    <option value="Pakaian & Fashion">👕 Pakaian & Fashion</option>
-                    <option value="Aksesoris & Perhiasan">👜 Aksesoris & Perhiasan</option>
-                    <option value="Minuman & Kopi">☕ Minuman & Kopi</option>
-                    <option value="ATK & Buku">📚 ATK & Buku</option>
-                    <option value="Usaha Lainnya">📦 Usaha Lainnya</option>
-                  </select>
-                </div>
+              <div>
+                <label className="block text-xs font-bold text-slate-700 mb-1 leading-normal">
+                  Jenis Toko / Usaha:
+                </label>
+                <select
+                  value={newCategory}
+                  onChange={(e) => setNewCategory(e.target.value)}
+                  className="w-full h-10 sm:h-11 px-3 bg-white border border-slate-300 focus:border-emerald-600 rounded-xl text-xs sm:text-sm font-semibold text-slate-900 outline-none cursor-pointer leading-normal"
+                >
+                  <option value="Sembako & Kelontong">🍚 Sembako & Kelontong</option>
+                  <option value="Elektronik & Gadget">⚡ Elektronik & Gadget</option>
+                  <option value="Pakaian & Fashion">👕 Pakaian & Fashion</option>
+                  <option value="Aksesoris & Perhiasan">👜 Aksesoris & Perhiasan</option>
+                  <option value="Minuman & Kopi">☕ Minuman & Kopi</option>
+                  <option value="ATK & Buku">📚 ATK & Buku</option>
+                  <option value="Usaha Lainnya">📦 Usaha Lainnya</option>
+                </select>
               </div>
 
               {/* Upload Logo untuk Toko Baru */}
@@ -458,30 +440,17 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
             </div>
           </div>
 
-          <div>
-            <label className="block text-xs font-bold text-slate-700 mb-1 leading-normal">
-              Nama Toko:
-            </label>
-            <input
-              type="text"
-              value={activeStoreName}
-              onChange={(e) => setActiveStoreName(e.target.value)}
-              placeholder="Nama Toko..."
-              className="w-full h-10 sm:h-11 px-3 sm:px-3.5 bg-slate-100 focus:bg-white border border-transparent focus:border-emerald-600 rounded-xl text-xs sm:text-sm font-bold text-slate-900 outline-none leading-normal"
-            />
-          </div>
-
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
               <label className="block text-xs font-bold text-slate-700 mb-1 leading-normal">
-                Nama Pemilik / Kasir:
+                Nama Toko:
               </label>
               <input
                 type="text"
-                value={activeOwnerName}
-                onChange={(e) => setActiveOwnerName(e.target.value)}
-                placeholder="Nama Pemilik..."
-                className="w-full h-10 sm:h-11 px-3 sm:px-3.5 bg-slate-100 focus:bg-white border border-transparent focus:border-emerald-600 rounded-xl text-xs sm:text-sm font-semibold text-slate-900 outline-none leading-normal"
+                value={activeStoreName}
+                onChange={(e) => setActiveStoreName(e.target.value)}
+                placeholder="Nama Toko..."
+                className="w-full h-10 sm:h-11 px-3 sm:px-3.5 bg-slate-100 focus:bg-white border border-transparent focus:border-emerald-600 rounded-xl text-xs sm:text-sm font-bold text-slate-900 outline-none leading-normal"
               />
             </div>
 
@@ -536,6 +505,62 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
             <div className="text-base sm:text-xl font-black text-emerald-800 tabular-nums leading-snug truncate">
               +{formatRupiah(potentialProfit)}
             </div>
+          </div>
+        </div>
+      </div>
+
+      {/* 4. ATUR UKURAN HURUF (CHECKPOINT BAR 4 UKURAN) */}
+      <div className="bg-white rounded-2xl sm:rounded-3xl p-3 sm:p-6 border border-stone-200/90 shadow-sm space-y-4">
+        <div className="border-b border-slate-100 pb-2.5 sm:pb-3">
+          <h2 className="text-base sm:text-lg font-bold text-slate-900 leading-normal">
+            Atur Ukuran Huruf
+          </h2>
+        </div>
+
+        <div className="pt-1 pb-1 px-2 sm:px-4">
+          {/* Checkpoint Bar Track & Nodes */}
+          <div className="relative flex items-center justify-between">
+            {/* Background Track */}
+            <div className="absolute left-4 right-4 h-1.5 bg-slate-200 rounded-full pointer-events-none" />
+            {/* Active Progress Track */}
+            <div
+              className="absolute left-4 h-1.5 bg-emerald-600 rounded-full transition-all duration-200 pointer-events-none"
+              style={{
+                width: `calc(${((fontSizeLevel - 1) / 3) * 100}% - ${((fontSizeLevel - 1) / 3) * 2}rem)`,
+              }}
+            />
+
+            {FONT_CHECKPOINTS.map((cp) => {
+              const isSelected = fontSizeLevel === cp.level;
+              const isPassed = fontSizeLevel >= cp.level;
+              return (
+                <button
+                  key={cp.level}
+                  type="button"
+                  onClick={() => onChangeFontSizeLevel(cp.level)}
+                  className="relative z-10 flex flex-col items-center gap-2 group cursor-pointer focus:outline-none"
+                >
+                  <div
+                    className={`w-8 h-8 sm:w-9 sm:h-9 rounded-full flex items-center justify-center font-bold text-xs transition-all ${
+                      isSelected
+                        ? 'bg-emerald-700 text-white ring-4 ring-emerald-600/25 scale-110 shadow-sm'
+                        : isPassed
+                        ? 'bg-emerald-600 text-white'
+                        : 'bg-white border-2 border-slate-300 text-slate-500 hover:border-emerald-500'
+                    }`}
+                  >
+                    {cp.level}
+                  </div>
+                  <span
+                    className={`text-xs font-bold transition-colors ${
+                      isSelected ? 'text-emerald-800' : 'text-slate-500'
+                    }`}
+                  >
+                    {cp.label}
+                  </span>
+                </button>
+              );
+            })}
           </div>
         </div>
       </div>

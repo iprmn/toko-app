@@ -213,6 +213,18 @@ export function setActiveStoreIdInDb(storeId: string): void {
   db.prepare('INSERT OR REPLACE INTO app_settings (key, value) VALUES (?, ?)').run('active_store_id', storeId);
 }
 
+export function getFontSizeLevel(): number {
+  const row = db.prepare('SELECT value FROM app_settings WHERE key = ?').get('font_size_level') as { value: string } | undefined;
+  const parsed = Number(row?.value);
+  if (parsed >= 1 && parsed <= 4) return parsed;
+  return 2;
+}
+
+export function setFontSizeLevelInDb(level: number): void {
+  const clamped = Math.max(1, Math.min(4, Math.round(level)));
+  db.prepare('INSERT OR REPLACE INTO app_settings (key, value) VALUES (?, ?)').run('font_size_level', String(clamped));
+}
+
 export function getAllStores(): StoreAccount[] {
   const rows = db.prepare('SELECT * FROM stores ORDER BY created_at ASC').all() as any[];
   return rows.map((r) => ({

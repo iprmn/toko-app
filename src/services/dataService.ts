@@ -50,6 +50,7 @@ export const dataService = {
   async bootstrap(): Promise<{
     stores: StoreAccount[];
     activeStoreId: string;
+    fontSizeLevel?: number;
     productsMap: { [storeId: string]: Product[] };
     transactionsMap: { [storeId: string]: Transaction[] };
   }> {
@@ -79,6 +80,18 @@ export const dataService = {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ storeId }),
+    });
+  },
+
+  async setFontSizeLevel(level: number): Promise<void> {
+    if (useDeviceLocalDb) {
+      await deviceDb.setFontSizeLevel(level);
+      return;
+    }
+    await fetch('/api/settings/font-size', {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ level }),
     });
   },
 

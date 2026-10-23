@@ -117,6 +117,7 @@ export const deviceDb = {
   async bootstrap(): Promise<{
     stores: StoreAccount[];
     activeStoreId: string;
+    fontSizeLevel: number;
     productsMap: { [storeId: string]: Product[] };
     transactionsMap: { [storeId: string]: Transaction[] };
   }> {
@@ -130,6 +131,7 @@ export const deviceDb = {
       );
 
       const activeReq = tx.objectStore('app_settings').get('active_store_id');
+      const fontReq = tx.objectStore('app_settings').get('font_size_level');
       const storesReq = tx.objectStore('stores').getAll();
       const productsReq = tx.objectStore('products').getAll();
       const txsReq = tx.objectStore('transactions').getAll();
@@ -140,6 +142,9 @@ export const deviceDb = {
         );
         const activeStoreId: string =
           activeReq.result?.value || stores[0]?.id || 'store-1';
+        const parsedFont = Number(fontReq.result?.value);
+        const fontSizeLevel: number =
+          parsedFont >= 1 && parsedFont <= 4 ? parsedFont : 2;
 
         const productsMap: { [storeId: string]: Product[] } = {};
         const transactionsMap: { [storeId: string]: Transaction[] } = {};
@@ -175,7 +180,7 @@ export const deviceDb = {
           );
         }
 
-        resolve({ stores, activeStoreId, productsMap, transactionsMap });
+        resolve({ stores, activeStoreId, fontSizeLevel, productsMap, transactionsMap });
       };
 
       tx.onerror = () => reject(tx.error);
@@ -187,6 +192,17 @@ export const deviceDb = {
     return new Promise((resolve, reject) => {
       const tx = db.transaction('app_settings', 'readwrite');
       tx.objectStore('app_settings').put({ key: 'active_store_id', value: storeId });
+      tx.oncomplete = () => resolve();
+      tx.onerror = () => reject(tx.error);
+    });
+  },
+
+  async setFontSizeLevel(level: number): Promise<void> {
+    const db = await openDeviceDb();
+    const clamped = Math.max(1, Math.min(4, Math.round(level)));
+    return new Promise((resolve, reject) => {
+      const tx = db.transaction('app_settings', 'readwrite');
+      tx.objectStore('app_settings').put({ key: 'font_size_level', value: String(clamped) });
       tx.oncomplete = () => resolve();
       tx.onerror = () => reject(tx.error);
     });

@@ -1,5 +1,53 @@
 @import "tailwindcss";
 
+:root {
+  --font-scale: 1;
+}
+
+html[data-font-level="1"] {
+  --font-scale: 0.9;
+}
+html[data-font-level="2"] {
+  --font-scale: 1;
+}
+html[data-font-level="3"] {
+  --font-scale: 1.1;
+}
+html[data-font-level="4"] {
+  --font-scale: 1.2;
+}
+
+html[data-font-level] {
+  --text-xs: calc(0.75rem * var(--font-scale));
+  --text-sm: calc(0.875rem * var(--font-scale));
+  --text-base: calc(1rem * var(--font-scale));
+  --text-lg: calc(1.125rem * var(--font-scale));
+  --text-xl: calc(1.25rem * var(--font-scale));
+  --text-2xl: calc(1.5rem * var(--font-scale));
+}
+
+.text-\[9px\] {
+  font-size: calc(9px * var(--font-scale)) !important;
+}
+.text-\[9\.5px\] {
+  font-size: calc(9.5px * var(--font-scale)) !important;
+}
+.text-\[10px\] {
+  font-size: calc(10px * var(--font-scale)) !important;
+}
+.text-\[10\.5px\] {
+  font-size: calc(10.5px * var(--font-scale)) !important;
+}
+.text-\[11px\] {
+  font-size: calc(11px * var(--font-scale)) !important;
+}
+.text-\[11\.5px\] {
+  font-size: calc(11.5px * var(--font-scale)) !important;
+}
+.text-\[13px\] {
+  font-size: calc(13px * var(--font-scale)) !important;
+}
+
 html,
 body {
   touch-action: pan-x pan-y;
