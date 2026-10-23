@@ -106,7 +106,7 @@ export default function App() {
     setConfirmState({ ...opts, isOpen: true });
   };
 
-  const showSuccessPopup = (title: string, message: string) => {
+  const showSuccessPopup = (title: string, message: React.ReactNode) => {
     setSuccessState({ isOpen: true, title, message });
   };
 
@@ -363,13 +363,51 @@ export default function App() {
   const handleCancelTransaction = (tx: Transaction) => {
     if (tx.status === 'cancelled') return;
 
-    const itemSummary = tx.items
-      .map((item) => `${item.productName} (+${item.quantity} ${item.unit})`)
-      .join(', ');
+    const txDate = new Date(tx.timestamp);
+    const formattedDateTime = `${txDate.toLocaleDateString('id-ID', {
+      day: 'numeric',
+      month: 'long',
+      year: 'numeric',
+    })} pukul ${txDate.toLocaleTimeString('id-ID', {
+      hour: '2-digit',
+      minute: '2-digit',
+    })}`;
 
     showConfirmPopup({
       title: 'Konfirmasi Batalkan Transaksi',
-      message: `Apakah Anda yakin ingin membatalkan transaksi ${tx.id}? Stok barang pada transaksi ini (${itemSummary}) akan dikembalikan ke stok toko, dan status transaksi akan berubah menjadi "Transaksi Dibatalkan".`,
+      message: (
+        <div className="space-y-2.5 text-left">
+          <p>
+            Apakah Anda yakin ingin membatalkan transaksi pada{' '}
+            <span className="font-bold text-slate-800">{formattedDateTime}</span>?
+          </p>
+          <div className="bg-slate-50 border border-slate-200/80 rounded-xl p-2.5 space-y-1.5">
+            <p className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">
+              Barang pada transaksi ini:
+            </p>
+            <ul className="space-y-1 max-h-40 overflow-y-auto pr-1">
+              {tx.items.map((item, idx) => (
+                <li
+                  key={`${item.productId}-${idx}`}
+                  className="flex items-center justify-between text-xs text-slate-700 gap-2"
+                >
+                  <span className="flex items-center gap-1.5 min-w-0">
+                    <span className="w-1.5 h-1.5 rounded-full bg-rose-500 shrink-0" />
+                    <span className="font-semibold text-slate-800 truncate">{item.productName}</span>
+                  </span>
+                  <span className="font-bold text-emerald-700 shrink-0">
+                    +{item.quantity} {item.unit}
+                  </span>
+                </li>
+              ))}
+            </ul>
+          </div>
+          <p className="text-xs text-slate-600">
+            Stok barang di atas akan dikembalikan ke stok toko, dan status transaksi akan berubah menjadi{' '}
+            <span className="font-semibold text-slate-800">"Transaksi Dibatalkan"</span>.
+          </p>
+        </div>
+      ),
       confirmLabel: 'Ya, Batalkan Transaksi',
       variant: 'danger',
       onConfirm: async () => {
@@ -380,7 +418,32 @@ export default function App() {
           setStoreTransactions(() => res.transactions!);
           showSuccessPopup(
             'Transaksi Berhasil Dibatalkan!',
-            `Transaksi ${tx.id} telah dibatalkan dan stok barang (${itemSummary}) telah dikembalikan ke gudang toko.`
+            <div className="space-y-2.5 text-left mt-1">
+              <p className="text-center">
+                Transaksi pada <span className="font-bold text-slate-800">{formattedDateTime}</span> telah dibatalkan.
+              </p>
+              <div className="bg-emerald-50/70 border border-emerald-200/80 rounded-xl p-2.5 space-y-1.5">
+                <p className="text-[11px] font-bold text-emerald-800 uppercase tracking-wider">
+                  Stok dikembalikan ke gudang:
+                </p>
+                <ul className="space-y-1 max-h-36 overflow-y-auto pr-1">
+                  {tx.items.map((item, idx) => (
+                    <li
+                      key={`${item.productId}-${idx}`}
+                      className="flex items-center justify-between text-xs text-slate-700 gap-2"
+                    >
+                      <span className="flex items-center gap-1.5 min-w-0">
+                        <span className="w-1.5 h-1.5 rounded-full bg-emerald-600 shrink-0" />
+                        <span className="font-semibold text-slate-800 truncate">{item.productName}</span>
+                      </span>
+                      <span className="font-bold text-emerald-700 shrink-0">
+                        +{item.quantity} {item.unit}
+                      </span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            </div>
           );
         }
       },

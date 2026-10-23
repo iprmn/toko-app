@@ -4,7 +4,7 @@ import { CheckCircle2, AlertTriangle, X } from 'lucide-react';
 export interface ConfirmModalState {
   isOpen: boolean;
   title: string;
-  message: string;
+  message: React.ReactNode;
   confirmLabel?: string;
   cancelLabel?: string;
   variant?: 'danger' | 'primary';
@@ -14,7 +14,7 @@ export interface ConfirmModalState {
 export interface SuccessModalState {
   isOpen: boolean;
   title: string;
-  message: string;
+  message: React.ReactNode;
 }
 
 interface FeedbackModalProps {
@@ -66,9 +66,9 @@ export const FeedbackModal: React.FC<FeedbackModalProps> = ({
               </button>
             </div>
 
-            <p className="text-xs sm:text-sm text-slate-600 leading-relaxed">
+            <div className="text-xs sm:text-sm text-slate-600 leading-relaxed">
               {confirmState.message}
-            </p>
+            </div>
 
             <div className="flex items-center gap-2.5 pt-2">
               <button
@@ -116,9 +116,9 @@ export const FeedbackModal: React.FC<FeedbackModalProps> = ({
               <h3 className="font-extrabold text-base sm:text-lg text-slate-900">
                 {successState.title}
               </h3>
-              <p className="text-xs sm:text-sm text-slate-600 leading-relaxed">
+              <div className="text-xs sm:text-sm text-slate-600 leading-relaxed">
                 {successState.message}
-              </p>
+              </div>
             </div>
 
             <button
