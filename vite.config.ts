@@ -1,5 +1,6 @@
 import tailwindcss from '@tailwindcss/vite';
 import react from '@vitejs/plugin-react';
+import fs from 'fs';
 import path from 'path';
 import { defineConfig, Plugin } from 'vite';
 import { createApiApp } from './server/api';
@@ -18,10 +19,266 @@ function sqliteApiPlugin(): Plugin {
   };
 }
 
+function otaLiveSyncPlugin(): Plugin {
+  return {
+    name: 'ota-live-sync-plugin',
+    apply: 'build',
+    closeBundle() {
+      const distDir = path.resolve(__dirname, 'dist');
+      const assetsDir = path.join(distDir, 'assets');
+      const indexHtmlPath = path.join(distDir, 'index.html');
+
+      if (!fs.existsSync(assetsDir) || !fs.existsSync(indexHtmlPath)) return;
+
+      const assetFiles = fs.readdirSync(assetsDir);
+      const jsFile = assetFiles.find((f) => f.endsWith('.js'));
+      const cssFile = assetFiles.find((f) => f.endsWith('.css'));
+
+      if (!jsFile || !cssFile) return;
+
+      const buildVersion = Date.now();
+      const versionMeta = {
+        version: buildVersion,
+        js: `assets/${jsFile}`,
+        css: `assets/${cssFile}`,
+        builtAt: new Date(buildVersion).toISOString(),
+      };
+
+      // Write dist/version.json so GitHub Pages serves it with CORS enabled
+      fs.writeFileSync(
+        path.join(distDir, 'version.json'),
+        JSON.stringify(versionMeta, null, 2),
+        'utf8'
+      );
+
+      // Transform dist/index.html to include the OTA Auto-Sync Bootstrap Loader
+      let html = fs.readFileSync(indexHtmlPath, 'utf8');
+
+      // Remove default static script & stylesheet tags for the main bundle
+      html = html.replace(/<script type="module" crossorigin src="[^"]+"><\/script>\s*/g, '');
+      html = html.replace(/<link rel="stylesheet" crossorigin href="[^"]+">\s*/g, '');
+
+      const otaLoaderScript = `<script>
+(function() {
+  var BUILTIN_VERSION = ${buildVersion};
+  var BUILTIN_JS = "./assets/${jsFile}";
+  var BUILTIN_CSS = "./assets/${cssFile}";
+  var REMOTE_BASE = "https://iprmn.github.io/toko-app/";
+  var OTA_DB_NAME = "toko_ota_cache_db";
+  var OTA_STORE_NAME = "bundles";
+
+  var isCapacitorApp = (
+    window.location.protocol === "capacitor:" ||
+    (window.location.hostname === "localhost" && !window.location.port)
+  );
+
+  function injectBuiltin() {
+    window.__TOKO_ACTIVE_VERSION__ = BUILTIN_VERSION;
+    var link = document.createElement("link");
+    link.rel = "stylesheet";
+    link.href = BUILTIN_CSS;
+    document.head.appendChild(link);
+
+    var script = document.createElement("script");
+    script.type = "module";
+    script.src = BUILTIN_JS;
+    document.head.appendChild(script);
+  }
+
+  // On web browser (GitHub Pages or local dev server), load directly without OTA wrapper
+  if (!isCapacitorApp) {
+    injectBuiltin();
+    return;
+  }
+
+  function openOtaDb() {
+    return new Promise(function(resolve, reject) {
+      try {
+        var req = indexedDB.open(OTA_DB_NAME, 1);
+        req.onupgradeneeded = function() {
+          var db = req.result;
+          if (!db.objectStoreNames.contains(OTA_STORE_NAME)) {
+            db.createObjectStore(OTA_STORE_NAME);
+          }
+        };
+        req.onsuccess = function() { resolve(req.result); };
+        req.onerror = function() { reject(req.error); };
+      } catch (e) {
+        reject(e);
+      }
+    });
+  }
+
+  function getCachedBundle() {
+    return openOtaDb().then(function(db) {
+      return new Promise(function(resolve) {
+        try {
+          var tx = db.transaction(OTA_STORE_NAME, "readonly");
+          var req = tx.objectStore(OTA_STORE_NAME).get("latest");
+          req.onsuccess = function() { resolve(req.result || null); };
+          req.onerror = function() { resolve(null); };
+        } catch (e) {
+          resolve(null);
+        }
+      });
+    }).catch(function() { return null; });
+  }
+
+  function saveCachedBundle(bundle) {
+    return openOtaDb().then(function(db) {
+      return new Promise(function(resolve) {
+        try {
+          var tx = db.transaction(OTA_STORE_NAME, "readwrite");
+          tx.objectStore(OTA_STORE_NAME).put(bundle, "latest");
+          tx.oncomplete = function() { resolve(true); };
+          tx.onerror = function() { resolve(false); };
+        } catch (e) {
+          resolve(false);
+        }
+      });
+    }).catch(function() { return false; });
+  }
+
+  function injectOtaBundle(bundle) {
+    window.__TOKO_ACTIVE_VERSION__ = bundle.version;
+    var style = document.createElement("style");
+    style.id = "toko-ota-css";
+    style.textContent = bundle.css;
+    document.head.appendChild(style);
+
+    var blob = new Blob([bundle.js], { type: "text/javascript" });
+    var blobUrl = URL.createObjectURL(blob);
+    var script = document.createElement("script");
+    script.type = "module";
+    script.src = blobUrl;
+    document.head.appendChild(script);
+  }
+
+  function fetchWithTimeout(url, timeoutMs) {
+    return new Promise(function(resolve, reject) {
+      var controller = typeof AbortController !== "undefined" ? new AbortController() : null;
+      var timer = setTimeout(function() {
+        if (controller) controller.abort();
+        reject(new Error("timeout"));
+      }, timeoutMs);
+
+      fetch(url, {
+        cache: "no-store",
+        signal: controller ? controller.signal : undefined
+      }).then(function(res) {
+        clearTimeout(timer);
+        if (!res.ok) throw new Error("HTTP " + res.status);
+        resolve(res);
+      }).catch(function(err) {
+        clearTimeout(timer);
+        reject(err);
+      });
+    });
+  }
+
+  function checkAndDownloadRemote(minVersion, timeoutMs) {
+    if (!navigator.onLine) return Promise.resolve(null);
+    var metaUrl = REMOTE_BASE + "version.json?t=" + Date.now();
+    return fetchWithTimeout(metaUrl, timeoutMs)
+      .then(function(res) { return res.json(); })
+      .then(function(meta) {
+        if (!meta || !meta.version || meta.version <= minVersion) {
+          return null;
+        }
+        return Promise.all([
+          fetchWithTimeout(REMOTE_BASE + meta.css + "?v=" + meta.version, timeoutMs).then(function(r) { return r.text(); }),
+          fetchWithTimeout(REMOTE_BASE + meta.js + "?v=" + meta.version, timeoutMs).then(function(r) { return r.text(); })
+        ]).then(function(results) {
+          var cssText = results[0];
+          var jsText = results[1];
+          if (!jsText || jsText.length < 1000) return null;
+          var newBundle = {
+            version: meta.version,
+            css: cssText,
+            js: jsText,
+            updatedAt: Date.now()
+          };
+          return saveCachedBundle(newBundle).then(function() {
+            return newBundle;
+          });
+        });
+      })
+      .catch(function() { return null; });
+  }
+
+  function showUpdateReadyBanner() {
+    if (document.getElementById("toko-ota-banner")) return;
+    var banner = document.createElement("button");
+    banner.id = "toko-ota-banner";
+    banner.type = "button";
+    banner.style.cssText = "position:fixed;top:14px;left:50%;transform:translateX(-50%);z-index:9999;background:#065f46;color:#ffffff;font-family:sans-serif;font-size:12px;font-weight:700;padding:10px 16px;border-radius:9999px;border:1px solid #34d399;box-shadow:0 10px 25px rgba(0,0,0,0.25);display:flex;align-items:center;gap:8px;cursor:pointer;white-space:nowrap;";
+    banner.innerHTML = "<span style='width:8px;height:8px;border-radius:9999px;background:#34d399;display:inline-block;'></span><span>Update baru siap digunakan — Ketuk untuk Muat Ulang</span>";
+    banner.onclick = function() {
+      window.location.reload();
+    };
+    document.body.appendChild(banner);
+  }
+
+  var isCheckingBg = false;
+  function triggerBackgroundCheck() {
+    if (isCheckingBg || !navigator.onLine) return;
+    isCheckingBg = true;
+    var activeVer = window.__TOKO_ACTIVE_VERSION__ || BUILTIN_VERSION;
+    checkAndDownloadRemote(activeVer, 12000).then(function(newBundle) {
+      isCheckingBg = false;
+      if (newBundle && newBundle.version > activeVer) {
+        showUpdateReadyBanner();
+      }
+    }).catch(function() {
+      isCheckingBg = false;
+    });
+  }
+
+  // Startup flow for Android APK:
+  getCachedBundle().then(function(cached) {
+    var bestLocalVersion = (cached && cached.version > BUILTIN_VERSION) ? cached.version : BUILTIN_VERSION;
+
+    // Try fast 2-second OTA check on startup if online so updates apply immediately
+    checkAndDownloadRemote(bestLocalVersion, 2200).then(function(freshBundle) {
+      if (freshBundle) {
+        injectOtaBundle(freshBundle);
+      } else if (cached && cached.version > BUILTIN_VERSION && cached.js && cached.css) {
+        injectOtaBundle(cached);
+        setTimeout(triggerBackgroundCheck, 4000);
+      } else {
+        injectBuiltin();
+        setTimeout(triggerBackgroundCheck, 4000);
+      }
+
+      window.addEventListener("online", triggerBackgroundCheck);
+      document.addEventListener("visibilitychange", function() {
+        if (document.visibilityState === "visible") {
+          triggerBackgroundCheck();
+        }
+      });
+    });
+  });
+})();
+</script>`;
+
+      html = html.replace('</body>', `    ${otaLoaderScript}\n  </body>`);
+      fs.writeFileSync(indexHtmlPath, html, 'utf8');
+    },
+  };
+}
+
 export default defineConfig(() => {
   return {
     base: './',
-    plugins: [react(), tailwindcss(), sqliteApiPlugin()],
+    plugins: [react(), tailwindcss(), sqliteApiPlugin(), otaLiveSyncPlugin()],
+    build: {
+      cssCodeSplit: false,
+      rollupOptions: {
+        output: {
+          codeSplitting: false,
+        },
+      },
+    },
     resolve: {
       alias: {
         '@': path.resolve(__dirname, '.'),
