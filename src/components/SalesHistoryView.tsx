@@ -54,7 +54,6 @@ export const SalesHistoryView: React.FC<SalesHistoryViewProps> = ({
   const dailyStats = useMemo(() => {
     const now = new Date();
     const currentDayOfWeek = now.getDay(); // 0 (Min) .. 6 (Sab)
-    // Calculate Monday of the current week
     const diffToMonday = currentDayOfWeek === 0 ? -6 : 1 - currentDayOfWeek;
     const monday = new Date(now);
     monday.setDate(now.getDate() + diffToMonday);
@@ -67,7 +66,6 @@ export const SalesHistoryView: React.FC<SalesHistoryViewProps> = ({
       const dateLabel = `${targetDate.getDate()}/${targetDate.getMonth() + 1}`;
       const isToday = currentDayOfWeek === dayInfo.dayOfWeek;
 
-      // Match transactions falling on this day of the week within the 7-day window
       const dayTxs = transactions.filter(
         (t) => new Date(t.timestamp).getDay() === dayInfo.dayOfWeek
       );
@@ -90,33 +88,33 @@ export const SalesHistoryView: React.FC<SalesHistoryViewProps> = ({
   const maxDailyRevenue = Math.max(...dailyStats.map((d) => d.revenue), 1);
 
   return (
-    <div className="space-y-5 pb-6">
+    <div className="space-y-3 sm:space-y-5 pb-6">
       {/* Page Title & Action Header */}
-      <div className="bg-white rounded-3xl p-4 sm:p-5 border border-stone-200/90 shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-        <div className="flex items-center gap-3">
+      <div className="bg-white rounded-2xl sm:rounded-3xl p-3 sm:p-5 border border-stone-200/90 shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 sm:gap-3">
+        <div className="flex items-center gap-2.5 sm:gap-3">
           <button
             type="button"
             onClick={onBackToCatalog}
-            className="w-10 h-10 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 flex items-center justify-center transition-colors cursor-pointer shrink-0 sm:hidden"
+            className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 flex items-center justify-center transition-colors cursor-pointer shrink-0 sm:hidden"
             title="Kembali ke Etalase"
           >
-            <ArrowLeft className="w-5 h-5" />
+            <ArrowLeft className="w-4 h-4 sm:w-5 sm:h-5" />
           </button>
           <div className="w-11 h-11 rounded-2xl bg-emerald-800 text-white hidden sm:flex items-center justify-center shadow-sm shadow-emerald-950/20 shrink-0">
             <Receipt className="w-5 h-5" />
           </div>
           <div>
             <div className="flex items-center gap-2 flex-wrap">
-              <h2 className="text-lg sm:text-xl font-black text-slate-900 leading-tight">
+              <h2 className="text-base sm:text-xl font-black text-slate-900 leading-tight">
                 Laporan Kas & Penjualan
               </h2>
-              <span className="inline-flex items-center gap-1 text-xs font-bold bg-emerald-100 text-emerald-800 px-2.5 py-0.5 rounded-full">
-                <ShieldCheck className="w-3.5 h-3.5" />
-                Senin – Minggu (7 Hari)
+              <span className="inline-flex items-center gap-1 text-[10px] font-bold bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded-full">
+                <ShieldCheck className="w-3 h-3" />
+                Senin – Minggu
               </span>
             </div>
-            <p className="text-xs sm:text-sm text-slate-500 font-medium mt-0.5">
-              Toko Aktif: <strong className="text-slate-700">{storeName}</strong> · Laporan mingguan mulai hari Senin s/d Minggu
+            <p className="text-xs text-slate-500 font-medium mt-0.5">
+              Toko Aktif: <strong className="text-slate-700">{storeName}</strong> · Laporan 7 hari terakhir (Senin s/d Minggu)
             </p>
           </div>
         </div>
@@ -125,63 +123,63 @@ export const SalesHistoryView: React.FC<SalesHistoryViewProps> = ({
           <button
             type="button"
             onClick={onClearHistory}
-            className="self-start sm:self-auto px-3.5 py-2 rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-700 font-bold text-xs sm:text-sm flex items-center gap-1.5 transition-colors cursor-pointer shrink-0"
+            className="self-start sm:self-auto px-3 py-1.5 sm:px-3.5 sm:py-2 rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-700 font-bold text-xs flex items-center gap-1.5 transition-colors cursor-pointer shrink-0"
           >
-            <Trash2 className="w-4 h-4" />
+            <Trash2 className="w-3.5 h-3.5" />
             <span>Kosongkan Riwayat</span>
           </button>
         )}
       </div>
 
       {/* Summary Cards Grid (Hari Ini vs 7 Hari Terakhir) */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 sm:gap-3.5">
         {/* Card 1: Hari Ini */}
-        <div className="bg-linear-to-br from-emerald-800 to-emerald-950 text-white p-5 rounded-3xl shadow-sm shadow-emerald-950/15 flex flex-col justify-between">
+        <div className="bg-linear-to-br from-emerald-800 to-emerald-950 text-white p-3.5 sm:p-5 rounded-2xl sm:rounded-3xl shadow-sm shadow-emerald-950/15 flex flex-col justify-between">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-bold uppercase tracking-wider text-emerald-200 bg-white/10 px-2.5 py-1 rounded-lg">
+            <span className="text-[11px] font-bold uppercase tracking-wider text-emerald-200 bg-white/10 px-2.5 py-1 rounded-lg">
               Hari Ini ({todayTransactions.length} Transaksi)
             </span>
             <TrendingUp className="w-5 h-5 text-emerald-300" />
           </div>
 
-          <div className="my-3">
-            <div className="text-xs sm:text-sm text-emerald-100/80 font-medium">
+          <div className="my-2 sm:my-3">
+            <div className="text-xs text-emerald-100/80 font-medium">
               Uang Kas Masuk Hari Ini:
             </div>
-            <div className="text-2xl sm:text-3xl font-black tracking-tight tabular-nums mt-0.5">
+            <div className="text-xl sm:text-3xl font-black tracking-tight tabular-nums mt-0.5">
               {formatRupiah(todayRevenue)}
             </div>
           </div>
 
-          <div className="pt-3 border-t border-white/15 flex items-center justify-between text-xs sm:text-sm">
+          <div className="pt-2.5 sm:pt-3 border-t border-white/15 flex items-center justify-between text-xs">
             <span className="text-emerald-100 font-medium">Perkiraan Untung Bersih:</span>
-            <span className="font-black text-amber-300 text-sm sm:text-base tabular-nums">
+            <span className="font-black text-amber-300 text-sm tabular-nums">
               +{formatRupiah(todayProfit)}
             </span>
           </div>
         </div>
 
-        {/* Card 2: Total 7 Hari Terakhir (Senin - Minggu) */}
-        <div className="bg-white p-5 rounded-3xl border border-stone-200/90 shadow-sm flex flex-col justify-between">
+        {/* Card 2: Total 7 Hari Terakhir */}
+        <div className="bg-white p-3.5 sm:p-5 rounded-2xl sm:rounded-3xl border border-stone-200/90 shadow-sm flex flex-col justify-between">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-bold uppercase tracking-wider text-slate-600 bg-slate-100 px-2.5 py-1 rounded-lg">
-              Minggu Ini · Senin – Minggu ({transactions.length} Nota)
+            <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500 bg-slate-100 px-2.5 py-1 rounded-lg">
+              7 Hari Terakhir ({transactions.length} Nota)
             </span>
             <Calendar className="w-5 h-5 text-emerald-700" />
           </div>
 
-          <div className="my-3">
-            <div className="text-xs sm:text-sm text-slate-500 font-medium">
-              Total Omzet 7 Hari (Sen – Min):
+          <div className="my-2 sm:my-3">
+            <div className="text-xs text-slate-500 font-medium">
+              Total Omzet 7 Hari:
             </div>
-            <div className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight tabular-nums mt-0.5">
+            <div className="text-xl sm:text-3xl font-black text-slate-900 tracking-tight tabular-nums mt-0.5">
               {formatRupiah(weekRevenue)}
             </div>
           </div>
 
-          <div className="pt-3 border-t border-slate-100 flex items-center justify-between text-xs sm:text-sm">
+          <div className="pt-2.5 sm:pt-3 border-t border-slate-100 flex items-center justify-between text-xs">
             <span className="text-slate-500 font-medium">Total Untung 7 Hari:</span>
-            <span className="font-black text-emerald-700 text-sm sm:text-base tabular-nums">
+            <span className="font-black text-emerald-700 text-sm tabular-nums">
               +{formatRupiah(weekProfit)}
             </span>
           </div>
@@ -189,20 +187,20 @@ export const SalesHistoryView: React.FC<SalesHistoryViewProps> = ({
       </div>
 
       {/* 7-Day Visual Bar Chart (Default: Senin s/d Minggu) */}
-      <div className="bg-white rounded-3xl p-5 border border-stone-200/90 shadow-sm">
-        <div className="flex items-center justify-between mb-4">
+      <div className="bg-white rounded-2xl sm:rounded-3xl p-3.5 sm:p-5 border border-stone-200/90 shadow-sm">
+        <div className="flex items-center justify-between mb-3 sm:mb-4">
           <div className="flex items-center gap-2">
-            <BarChart3 className="w-5 h-5 text-emerald-800" />
-            <h3 className="text-sm sm:text-base font-bold text-slate-800">
-              Grafik Omzet Mingguan (Senin – Minggu)
+            <BarChart3 className="w-4 h-4 text-emerald-800" />
+            <h3 className="text-xs sm:text-sm font-bold text-slate-800">
+              Grafik Omzet Harian (Senin – Minggu)
             </h3>
           </div>
-          <span className="text-xs text-slate-400 font-semibold">
+          <span className="text-[11px] text-slate-400 font-medium">
             Sen s/d Min
           </span>
         </div>
 
-        <div className="grid grid-cols-7 gap-2 sm:gap-3 items-end h-40 pt-6 pb-1 px-1">
+        <div className="grid grid-cols-7 gap-1.5 sm:gap-3 items-end h-32 sm:h-36 pt-5 pb-1 px-0.5 sm:px-1">
           {dailyStats.map((day, idx) => {
             const heightPercent =
               day.revenue > 0 ? Math.max(14, Math.round((day.revenue / maxDailyRevenue) * 100)) : 6;
@@ -210,15 +208,15 @@ export const SalesHistoryView: React.FC<SalesHistoryViewProps> = ({
               <div key={idx} className="flex flex-col items-center h-full justify-end group">
                 {/* Amount label above bar */}
                 <span
-                  className={`text-[11px] sm:text-xs font-bold tabular-nums mb-1 truncate max-w-full ${
-                    day.isToday ? 'text-emerald-800' : 'text-slate-500'
+                  className={`text-[9px] sm:text-[10px] font-bold tabular-nums mb-1 truncate max-w-full ${
+                    day.isToday ? 'text-emerald-800' : 'text-slate-400'
                   }`}
                 >
                   {day.revenue > 0 ? `${Math.round(day.revenue / 1000)}rb` : '-'}
                 </span>
 
                 {/* Bar column */}
-                <div className="w-full max-w-[40px] bg-slate-100 rounded-t-xl h-24 flex items-end p-0.5 overflow-hidden">
+                <div className="w-full max-w-[36px] bg-slate-100 rounded-t-xl h-20 sm:h-24 flex items-end p-0.5 overflow-hidden">
                   <div
                     style={{ height: `${heightPercent}%` }}
                     className={`w-full rounded-t-lg transition-all duration-300 ${
@@ -235,13 +233,13 @@ export const SalesHistoryView: React.FC<SalesHistoryViewProps> = ({
                 {/* Day label (Sen .. Min) */}
                 <div className="mt-1.5 text-center">
                   <div
-                    className={`text-xs font-bold leading-none ${
-                      day.isToday ? 'text-emerald-800' : 'text-slate-700'
+                    className={`text-[10px] sm:text-xs font-bold leading-none ${
+                      day.isToday ? 'text-emerald-800' : 'text-slate-600'
                     }`}
                   >
                     {day.dayLabel}
                   </div>
-                  <div className="text-[11px] text-slate-400 font-medium mt-0.5">
+                  <div className="text-[9px] text-slate-400 font-medium mt-0.5">
                     {day.dateLabel}
                   </div>
                 </div>
@@ -252,25 +250,25 @@ export const SalesHistoryView: React.FC<SalesHistoryViewProps> = ({
       </div>
 
       {/* Transactions List */}
-      <div className="space-y-3">
-        <h3 className="text-sm sm:text-base font-bold text-slate-700 uppercase tracking-wider px-1">
+      <div className="space-y-2.5 sm:space-y-3">
+        <h3 className="text-xs sm:text-sm font-bold text-slate-700 uppercase tracking-wider px-1">
           Daftar Nota Transaksi ({transactions.length} Transaksi)
         </h3>
 
         {transactions.length === 0 ? (
-          <div className="text-center py-12 bg-white rounded-3xl border border-stone-200/90 p-6 shadow-2xs">
-            <div className="w-16 h-16 rounded-full bg-slate-100 text-slate-400 flex items-center justify-center mx-auto mb-3">
-              <Calendar className="w-8 h-8" />
+          <div className="text-center py-8 sm:py-12 bg-white rounded-2xl sm:rounded-3xl border border-stone-200/90 p-5 sm:p-6 shadow-2xs">
+            <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-full bg-slate-100 text-slate-400 flex items-center justify-center mx-auto mb-3">
+              <Calendar className="w-7 h-7 sm:w-8 sm:h-8" />
             </div>
-            <h4 className="text-base sm:text-lg font-bold text-slate-700">
-              Belum Ada Penjualan Minggu Ini
+            <h4 className="text-sm sm:text-base font-bold text-slate-700">
+              Belum Ada Penjualan 7 Hari Terakhir
             </h4>
-            <p className="text-xs sm:text-sm text-slate-500 mt-1 max-w-xs mx-auto">
+            <p className="text-xs text-slate-400 mt-1 max-w-xs mx-auto">
               Transaksi dari kasir akan otomatis tercatat di sini untuk laporan Senin hingga Minggu.
             </p>
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-2.5 sm:gap-3">
             {transactions.map((tx) => {
               const dateObj = new Date(tx.timestamp);
               const isTxToday = dateObj.toDateString() === todayStr;
@@ -289,14 +287,14 @@ export const SalesHistoryView: React.FC<SalesHistoryViewProps> = ({
               return (
                 <div
                   key={tx.id}
-                  className="p-4 rounded-2xl bg-white border border-stone-200/90 shadow-2xs hover:shadow-md transition-shadow flex flex-col justify-between space-y-3"
+                  className="p-3 sm:p-4 rounded-2xl bg-white border border-stone-200/90 shadow-2xs hover:shadow-md transition-shadow flex flex-col justify-between space-y-2.5 sm:space-y-3"
                 >
                   <div>
                     {/* Top row */}
-                    <div className="flex items-center justify-between border-b border-slate-100 pb-2.5">
+                    <div className="flex items-center justify-between border-b border-slate-100 pb-2">
                       <div className="flex items-center gap-2">
                         <span
-                          className={`text-xs font-bold px-2.5 py-0.5 rounded-md ${
+                          className={`text-[10px] font-bold px-2 py-0.5 rounded-md ${
                             isTxToday
                               ? 'bg-emerald-100 text-emerald-800'
                               : 'bg-slate-100 text-slate-700'
@@ -305,13 +303,13 @@ export const SalesHistoryView: React.FC<SalesHistoryViewProps> = ({
                           {formattedDate}
                         </span>
                         <span className="text-xs font-semibold text-slate-500 flex items-center gap-1">
-                          <Clock className="w-3.5 h-3.5" />
+                          <Clock className="w-3 h-3" />
                           {formattedTime}
                         </span>
                       </div>
 
                       <div className="flex items-center gap-2">
-                        <span className="text-xs font-mono text-slate-400">
+                        <span className="text-[10px] font-mono text-slate-400">
                           #{tx.id.slice(-6)}
                         </span>
                         <button
@@ -331,22 +329,22 @@ export const SalesHistoryView: React.FC<SalesHistoryViewProps> = ({
                             navigator.clipboard.writeText(receipt);
                             alert('Salinan nota berhasil disalin ke clipboard!');
                           }}
-                          className="p-1.5 text-slate-400 hover:text-emerald-700 rounded-lg hover:bg-slate-100 transition-colors cursor-pointer"
+                          className="p-1 text-slate-400 hover:text-emerald-700 rounded-lg hover:bg-slate-100 transition-colors cursor-pointer"
                           title="Salin Nota ke WhatsApp"
                         >
-                          <Copy className="w-4 h-4" />
+                          <Copy className="w-3.5 h-3.5" />
                         </button>
                       </div>
                     </div>
 
                     {/* Items Sold */}
-                    <div className="space-y-1.5 pt-2.5">
+                    <div className="space-y-1 pt-2">
                       {tx.items.map((item, idx) => (
                         <div
                           key={idx}
-                          className="flex justify-between items-center text-xs sm:text-sm text-slate-700"
+                          className="flex justify-between items-center text-xs text-slate-700"
                         >
-                          <span className="truncate max-w-[210px]">
+                          <span className="truncate max-w-[200px]">
                             <strong className="text-slate-900">{item.quantity}x</strong>{' '}
                             {item.productName}
                           </span>
@@ -359,13 +357,13 @@ export const SalesHistoryView: React.FC<SalesHistoryViewProps> = ({
                   </div>
 
                   {/* Bottom Total & Profit */}
-                  <div className="pt-2.5 border-t border-dashed border-slate-200 flex items-center justify-between">
-                    <span className="text-xs font-bold text-emerald-700 bg-emerald-50 px-2.5 py-0.5 rounded-md">
+                  <div className="pt-2 border-t border-dashed border-slate-200 flex items-center justify-between">
+                    <span className="text-[11px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-md">
                       Untung +{formatRupiah(tx.totalProfit)}
                     </span>
                     <div className="text-right">
-                      <span className="text-xs text-slate-400 mr-1.5">Total:</span>
-                      <span className="text-sm sm:text-base font-black text-slate-900 tabular-nums">
+                      <span className="text-[10px] text-slate-400 mr-1.5">Total:</span>
+                      <span className="text-sm font-black text-slate-900 tabular-nums">
                         {formatRupiah(tx.totalAmount)}
                       </span>
                     </div>

@@ -1,12 +1,5 @@
 @import "tailwindcss";
 
-/* Scale up all font sizes by 1 step on Mobile & Tablet devices (< 1024px) for better visibility */
-@media (max-width: 1023px) {
-  html {
-    font-size: 18px;
-  }
-}
-
 html,
 body {
   touch-action: pan-x pan-y;

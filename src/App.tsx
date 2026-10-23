@@ -638,7 +638,7 @@ export default function App() {
   return (
     <div className="min-h-screen bg-[#e9eee7] text-slate-900 pb-28 sm:pb-24 selection:bg-emerald-700 selection:text-white leading-relaxed">
       {/* Main Content Area (Tanpa Navbar Putih di Atas) */}
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 pt-4 sm:pt-6 space-y-2.5">
+      <main className="max-w-7xl mx-auto px-2.5 sm:px-6 pt-2.5 sm:pt-6 space-y-2 sm:space-y-2.5">
         {/* TAB 1: ETALASE & KASIR */}
         {activeTab === 'catalog' && (
           <>
@@ -731,7 +731,7 @@ export default function App() {
                   </div>
                 </div>
               ) : (
-                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3 sm:gap-4 items-end">
+                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-2 sm:gap-4 items-end">
                   {filteredProducts.map((product) => (
                     <ProductCard
                       key={product.id}

@@ -1,5 +1,5 @@
 import React, { useState, useRef } from 'react';
-import { Store, Save, Plus, Check, Trash2, Edit2, ShieldAlert, CheckCircle2, Camera, Image as ImageIcon } from 'lucide-react';
+import { Store, Save, Plus, Trash2, ShieldAlert, CheckCircle2, Camera } from 'lucide-react';
 import { StoreAccount, Product, Transaction } from '../types/store';
 import { formatRupiah } from '../utils/format';
 
@@ -62,7 +62,6 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
   onUpdateStore,
   onDeleteStore,
   products,
-  transactions,
 }) => {
   const activeStore = stores.find((s) => s.id === activeStoreId) || stores[0];
 
@@ -152,14 +151,13 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
   };
 
   return (
-    <div className="max-w-2xl mx-auto space-y-6 pb-6">
-      
+    <div className="max-w-2xl mx-auto space-y-4 sm:space-y-6 pb-6">
       {/* 1. KELOLA DAFTAR TOKO (MAX 3 TOKO) */}
-      <div className="bg-white rounded-3xl p-5 sm:p-6 border border-stone-200/90 shadow-sm space-y-5">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 pb-4">
-          <div className="flex items-center gap-3">
-            <div className="w-12 h-12 rounded-2xl bg-emerald-800 text-white flex items-center justify-center shadow-sm shadow-emerald-950/20 shrink-0">
-              <Store className="w-6 h-6" />
+      <div className="bg-white rounded-2xl sm:rounded-3xl p-3 sm:p-6 border border-stone-200/90 shadow-sm space-y-3.5 sm:space-y-5">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 sm:gap-3 border-b border-slate-100 pb-3 sm:pb-4">
+          <div className="flex items-center gap-2.5 sm:gap-3">
+            <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-2xl bg-emerald-800 text-white flex items-center justify-center shadow-sm shadow-emerald-950/20 shrink-0">
+              <Store className="w-5 h-5 sm:w-6 sm:h-6" />
             </div>
             <div>
               <h2 className="text-base sm:text-lg font-bold text-slate-900 leading-normal">
@@ -175,7 +173,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
             <button
               type="button"
               onClick={() => setIsAddingStore(true)}
-              className="h-10 px-4 rounded-xl bg-emerald-700 hover:bg-emerald-800 text-white font-bold text-xs flex items-center justify-center gap-1.5 shadow-sm transition-all cursor-pointer shrink-0"
+              className="h-9 sm:h-10 px-3.5 sm:px-4 rounded-xl bg-emerald-700 hover:bg-emerald-800 text-white font-bold text-xs flex items-center justify-center gap-1.5 shadow-sm transition-all cursor-pointer shrink-0"
             >
               <Plus className="w-4 h-4 stroke-[2.5]" />
               <span>Tambah Toko</span>
@@ -184,22 +182,21 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
         </div>
 
         {/* List of Existing Stores */}
-        <div className="space-y-3">
+        <div className="space-y-2.5 sm:space-y-3">
           {stores.map((store, idx) => {
             const isActive = store.id === activeStoreId;
             return (
               <div
                 key={store.id}
-                className={`p-4 rounded-2xl border transition-all flex flex-col sm:flex-row sm:items-center justify-between gap-3 ${
+                className={`p-3 sm:p-4 rounded-2xl border transition-all flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 sm:gap-3 ${
                   isActive
                     ? 'bg-emerald-50/70 border-emerald-300 ring-2 ring-emerald-600/20'
                     : 'bg-slate-50 border-slate-200 hover:bg-slate-100/70'
                 }`}
               >
-                <div className="flex items-center gap-3 min-w-0">
-                  {/* Store Logo / Icon */}
+                <div className="flex items-center gap-2.5 sm:gap-3 min-w-0">
                   <div
-                    className={`w-11 h-11 rounded-xl flex items-center justify-center font-bold text-sm shrink-0 overflow-hidden relative shadow-2xs ${
+                    className={`w-10 h-10 sm:w-11 sm:h-11 rounded-xl flex items-center justify-center font-bold text-sm shrink-0 overflow-hidden relative shadow-2xs ${
                       isActive
                         ? 'bg-emerald-700 text-white'
                         : 'bg-slate-200 text-slate-700'
@@ -228,29 +225,26 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                         </span>
                       )}
                     </div>
-                    {/* Jenis Toko */}
                     <p className="text-xs text-slate-500 font-medium leading-relaxed truncate">
                       {store.categoryOrType || 'Usaha Toko'}
                     </p>
-                    {/* Informasi Pemilik Dijadikan Line Berikutnya */}
                     <p className="text-xs text-slate-500 font-medium leading-relaxed truncate">
                       Informasi Pemilik: <span className="text-slate-800 font-semibold">{store.ownerName}</span>
                     </p>
                   </div>
                 </div>
 
-                {/* Buttons: Pada mobile, Gunakan Toko Ini tombolnya sejajar dengan tombol hapus */}
-                <div className="flex items-center gap-2 shrink-0 w-full sm:w-auto mt-2 sm:mt-0">
+                <div className="flex items-center gap-2 shrink-0 w-full sm:w-auto mt-1 sm:mt-0">
                   {!isActive ? (
                     <button
                       type="button"
                       onClick={() => onSelectStore(store.id)}
-                      className="flex-1 sm:flex-initial sm:w-auto px-4 py-2.5 rounded-xl bg-white hover:bg-emerald-700 hover:text-white border border-slate-200 text-slate-800 text-xs font-bold transition-all shadow-2xs cursor-pointer text-center"
+                      className="flex-1 sm:flex-initial sm:w-auto px-3.5 py-2 sm:px-4 sm:py-2.5 rounded-xl bg-white hover:bg-emerald-700 hover:text-white border border-slate-200 text-slate-800 text-xs font-bold transition-all shadow-2xs cursor-pointer text-center"
                     >
                       Gunakan Toko Ini
                     </button>
                   ) : (
-                    <span className="flex-1 sm:flex-initial sm:w-auto text-xs font-semibold text-emerald-800 bg-emerald-100/60 sm:bg-transparent px-3 py-2.5 rounded-xl text-center">
+                    <span className="flex-1 sm:flex-initial sm:w-auto text-xs font-semibold text-emerald-800 bg-emerald-100/60 sm:bg-transparent px-3 py-2 sm:py-2.5 rounded-xl text-center">
                       Toko Sedang Digunakan
                     </span>
                   )}
@@ -259,7 +253,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                     <button
                       type="button"
                       onClick={() => onDeleteStore(store.id)}
-                      className="p-2.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 border border-slate-200 sm:border-transparent rounded-xl transition-colors cursor-pointer shrink-0 flex items-center justify-center"
+                      className="p-2 sm:p-2.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 border border-slate-200 sm:border-transparent rounded-xl transition-colors cursor-pointer shrink-0 flex items-center justify-center"
                       title="Hapus cabang toko ini"
                     >
                       <Trash2 className="w-4 h-4" />
@@ -273,7 +267,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
 
         {/* Max Stores Reached Notice */}
         {stores.length >= 3 && (
-          <div className="bg-amber-50 border border-amber-200 rounded-2xl p-3.5 text-xs text-amber-900 font-medium leading-relaxed flex items-center gap-2">
+          <div className="bg-amber-50 border border-amber-200 rounded-2xl p-3 text-xs text-amber-900 font-medium leading-relaxed flex items-center gap-2">
             <ShieldAlert className="w-4 h-4 text-amber-800 shrink-0" />
             <span>Maksimal 3 toko telah tercapai. Hapus salah satu cabang bila ingin membuka toko baru.</span>
           </div>
@@ -283,10 +277,10 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
         {isAddingStore && stores.length < 3 && (
           <form
             onSubmit={handleCreateNewStore}
-            className="p-4 sm:p-5 bg-emerald-50/80 border-2 border-emerald-300 rounded-2xl space-y-4 animate-in fade-in duration-200"
+            className="p-3.5 sm:p-5 bg-emerald-50/80 border-2 border-emerald-300 rounded-2xl space-y-3.5 sm:space-y-4 animate-in fade-in duration-200"
           >
             <div className="flex items-center justify-between">
-              <h3 className="text-sm font-bold text-emerald-950 flex items-center gap-2">
+              <h3 className="text-xs sm:text-sm font-bold text-emerald-950 flex items-center gap-2">
                 <Plus className="w-4 h-4 text-emerald-800" />
                 <span>Tambah Toko Baru (Toko ke-{stores.length + 1} dari 3)</span>
               </h3>
@@ -301,7 +295,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
 
             <div className="space-y-3">
               <div>
-                <label className="block text-xs font-bold text-slate-700 mb-1.5 leading-normal">
+                <label className="block text-xs font-bold text-slate-700 mb-1 leading-normal">
                   Nama Toko Baru <span className="text-rose-500">*</span>:
                 </label>
                 <input
@@ -310,13 +304,13 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                   value={newStoreName}
                   onChange={(e) => setNewStoreName(e.target.value)}
                   placeholder="Contoh: Toko Berkah Cabang 2, Toko Elektronik Jaya..."
-                  className="w-full h-11 px-3.5 bg-white border border-slate-300 focus:border-emerald-600 rounded-xl text-sm font-bold text-slate-900 outline-none leading-normal"
+                  className="w-full h-10 sm:h-11 px-3 bg-white border border-slate-300 focus:border-emerald-600 rounded-xl text-xs sm:text-sm font-bold text-slate-900 outline-none leading-normal"
                 />
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-xs font-bold text-slate-700 mb-1.5 leading-normal">
+                  <label className="block text-xs font-bold text-slate-700 mb-1 leading-normal">
                     Nama Pemilik / Kasir:
                   </label>
                   <input
@@ -324,18 +318,18 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                     value={newOwnerName}
                     onChange={(e) => setNewOwnerName(e.target.value)}
                     placeholder="Contoh: Ibu Siti / Pak Budi"
-                    className="w-full h-11 px-3.5 bg-white border border-slate-300 focus:border-emerald-600 rounded-xl text-sm font-semibold text-slate-900 outline-none leading-normal"
+                    className="w-full h-10 sm:h-11 px-3 bg-white border border-slate-300 focus:border-emerald-600 rounded-xl text-xs sm:text-sm font-semibold text-slate-900 outline-none leading-normal"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-xs font-bold text-slate-700 mb-1.5 leading-normal">
+                  <label className="block text-xs font-bold text-slate-700 mb-1 leading-normal">
                     Jenis Toko / Usaha:
                   </label>
                   <select
                     value={newCategory}
                     onChange={(e) => setNewCategory(e.target.value)}
-                    className="w-full h-11 px-3.5 bg-white border border-slate-300 focus:border-emerald-600 rounded-xl text-sm font-semibold text-slate-900 outline-none cursor-pointer leading-normal"
+                    className="w-full h-10 sm:h-11 px-3 bg-white border border-slate-300 focus:border-emerald-600 rounded-xl text-xs sm:text-sm font-semibold text-slate-900 outline-none cursor-pointer leading-normal"
                   >
                     <option value="Sembako & Kelontong">🍚 Sembako & Kelontong</option>
                     <option value="Elektronik & Gadget">⚡ Elektronik & Gadget</option>
@@ -349,8 +343,8 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
               </div>
 
               {/* Upload Logo untuk Toko Baru */}
-              <div className="bg-white border border-slate-200 rounded-xl p-3 flex items-center justify-between gap-3">
-                <div className="flex items-center gap-3">
+              <div className="bg-white border border-slate-200 rounded-xl p-2.5 sm:p-3 flex items-center justify-between gap-2.5">
+                <div className="flex items-center gap-2.5">
                   <div className="w-10 h-10 rounded-xl bg-slate-100 border border-dashed border-slate-300 flex items-center justify-center overflow-hidden shrink-0">
                     {newLogoUrl ? (
                       <img src={newLogoUrl} alt="Logo" className="w-full h-full object-cover" />
@@ -374,7 +368,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                   <button
                     type="button"
                     onClick={() => newStoreFileInputRef.current?.click()}
-                    className="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg text-xs font-bold flex items-center gap-1 cursor-pointer transition-colors"
+                    className="px-2.5 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg text-xs font-bold flex items-center gap-1 cursor-pointer transition-colors"
                   >
                     <Camera className="w-3.5 h-3.5" />
                     <span>{newLogoUrl ? 'Ganti' : 'Pilih Logo'}</span>
@@ -386,7 +380,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
             <div className="flex items-center gap-2 pt-1">
               <button
                 type="submit"
-                className="flex-1 h-11 bg-emerald-700 hover:bg-emerald-800 text-white font-bold text-xs rounded-xl shadow-sm transition-all cursor-pointer flex items-center justify-center gap-1.5"
+                className="flex-1 h-10 sm:h-11 bg-emerald-700 hover:bg-emerald-800 text-white font-bold text-xs rounded-xl shadow-sm transition-all cursor-pointer flex items-center justify-center gap-1.5"
               >
                 <Plus className="w-4 h-4" />
                 <span>Simpan & Buka Toko Ini</span>
@@ -394,7 +388,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
               <button
                 type="button"
                 onClick={() => setIsAddingStore(false)}
-                className="h-11 px-4 bg-white border border-slate-200 text-slate-700 font-bold text-xs rounded-xl hover:bg-slate-100 transition-colors cursor-pointer"
+                className="h-10 sm:h-11 px-3.5 sm:px-4 bg-white border border-slate-200 text-slate-700 font-bold text-xs rounded-xl hover:bg-slate-100 transition-colors cursor-pointer"
               >
                 Tutup
               </button>
@@ -404,8 +398,8 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
       </div>
 
       {/* 2. UBAH INFORMASI TOKO YANG SEDANG AKTIF */}
-      <div className="bg-white rounded-3xl p-5 sm:p-6 border border-stone-200/90 shadow-sm space-y-5">
-        <div className="border-b border-slate-100 pb-3">
+      <div className="bg-white rounded-2xl sm:rounded-3xl p-3 sm:p-6 border border-stone-200/90 shadow-sm space-y-3.5 sm:space-y-5">
+        <div className="border-b border-slate-100 pb-2.5 sm:pb-3">
           <h2 className="text-base sm:text-lg font-bold text-slate-900 leading-normal">
             Pengaturan Toko Aktif: "{activeStore?.name}"
           </h2>
@@ -414,10 +408,10 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
           </p>
         </div>
 
-        <form onSubmit={handleSaveActiveStore} className="space-y-4">
+        <form onSubmit={handleSaveActiveStore} className="space-y-3.5 sm:space-y-4">
           {/* Logo Toko Aktif */}
-          <div className="bg-slate-50 border border-slate-200/90 rounded-2xl p-3.5 sm:p-4 flex flex-col sm:flex-row items-center gap-4">
-            <div className="w-16 h-16 rounded-2xl bg-white border-2 border-dashed border-emerald-600/40 flex items-center justify-center overflow-hidden shrink-0 shadow-2xs relative">
+          <div className="bg-slate-50 border border-slate-200/90 rounded-2xl p-3 sm:p-4 flex flex-col sm:flex-row items-center gap-3 sm:gap-4">
+            <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-2xl bg-white border-2 border-dashed border-emerald-600/40 flex items-center justify-center overflow-hidden shrink-0 shadow-2xs relative">
               {activeLogoUrl ? (
                 <img
                   src={activeLogoUrl}
@@ -425,7 +419,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                   className="w-full h-full object-cover"
                 />
               ) : (
-                <Store className="w-8 h-8 text-slate-400" />
+                <Store className="w-7 h-7 sm:w-8 sm:h-8 text-slate-400" />
               )}
             </div>
             <div className="flex-1 text-center sm:text-left space-y-1">
@@ -444,7 +438,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                 <button
                   type="button"
                   onClick={() => fileInputRef.current?.click()}
-                  className="px-3.5 py-1.5 bg-emerald-700 hover:bg-emerald-800 text-white rounded-xl text-xs font-bold flex items-center gap-1.5 cursor-pointer shadow-2xs transition-colors"
+                  className="px-3 py-1.5 bg-emerald-700 hover:bg-emerald-800 text-white rounded-xl text-xs font-bold flex items-center gap-1.5 cursor-pointer shadow-2xs transition-colors"
                 >
                   <Camera className="w-3.5 h-3.5" />
                   <span>{activeLogoUrl ? 'Ganti Logo' : 'Upload Logo Toko'}</span>
@@ -468,7 +462,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
           </div>
 
           <div>
-            <label className="block text-xs font-bold text-slate-700 mb-1.5 leading-normal">
+            <label className="block text-xs font-bold text-slate-700 mb-1 leading-normal">
               Nama Toko:
             </label>
             <input
@@ -476,13 +470,13 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
               value={activeStoreName}
               onChange={(e) => setActiveStoreName(e.target.value)}
               placeholder="Nama Toko..."
-              className="w-full h-11 px-3.5 bg-slate-100 focus:bg-white border border-transparent focus:border-emerald-600 rounded-xl text-sm font-bold text-slate-900 outline-none leading-normal"
+              className="w-full h-10 sm:h-11 px-3 sm:px-3.5 bg-slate-100 focus:bg-white border border-transparent focus:border-emerald-600 rounded-xl text-xs sm:text-sm font-bold text-slate-900 outline-none leading-normal"
             />
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
-              <label className="block text-xs font-bold text-slate-700 mb-1.5 leading-normal">
+              <label className="block text-xs font-bold text-slate-700 mb-1 leading-normal">
                 Nama Pemilik / Kasir:
               </label>
               <input
@@ -490,12 +484,12 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                 value={activeOwnerName}
                 onChange={(e) => setActiveOwnerName(e.target.value)}
                 placeholder="Nama Pemilik..."
-                className="w-full h-11 px-3.5 bg-slate-100 focus:bg-white border border-transparent focus:border-emerald-600 rounded-xl text-sm font-semibold text-slate-900 outline-none leading-normal"
+                className="w-full h-10 sm:h-11 px-3 sm:px-3.5 bg-slate-100 focus:bg-white border border-transparent focus:border-emerald-600 rounded-xl text-xs sm:text-sm font-semibold text-slate-900 outline-none leading-normal"
               />
             </div>
 
             <div>
-              <label className="block text-xs font-bold text-slate-700 mb-1.5 leading-normal">
+              <label className="block text-xs font-bold text-slate-700 mb-1 leading-normal">
                 Jenis Usaha / Kategori:
               </label>
               <input
@@ -503,14 +497,14 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                 value={activeCategory}
                 onChange={(e) => setActiveCategory(e.target.value)}
                 placeholder="Contoh: Toko Kelontong..."
-                className="w-full h-11 px-3.5 bg-slate-100 focus:bg-white border border-transparent focus:border-emerald-600 rounded-xl text-sm font-semibold text-slate-900 outline-none leading-normal"
+                className="w-full h-10 sm:h-11 px-3 sm:px-3.5 bg-slate-100 focus:bg-white border border-transparent focus:border-emerald-600 rounded-xl text-xs sm:text-sm font-semibold text-slate-900 outline-none leading-normal"
               />
             </div>
           </div>
 
           <button
             type="submit"
-            className="w-full h-12 bg-emerald-700 hover:bg-emerald-800 active:scale-95 text-white rounded-xl font-bold text-xs sm:text-sm flex items-center justify-center gap-2 shadow-sm shadow-emerald-800/20 transition-all cursor-pointer"
+            className="w-full h-10 sm:h-12 bg-emerald-700 hover:bg-emerald-800 active:scale-95 text-white rounded-xl font-bold text-xs sm:text-sm flex items-center justify-center gap-2 shadow-sm shadow-emerald-800/20 transition-all cursor-pointer"
           >
             <Save className="w-4 h-4" />
             <span>{isSaved ? 'Perubahan Berhasil Disimpan!' : 'Simpan Nama Toko Ini'}</span>
@@ -519,30 +513,30 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
       </div>
 
       {/* 3. RINGKASAN NILAI MODAL DAGANGAN TOKO */}
-      <div className="bg-white rounded-3xl p-5 sm:p-6 border border-stone-200/90 shadow-sm space-y-4">
+      <div className="bg-white rounded-2xl sm:rounded-3xl p-3 sm:p-6 border border-stone-200/90 shadow-sm space-y-3 sm:space-y-4">
         <div>
           <h3 className="text-xs sm:text-sm font-bold text-slate-700 uppercase tracking-wider leading-normal">
             💎 Nilai Modal Barang di Toko Ini
           </h3>
-          <p className="text-xs sm:text-sm text-slate-500 leading-relaxed mt-1">
+          <p className="text-xs sm:text-sm text-slate-500 leading-relaxed mt-0.5 sm:mt-1">
             Perkiraan modal yang sedang tersimpan dalam bentuk stok barang aktif:
           </p>
         </div>
 
-        <div className="grid grid-cols-2 gap-3 pt-1">
-          <div className="bg-slate-50 border border-slate-200 p-4 rounded-2xl space-y-1">
-            <span className="text-xs text-slate-500 font-medium leading-normal">
+        <div className="grid grid-cols-2 gap-2.5 sm:gap-3 pt-0.5">
+          <div className="bg-slate-50 border border-slate-200 p-3 sm:p-4 rounded-2xl space-y-1">
+            <span className="text-[11px] sm:text-xs text-slate-500 font-medium leading-normal block">
               Total Nilai Modal (Harga Beli):
             </span>
-            <div className="text-base sm:text-xl font-black text-slate-900 tabular-nums leading-normal">
+            <div className="text-sm sm:text-xl font-black text-slate-900 tabular-nums leading-normal">
               {formatRupiah(totalAssetValue)}
             </div>
           </div>
-          <div className="bg-emerald-50 border border-emerald-100 p-4 rounded-2xl space-y-1">
-            <span className="text-xs text-emerald-800 font-medium leading-normal">
+          <div className="bg-emerald-50 border border-emerald-100 p-3 sm:p-4 rounded-2xl space-y-1">
+            <span className="text-[11px] sm:text-xs text-emerald-800 font-medium leading-normal block">
               Potensi Keuntungan:
             </span>
-            <div className="text-base sm:text-xl font-black text-emerald-800 tabular-nums leading-normal">
+            <div className="text-sm sm:text-xl font-black text-emerald-800 tabular-nums leading-normal">
               +{formatRupiah(potentialProfit)}
             </div>
           </div>

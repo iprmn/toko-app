@@ -108,7 +108,7 @@ export const CategoryFilter: React.FC<CategoryFilterProps> = ({
       onMouseMove={handleMouseMove}
       onMouseUp={handleMouseUpOrLeave}
       onMouseLeave={handleMouseUpOrLeave}
-      className={`flex items-center gap-2 overflow-x-auto pb-2 pt-1 no-scrollbar select-none ${
+      className={`flex items-center gap-1.5 sm:gap-2 overflow-x-auto pb-1.5 pt-0.5 no-scrollbar select-none ${
         isDragging ? 'cursor-grabbing' : 'cursor-grab'
       }`}
     >
@@ -119,7 +119,7 @@ export const CategoryFilter: React.FC<CategoryFilterProps> = ({
             value={selectedShelf}
             onChange={(e) => onSelectShelf(e.target.value)}
             aria-label="Filter Lokasi Rak"
-            className={`min-h-[46px] pl-3.5 pr-9 py-2 rounded-2xl text-sm font-semibold appearance-none transition-all cursor-pointer outline-none border ${
+            className={`min-h-[38px] sm:min-h-[44px] pl-3 sm:pl-3.5 pr-8 sm:pr-9 py-1.5 sm:py-2 rounded-xl sm:rounded-2xl text-xs sm:text-sm font-semibold appearance-none transition-all cursor-pointer outline-none border ${
               selectedShelf !== 'all'
                 ? 'bg-amber-800 text-white border-amber-900 shadow-sm'
                 : 'bg-white hover:bg-slate-100 text-slate-700 border-slate-200/80 shadow-2xs'
@@ -142,7 +142,7 @@ export const CategoryFilter: React.FC<CategoryFilterProps> = ({
             })}
           </select>
           <ChevronDown
-            className={`w-4 h-4 pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 ${
+            className={`w-3.5 h-3.5 sm:w-4 sm:h-4 pointer-events-none absolute right-2.5 sm:right-3 top-1/2 -translate-y-1/2 ${
               selectedShelf !== 'all' ? 'text-white' : 'text-slate-500'
             }`}
           />
@@ -170,17 +170,17 @@ export const CategoryFilter: React.FC<CategoryFilterProps> = ({
               if (dragStateRef.current.hasMoved) return;
               onSelectCategory(cat.id);
             }}
-            className={`min-h-[46px] px-3.5 sm:px-4 py-2 rounded-2xl text-sm font-semibold flex items-center gap-2 shrink-0 transition-all cursor-pointer ${
+            className={`min-h-[38px] sm:min-h-[44px] px-3 sm:px-4 py-1.5 sm:py-2 rounded-xl sm:rounded-2xl text-xs sm:text-sm font-semibold flex items-center gap-1.5 sm:gap-2 shrink-0 transition-all cursor-pointer ${
               isSelected
                 ? 'bg-emerald-700 text-white shadow-sm shadow-emerald-800/20 scale-[1.02]'
                 : 'bg-white hover:bg-slate-100 text-slate-700 border border-slate-200/80 shadow-2xs'
             }`}
           >
-            <span className="text-base leading-none">{cat.icon}</span>
+            <span className="text-sm sm:text-base leading-none">{cat.icon}</span>
             <span className="whitespace-nowrap">{cat.label}</span>
             {count > 0 && (
               <span
-                className={`text-xs font-bold px-2 py-0.5 rounded-full ${
+                className={`text-[10px] sm:text-[11px] font-bold px-1.5 py-0.5 rounded-full ${
                   isSelected
                     ? 'bg-white/25 text-white'
                     : 'bg-slate-100 text-slate-600'
