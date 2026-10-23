@@ -1,5 +1,5 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { X, Check, Package, Camera, Upload, Trash2 } from 'lucide-react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
+import { X, Check, Package, Camera, Upload, Trash2, ChevronDown, RefreshCw } from 'lucide-react';
 import { Product, ProductCategory } from '../types/store';
 import { PRESET_ICONS, MASTER_DEPARTMENTS } from '../data/initialProducts';
 
@@ -66,11 +66,108 @@ export const AddProductModal: React.FC<AddProductModalProps> = ({
   const [visualMode, setVisualMode] = useState<'icon' | 'photo'>('icon');
   const [customCategoryInput, setCustomCategoryInput] = useState('');
 
+  // Live Camera state
+  const [isCameraActive, setIsCameraActive] = useState(false);
+  const [cameraFacing, setCameraFacing] = useState<'environment' | 'user'>('environment');
+  const videoRef = useRef<HTMLVideoElement | null>(null);
+  const streamRef = useRef<MediaStream | null>(null);
+
+  // Separate inputs for Gallery Upload vs Native Camera Capture fallback
   const fileInputRef = useRef<HTMLInputElement | null>(null);
+  const cameraInputRef = useRef<HTMLInputElement | null>(null);
 
   const currentDept = MASTER_DEPARTMENTS.find((d) => d.id === departmentId) || MASTER_DEPARTMENTS[0];
 
+  const stopCameraStream = useCallback(() => {
+    if (streamRef.current) {
+      streamRef.current.getTracks().forEach((track) => track.stop());
+      streamRef.current = null;
+    }
+    setIsCameraActive(false);
+  }, []);
+
+  const startCamera = useCallback(
+    async (facing: 'environment' | 'user' = cameraFacing) => {
+      setVisualMode('photo');
+
+      // Check if WebRTC getUserMedia is available
+      if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+        try {
+          if (streamRef.current) {
+            streamRef.current.getTracks().forEach((track) => track.stop());
+          }
+          const stream = await navigator.mediaDevices.getUserMedia({
+            video: {
+              facingMode: { ideal: facing },
+              width: { ideal: 720 },
+              height: { ideal: 720 },
+            },
+            audio: false,
+          });
+          streamRef.current = stream;
+          setIsCameraActive(true);
+          setTimeout(() => {
+            if (videoRef.current) {
+              videoRef.current.srcObject = stream;
+              videoRef.current.play().catch(() => {});
+            }
+          }, 50);
+          return;
+        } catch {
+          // Fallback to native HTML5 camera capture input if permission denied or unavailable
+          stopCameraStream();
+          cameraInputRef.current?.click();
+          return;
+        }
+      }
+
+      // Fallback to native HTML5 camera capture input
+      cameraInputRef.current?.click();
+    },
+    [cameraFacing, stopCameraStream]
+  );
+
+  const handleCapturePhotoFromVideo = () => {
+    const video = videoRef.current;
+    if (!video) return;
+
+    const canvas = document.createElement('canvas');
+    const maxDim = 500;
+    let width = video.videoWidth || 500;
+    let height = video.videoHeight || 500;
+
+    if (width > height && width > maxDim) {
+      height = Math.round((height * maxDim) / width);
+      width = maxDim;
+    } else if (height > maxDim) {
+      width = Math.round((width * maxDim) / height);
+      height = maxDim;
+    }
+
+    canvas.width = width;
+    canvas.height = height;
+    const ctx = canvas.getContext('2d');
+    if (ctx) {
+      ctx.drawImage(video, 0, 0, width, height);
+      const dataUrl = canvas.toDataURL('image/jpeg', 0.82);
+      setImageUrl(dataUrl);
+      setVisualMode('photo');
+    }
+    stopCameraStream();
+  };
+
+  const handleSwitchCameraFacing = () => {
+    const nextFacing = cameraFacing === 'environment' ? 'user' : 'environment';
+    setCameraFacing(nextFacing);
+    startCamera(nextFacing);
+  };
+
   useEffect(() => {
+    if (!isOpen) {
+      stopCameraStream();
+      return;
+    }
+
     if (initialProduct) {
       setName(initialProduct.name);
       setCategory(initialProduct.category);
@@ -106,7 +203,15 @@ export const AddProductModal: React.FC<AddProductModalProps> = ({
       setVisualMode('icon');
       setCustomCategoryInput('');
     }
-  }, [initialProduct, isOpen]);
+  }, [initialProduct, isOpen, stopCameraStream]);
+
+  useEffect(() => {
+    return () => {
+      if (streamRef.current) {
+        streamRef.current.getTracks().forEach((track) => track.stop());
+      }
+    };
+  }, []);
 
   if (!isOpen) return null;
 
@@ -144,11 +249,13 @@ export const AddProductModal: React.FC<AddProductModalProps> = ({
       alert('Gagal memuat foto. Coba gunakan foto lain dengan format JPG atau PNG.');
     } finally {
       if (fileInputRef.current) fileInputRef.current.value = '';
+      if (cameraInputRef.current) cameraInputRef.current.value = '';
     }
   };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    stopCameraStream();
     if (!name.trim()) {
       alert('Mohon isi nama barang!');
       return;
@@ -181,10 +288,16 @@ export const AddProductModal: React.FC<AddProductModalProps> = ({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs animate-in fade-in duration-200">
-      <div className="absolute inset-0" onClick={onClose} />
+      <div
+        className="absolute inset-0"
+        onClick={() => {
+          stopCameraStream();
+          onClose();
+        }}
+      />
 
       <div className="relative z-10 w-full max-w-lg max-h-[92vh] bg-white rounded-3xl shadow-2xl flex flex-col overflow-hidden animate-in zoom-in-95 duration-200">
-        {/* Header - Subtitle removed as requested */}
+        {/* Header */}
         <div className="p-4 sm:p-5 border-b border-slate-100 flex items-center justify-between bg-emerald-800 text-white shrink-0">
           <div className="flex items-center gap-2.5">
             <div className="w-10 h-10 rounded-xl bg-white/20 flex items-center justify-center">
@@ -198,7 +311,10 @@ export const AddProductModal: React.FC<AddProductModalProps> = ({
           </div>
           <button
             type="button"
-            onClick={onClose}
+            onClick={() => {
+              stopCameraStream();
+              onClose();
+            }}
             className="w-8 h-8 rounded-full bg-white/20 hover:bg-white/30 text-white flex items-center justify-center transition-colors cursor-pointer"
           >
             <X className="w-4 h-4" />
@@ -207,7 +323,7 @@ export const AddProductModal: React.FC<AddProductModalProps> = ({
 
         {/* Form Body */}
         <form onSubmit={handleSubmit} className="flex-1 overflow-y-auto p-4 sm:p-5 space-y-4">
-          {/* Hidden File Input */}
+          {/* Hidden File Input (Galeri / File) */}
           <input
             ref={fileInputRef}
             type="file"
@@ -216,39 +332,48 @@ export const AddProductModal: React.FC<AddProductModalProps> = ({
             onChange={handleImageFileChange}
           />
 
-          {/* 1. KELOMPOK / BIDANG USAHA DENGAN ICON FOTO BULAT DI SAMPINGNYA */}
+          {/* Hidden Camera Input (Direct Camera Capture fallback) */}
+          <input
+            ref={cameraInputRef}
+            type="file"
+            accept="image/*"
+            capture="environment"
+            className="hidden"
+            onChange={handleImageFileChange}
+          />
+
+          {/* 1. KELOMPOK / BIDANG USAHA DENGAN ICON KAMERA BULAT DI SAMPINGNYA */}
           <div>
             <label className="block text-xs font-bold text-slate-800 mb-1">
               Pilih Kelompok / Bidang Usaha:
             </label>
             <div className="flex items-center gap-2">
-              <select
-                value={departmentId}
-                onChange={(e) => handleDepartmentChange(e.target.value)}
-                className="flex-1 h-11 px-3.5 bg-white border-2 border-emerald-600/40 focus:border-emerald-700 rounded-xl text-sm font-bold text-slate-900 outline-none transition-all cursor-pointer shadow-2xs"
-              >
-                {MASTER_DEPARTMENTS.map((dept) => (
-                  <option key={dept.id} value={dept.id}>
-                    {dept.icon} {dept.name}
-                  </option>
-                ))}
-              </select>
+              <div className="relative flex-1 min-w-0">
+                <select
+                  value={departmentId}
+                  onChange={(e) => handleDepartmentChange(e.target.value)}
+                  className="w-full h-11 pl-3.5 pr-10 bg-white border-2 border-emerald-600/40 focus:border-emerald-700 rounded-xl text-sm font-bold text-slate-900 appearance-none outline-none transition-all cursor-pointer shadow-2xs truncate"
+                >
+                  {MASTER_DEPARTMENTS.map((dept) => (
+                    <option key={dept.id} value={dept.id}>
+                      {dept.icon} {dept.name}
+                    </option>
+                  ))}
+                </select>
+                <ChevronDown className="w-4 h-4 text-slate-600 pointer-events-none absolute right-3.5 top-1/2 -translate-y-1/2" />
+              </div>
 
-              {/* Icon foto bulat di samping dropdown */}
+              {/* Icon kamera bulat di samping dropdown -> Langsung buka Kamera */}
               <button
                 type="button"
-                onClick={() => {
-                  setVisualMode('photo');
-                  if (!imageUrl) {
-                    fileInputRef.current?.click();
-                  }
-                }}
+                onClick={() => startCamera()}
                 className={`w-11 h-11 rounded-full flex items-center justify-center shrink-0 transition-all cursor-pointer shadow-xs border ${
                   visualMode === 'photo' || imageUrl
                     ? 'bg-emerald-700 text-white border-emerald-700 ring-2 ring-emerald-300'
                     : 'bg-white hover:bg-emerald-50 text-emerald-800 border-emerald-300'
                 }`}
-                title="Unggah Foto Barang"
+                title="Buka Kamera untuk Foto Barang"
+                aria-label="Buka Kamera"
               >
                 <Camera className="w-5 h-5" />
               </button>
@@ -263,69 +388,120 @@ export const AddProductModal: React.FC<AddProductModalProps> = ({
               </span>
             </div>
 
-            {/* Jika mode photo: isian card menjadi HANYA upload foto */}
             {visualMode === 'photo' ? (
               <div className="p-3 bg-white rounded-xl border border-emerald-200/80 space-y-2.5">
-                <div className="flex items-center gap-3">
-                  {imageUrl ? (
-                    <div className="relative w-14 h-14 rounded-xl overflow-hidden border border-emerald-300 shrink-0 shadow-2xs group">
-                      <img
-                        src={imageUrl}
-                        alt="Preview"
+                {/* Jika Live Kamera sedang aktif */}
+                {isCameraActive ? (
+                  <div className="space-y-2.5">
+                    <div className="relative w-full h-52 bg-slate-900 rounded-xl overflow-hidden flex items-center justify-center">
+                      <video
+                        ref={videoRef}
+                        autoPlay
+                        playsInline
+                        muted
                         className="w-full h-full object-cover"
                       />
                       <button
                         type="button"
-                        onClick={() => setImageUrl('')}
-                        className="absolute inset-0 bg-black/50 text-white flex flex-col items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer text-[10px] font-bold"
-                        title="Hapus foto"
+                        onClick={handleSwitchCameraFacing}
+                        className="absolute top-2.5 right-2.5 w-9 h-9 rounded-full bg-black/50 hover:bg-black/70 text-white flex items-center justify-center backdrop-blur-xs cursor-pointer"
+                        title="Putar Kamera Depan/Belakang"
                       >
-                        <Trash2 className="w-3.5 h-3.5 mb-0.5" />
-                        Hapus
+                        <RefreshCw className="w-4 h-4" />
                       </button>
                     </div>
-                  ) : (
-                    <div
-                      onClick={() => fileInputRef.current?.click()}
-                      className="w-14 h-14 rounded-xl bg-slate-100 hover:bg-emerald-50 border-2 border-dashed border-emerald-300 flex flex-col items-center justify-center text-emerald-700 shrink-0 cursor-pointer transition-colors"
-                    >
-                      <Camera className="w-5 h-5" />
+                    <div className="flex items-center gap-2">
+                      <button
+                        type="button"
+                        onClick={handleCapturePhotoFromVideo}
+                        className="flex-1 h-10 bg-emerald-700 hover:bg-emerald-800 text-white rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 cursor-pointer shadow-xs active:scale-95 transition-all"
+                      >
+                        <Camera className="w-4 h-4" />
+                        <span>Jepret Foto</span>
+                      </button>
+                      <button
+                        type="button"
+                        onClick={stopCameraStream}
+                        className="h-10 px-3.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-semibold cursor-pointer"
+                      >
+                        Batal
+                      </button>
                     </div>
-                  )}
-
-                  <div className="flex-1 min-w-0">
-                    <div className="text-xs font-bold text-slate-800 truncate">
-                      {imageUrl ? 'Foto Barang Terpasang' : 'Ambil / Upload Foto'}
-                    </div>
-                    <p className="text-[10px] text-slate-500 mt-0.5 leading-tight line-clamp-2">
-                      {imageUrl
-                        ? 'Foto akan ditampilkan di etalase & kasir.'
-                        : 'Pilih file gambar atau ambil langsung dari kamera HP.'}
-                    </p>
                   </div>
-                </div>
+                ) : (
+                  <>
+                    <div className="flex items-center gap-3">
+                      {imageUrl ? (
+                        <div className="relative w-14 h-14 rounded-xl overflow-hidden border border-emerald-300 shrink-0 shadow-2xs group">
+                          <img
+                            src={imageUrl}
+                            alt="Preview"
+                            className="w-full h-full object-cover"
+                          />
+                          <button
+                            type="button"
+                            onClick={() => setImageUrl('')}
+                            className="absolute inset-0 bg-black/50 text-white flex flex-col items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer text-[10px] font-bold"
+                            title="Hapus foto"
+                          >
+                            <Trash2 className="w-3.5 h-3.5 mb-0.5" />
+                            Hapus
+                          </button>
+                        </div>
+                      ) : (
+                        <div
+                          onClick={() => startCamera()}
+                          className="w-14 h-14 rounded-xl bg-slate-100 hover:bg-emerald-50 border-2 border-dashed border-emerald-300 flex flex-col items-center justify-center text-emerald-700 shrink-0 cursor-pointer transition-colors"
+                          title="Klik untuk buka kamera"
+                        >
+                          <Camera className="w-5 h-5" />
+                        </div>
+                      )}
 
-                {/* Tombol Aksi: Berada di baris tersendiri, flex-nowrap & whitespace-nowrap agar tidak pernah ke-wrap di mobile */}
-                <div className="flex items-center gap-2 pt-2 border-t border-slate-100 flex-nowrap">
-                  <button
-                    type="button"
-                    onClick={() => fileInputRef.current?.click()}
-                    className="flex-1 h-9 px-3 bg-emerald-700 hover:bg-emerald-800 text-white rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 cursor-pointer transition-all active:scale-95 whitespace-nowrap shrink-0"
-                  >
-                    <Upload className="w-3.5 h-3.5" />
-                    <span>{imageUrl ? 'Ganti Foto' : 'Upload Foto'}</span>
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setVisualMode('icon');
-                      setImageUrl('');
-                    }}
-                    className="flex-1 h-9 px-3 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-semibold flex items-center justify-center gap-1 transition-colors cursor-pointer whitespace-nowrap shrink-0"
-                  >
-                    <span>Pakai Ikon Saja</span>
-                  </button>
-                </div>
+                      <div className="flex-1 min-w-0">
+                        <div className="text-xs font-bold text-slate-800 truncate">
+                          {imageUrl ? 'Foto Barang Terpasang' : 'Ambil Kamera / Upload Foto'}
+                        </div>
+                        <p className="text-[10px] text-slate-500 mt-0.5 leading-tight line-clamp-2">
+                          {imageUrl
+                            ? 'Foto akan ditampilkan di etalase & kasir.'
+                            : 'Bisa jepret langsung dari kamera HP atau pilih foto dari galeri.'}
+                        </p>
+                      </div>
+                    </div>
+
+                    {/* Tombol Aksi: Kamera, Upload Galeri, atau Pakai Ikon */}
+                    <div className="grid grid-cols-3 gap-1.5 pt-2 border-t border-slate-100">
+                      <button
+                        type="button"
+                        onClick={() => startCamera()}
+                        className="h-9 px-2 bg-emerald-700 hover:bg-emerald-800 text-white rounded-xl text-[11px] font-bold flex items-center justify-center gap-1 cursor-pointer transition-all active:scale-95 whitespace-nowrap"
+                      >
+                        <Camera className="w-3.5 h-3.5 shrink-0" />
+                        <span>Kamera</span>
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => fileInputRef.current?.click()}
+                        className="h-9 px-2 bg-emerald-50 hover:bg-emerald-100 text-emerald-900 border border-emerald-200 rounded-xl text-[11px] font-bold flex items-center justify-center gap-1 cursor-pointer transition-all active:scale-95 whitespace-nowrap"
+                      >
+                        <Upload className="w-3.5 h-3.5 shrink-0" />
+                        <span>Upload</span>
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          stopCameraStream();
+                          setVisualMode('icon');
+                          setImageUrl('');
+                        }}
+                        className="h-9 px-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-[11px] font-semibold flex items-center justify-center transition-colors cursor-pointer whitespace-nowrap"
+                      >
+                        <span>Pakai Ikon</span>
+                      </button>
+                    </div>
+                  </>
+                )}
               </div>
             ) : (
               /* Jika mode icon: tampilkan pilihan preset icon */
@@ -371,7 +547,7 @@ export const AddProductModal: React.FC<AddProductModalProps> = ({
             />
           </div>
 
-          {/* 3. SARAN KATEGORI BARANG SESUAI DROPDOWN - teks "Pilih atau ketik sendiri" dihapus */}
+          {/* 3. SARAN KATEGORI BARANG SESUAI DROPDOWN */}
           <div>
             <div className="flex items-center justify-between mb-1.5">
               <label className="text-xs font-bold text-slate-700">
@@ -400,7 +576,6 @@ export const AddProductModal: React.FC<AddProductModalProps> = ({
                 );
               })}
             </div>
-            {/* Custom Category Input if user wants specific category */}
             <input
               type="text"
               value={customCategoryInput}
@@ -500,7 +675,6 @@ export const AddProductModal: React.FC<AddProductModalProps> = ({
                   </button>
                 );
               })}
-              {/* Optional custom unit input */}
               <input
                 type="text"
                 value={currentDept.suggestedUnits.includes(unit) ? '' : unit}
@@ -511,7 +685,7 @@ export const AddProductModal: React.FC<AddProductModalProps> = ({
             </div>
           </div>
 
-          {/* 7. PILIHAN RAK / ETALASE (Diisi manual namanya) */}
+          {/* 7. PILIHAN RAK / ETALASE */}
           <div className="bg-slate-50 border border-slate-200/90 rounded-2xl p-3.5 space-y-1.5">
             <div className="flex items-center justify-between">
               <label className="text-xs font-bold text-slate-800">
