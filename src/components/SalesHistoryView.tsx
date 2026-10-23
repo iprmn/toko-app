@@ -1,11 +1,24 @@
-import React, { useState, useMemo } from 'react';
-import { TrendingUp, Calendar, Copy, Trash2, ArrowLeft, BarChart3, Clock, Coins, ShoppingBag, CheckCircle, ChevronDown, ChevronUp } from 'lucide-react';
+import React, { useState, useMemo, useRef } from 'react';
+import {
+  TrendingUp,
+  Calendar,
+  Copy,
+  Trash2,
+  BarChart3,
+  Clock,
+  Coins,
+  ShoppingBag,
+  ChevronDown,
+  RotateCcw,
+  Ban,
+} from 'lucide-react';
 import { Transaction } from '../types/store';
 import { formatRupiah, formatDateIndo, formatTime } from '../utils/format';
 
 interface SalesHistoryViewProps {
   transactions: Transaction[];
   onClearHistory: () => void;
+  onCancelTransaction?: (transaction: Transaction) => void;
   storeName: string;
   onBackToCatalog?: () => void;
 }
@@ -13,11 +26,27 @@ interface SalesHistoryViewProps {
 export const SalesHistoryView: React.FC<SalesHistoryViewProps> = ({
   transactions,
   onClearHistory,
+  onCancelTransaction,
   storeName,
-  onBackToCatalog,
 }) => {
   const [selectedDayIndex, setSelectedDayIndex] = useState<number | null>(null);
   const [expandedTxIds, setExpandedTxIds] = useState<string[]>([]);
+  const [swipedTxId, setSwipedTxId] = useState<string | null>(null);
+
+  // Track horizontal swipe/slide gesture per card
+  const dragStateRef = useRef<{
+    txId: string | null;
+    startX: number;
+    startY: number;
+    currentDeltaX: number;
+    isHorizontalSwipe: boolean;
+  }>({
+    txId: null,
+    startX: 0,
+    startY: 0,
+    currentDeltaX: 0,
+    isHorizontalSwipe: false,
+  });
 
   const toggleTxExpand = (id: string) => {
     setExpandedTxIds((prev) =>
@@ -26,7 +55,6 @@ export const SalesHistoryView: React.FC<SalesHistoryViewProps> = ({
   };
 
   // 1. Enforce 7-day limit: Transactions within the last 7 days only
-  const now = new Date();
   const SEVEN_DAYS_MS = 7 * 24 * 60 * 60 * 1000;
 
   const valid7DaysTransactions = useMemo(() => {
@@ -36,6 +64,12 @@ export const SalesHistoryView: React.FC<SalesHistoryViewProps> = ({
       return time >= cutoff && time <= Date.now() + 60000;
     });
   }, [transactions, SEVEN_DAYS_MS]);
+
+  // Active (non-cancelled) transactions for revenue/profit metrics
+  const active7DaysTransactions = useMemo(
+    () => valid7DaysTransactions.filter((t) => t.status !== 'cancelled'),
+    [valid7DaysTransactions]
+  );
 
   // 2. Prepare 7 daily buckets for the visual chart, ordered Monday (Sen) to Sunday (Min) by default
   const last7DaysData = useMemo(() => {
@@ -47,13 +81,15 @@ export const SalesHistoryView: React.FC<SalesHistoryViewProps> = ({
       d.setDate(d.getDate() - i);
       const dateStr = d.toDateString();
 
-      // Find transactions on this specific date
+      // Find all transactions on this date (for display list)
       const dayTransactions = valid7DaysTransactions.filter(
         (t) => new Date(t.timestamp).toDateString() === dateStr
       );
 
-      const dayRevenue = dayTransactions.reduce((acc, t) => acc + t.totalAmount, 0);
-      const dayProfit = dayTransactions.reduce((acc, t) => acc + t.totalProfit, 0);
+      // Calculate revenue & profit only from non-cancelled transactions
+      const activeDayTxs = dayTransactions.filter((t) => t.status !== 'cancelled');
+      const dayRevenue = activeDayTxs.reduce((acc, t) => acc + t.totalAmount, 0);
+      const dayProfit = activeDayTxs.reduce((acc, t) => acc + t.totalProfit, 0);
 
       const shortDayName = dayNames[d.getDay()];
       const dayDateLabel = `${d.getDate()}/${d.getMonth() + 1}`;
@@ -66,7 +102,7 @@ export const SalesHistoryView: React.FC<SalesHistoryViewProps> = ({
         dayDateLabel,
         revenue: dayRevenue,
         profit: dayProfit,
-        transactionCount: dayTransactions.length,
+        transactionCount: activeDayTxs.length,
         transactions: dayTransactions,
       });
     }
@@ -87,14 +123,14 @@ export const SalesHistoryView: React.FC<SalesHistoryViewProps> = ({
     return max > 0 ? max : 100000; // minimum baseline
   }, [last7DaysData]);
 
-  // Total 7 days metrics
+  // Total 7 days metrics (from non-cancelled transactions)
   const total7DayRevenue = useMemo(() => {
-    return valid7DaysTransactions.reduce((acc, t) => acc + t.totalAmount, 0);
-  }, [valid7DaysTransactions]);
+    return active7DaysTransactions.reduce((acc, t) => acc + t.totalAmount, 0);
+  }, [active7DaysTransactions]);
 
   const total7DayProfit = useMemo(() => {
-    return valid7DaysTransactions.reduce((acc, t) => acc + t.totalProfit, 0);
-  }, [valid7DaysTransactions]);
+    return active7DaysTransactions.reduce((acc, t) => acc + t.totalProfit, 0);
+  }, [active7DaysTransactions]);
 
   const averageDailyRevenue = Math.round(total7DayRevenue / 7);
 
@@ -112,7 +148,9 @@ export const SalesHistoryView: React.FC<SalesHistoryViewProps> = ({
       selectedDayIndex !== null &&
       last7DaysData[selectedDayIndex]?.dateStr === new Date().toDateString();
     const title = isTodayOnly ? 'LAPORAN PENJUALAN HARI INI' : 'LAPORAN KAS & PENJUALAN 7 HARI';
-    
+
+    const activeDisplayedTxs = displayedTransactions.filter((t) => t.status !== 'cancelled');
+
     const lines = [
       `📊 *${title}*`,
       `🏪 Toko: ${storeName}`,
@@ -120,12 +158,19 @@ export const SalesHistoryView: React.FC<SalesHistoryViewProps> = ({
       `--------------------------------`,
       `💰 *Total Omzet Masuk:* ${formatRupiah(selectedDayIndex !== null ? last7DaysData[selectedDayIndex].revenue : total7DayRevenue)}`,
       `📈 *Estimasi Keuntungan:* ${formatRupiah(selectedDayIndex !== null ? last7DaysData[selectedDayIndex].profit : total7DayProfit)}`,
-      `🧾 *Jumlah Transaksi:* ${displayedTransactions.length} transaksi`,
+      `🧾 *Jumlah Transaksi:* ${activeDisplayedTxs.length} transaksi`,
       `--------------------------------`,
-      `*Rincian Penjualan Terakhir:*`,
+      `*Rincian 7 Hari Terakhir:*`,
       ...displayedTransactions.slice(0, 15).map((t, idx) => {
+        const dObj = new Date(t.timestamp);
+        const dateFormatted = dObj.toLocaleDateString('id-ID', {
+          day: '2-digit',
+          month: 'short',
+          year: 'numeric',
+        });
         const itemNames = t.items.map((i) => `${i.quantity}x ${i.productName}`).join(', ');
-        return `${idx + 1}. [${formatTime(t.timestamp)}] ${formatRupiah(t.totalAmount)} - ${itemNames}`;
+        const cancelLabel = t.status === 'cancelled' ? ' (DIBATALKAN)' : '';
+        return `${idx + 1}. [${dateFormatted}, ${formatTime(t.timestamp)}] ${formatRupiah(t.totalAmount)}${cancelLabel} - ${itemNames}`;
       }),
     ];
 
@@ -137,9 +182,43 @@ export const SalesHistoryView: React.FC<SalesHistoryViewProps> = ({
     alert('Laporan 7 hari berhasil disalin! Siap ditempel ke WhatsApp.');
   };
 
+  // Swipe/Slide handlers for revealing "Batalkan Transaksi" button on the right
+  const handlePointerStart = (txId: string, isCancelled: boolean, clientX: number, clientY: number) => {
+    if (isCancelled) return;
+    dragStateRef.current = {
+      txId,
+      startX: clientX,
+      startY: clientY,
+      currentDeltaX: 0,
+      isHorizontalSwipe: false,
+    };
+  };
+
+  const handlePointerMove = (txId: string, isCancelled: boolean, clientX: number, clientY: number) => {
+    if (isCancelled || dragStateRef.current.txId !== txId) return;
+    const dx = clientX - dragStateRef.current.startX;
+    const dy = clientY - dragStateRef.current.startY;
+
+    if (Math.abs(dx) > 18 && Math.abs(dx) > Math.abs(dy) * 1.3) {
+      dragStateRef.current.isHorizontalSwipe = true;
+      dragStateRef.current.currentDeltaX = dx;
+      if (dx < -35) {
+        setSwipedTxId(txId);
+      } else if (dx > 35 && swipedTxId === txId) {
+        setSwipedTxId(null);
+      }
+    }
+  };
+
+  const handlePointerEnd = () => {
+    setTimeout(() => {
+      dragStateRef.current.isHorizontalSwipe = false;
+      dragStateRef.current.txId = null;
+    }, 30);
+  };
+
   return (
     <div className="max-w-4xl mx-auto space-y-6 pb-6">
-      
       {/* Top Page Header Banner */}
       <div className="bg-white rounded-3xl p-5 sm:p-6 border border-stone-200/90 shadow-sm space-y-4">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
@@ -177,18 +256,17 @@ export const SalesHistoryView: React.FC<SalesHistoryViewProps> = ({
           </div>
         </div>
 
-        {/* 7-Day Rule Notice Badge */}
-        <div className="bg-amber-50/80 border border-amber-200/90 rounded-2xl p-3 sm:p-3.5 flex items-start gap-2.5">
-          <Clock className="w-4 h-4 text-amber-800 shrink-0 mt-0.5" />
-          <p className="text-xs text-amber-900 font-medium leading-relaxed">
-            <strong>Aturan 7 Hari:</strong> Riwayat transaksi otomatis disimpan dan ditampilkan untuk <strong>7 hari terakhir</strong>. Transaksi yang lebih lama dari 7 hari otomatis direset dari awal agar pencatatan warung tetap rapi dan ringan.
+        {/* 7-Day Rule Notice Badge (Bluish Style) */}
+        <div className="bg-sky-50/90 border border-sky-200/90 rounded-2xl p-3 sm:p-3.5 flex items-start gap-2.5">
+          <Clock className="w-4 h-4 text-sky-700 shrink-0 mt-0.5" />
+          <p className="text-xs text-sky-950 font-medium leading-relaxed">
+            <strong>Aturan 7 Hari:</strong> Riwayat transaksi otomatis disimpan dan ditampilkan untuk <strong>7 hari terakhir</strong>. Transaksi yang lebih lama dari 7 hari otomatis direset dari awal agar pencatatan warung tetap rapi dan ringan. Jangan lupa menyalin laporan WA pada hari terakhir agar riwayat transaksi tetap terjaga.
           </p>
         </div>
       </div>
 
       {/* 4 Metric Summary Cards */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4">
-        
         {/* Total Omzet 7 Hari */}
         <div className="bg-white rounded-2xl p-4 sm:p-5 border border-stone-200/90 shadow-sm space-y-1.5">
           <div className="flex items-center gap-2 text-slate-500 text-xs font-semibold">
@@ -224,7 +302,7 @@ export const SalesHistoryView: React.FC<SalesHistoryViewProps> = ({
             <span>Total Transaksi</span>
           </div>
           <div className="text-lg sm:text-xl font-black text-slate-900 tabular-nums leading-normal">
-            {valid7DaysTransactions.length} <span className="text-xs font-normal text-slate-500">kali</span>
+            {active7DaysTransactions.length} <span className="text-xs font-normal text-slate-500">kali</span>
           </div>
           <div className="text-[11px] text-slate-400 font-medium leading-normal">
             Aktivitas kasir toko
@@ -351,7 +429,7 @@ export const SalesHistoryView: React.FC<SalesHistoryViewProps> = ({
 
       {/* Transactions List */}
       <div className="bg-white rounded-3xl p-5 sm:p-6 border border-stone-200/90 shadow-sm space-y-4">
-        <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1 border-b border-slate-100 pb-3">
           <div>
             <h3 className="text-sm sm:text-base font-bold text-slate-900 leading-normal">
               {selectedDayIndex !== null
@@ -359,7 +437,7 @@ export const SalesHistoryView: React.FC<SalesHistoryViewProps> = ({
                 : `Semua Transaksi 7 Hari Terakhir (${displayedTransactions.length})`}
             </h3>
             <p className="text-xs text-slate-500 leading-relaxed">
-              Daftar struk dan transaksi yang telah selesai di kasir
+              Daftar struk kasir · Geser kartu ke kiri untuk membatalkan transaksi
             </p>
           </div>
         </div>
@@ -379,108 +457,233 @@ export const SalesHistoryView: React.FC<SalesHistoryViewProps> = ({
             {displayedTransactions.map((t) => {
               const dateObj = new Date(t.timestamp);
               const isExpanded = expandedTxIds.includes(t.id);
+              const isCancelled = t.status === 'cancelled';
+              const isSwiped = !isCancelled && swipedTxId === t.id;
               const totalItems = t.items.reduce((acc, i) => acc + i.quantity, 0);
 
               return (
                 <div
                   key={t.id}
-                  className={`border rounded-2xl transition-all overflow-hidden ${
-                    isExpanded
-                      ? 'bg-white border-emerald-300 shadow-sm'
-                      : 'bg-slate-50/80 hover:bg-slate-100/80 border-slate-200/90'
-                  }`}
+                  className="relative rounded-2xl overflow-hidden select-none"
                 >
-                  {/* ACCORDION HEADER (Hanya nampilin jam tanggal dan total transaksi) */}
-                  <button
-                    type="button"
-                    onClick={() => toggleTxExpand(t.id)}
-                    className="w-full p-3.5 sm:p-4 flex items-center justify-between gap-3 text-left cursor-pointer transition-colors"
-                  >
-                    {/* Kiri: Jam & Tanggal */}
-                    <div className="flex items-center gap-2.5 min-w-0">
-                      <div className="w-8 h-8 rounded-xl bg-slate-200/70 text-slate-700 flex items-center justify-center shrink-0">
-                        <Clock className="w-4 h-4 text-slate-600" />
-                      </div>
-                      <div className="min-w-0">
-                        <div className="text-xs sm:text-sm font-bold text-slate-900 tabular-nums">
-                          {formatTime(t.timestamp)}
-                        </div>
-                        <div className="text-[11px] text-slate-500 font-medium truncate">
-                          {dateObj.toLocaleDateString('id-ID', {
-                            weekday: 'short',
-                            day: 'numeric',
-                            month: 'short',
-                            year: 'numeric',
-                          })}
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* Kanan: Total Transaksi & Icon Dropdown */}
-                    <div className="flex items-center gap-2.5 shrink-0">
-                      <span className="text-sm sm:text-base font-black text-slate-900 tabular-nums">
-                        {formatRupiah(t.totalAmount)}
-                      </span>
-                      <div className={`w-7 h-7 rounded-lg flex items-center justify-center transition-transform ${
-                        isExpanded ? 'bg-emerald-100 text-emerald-800 rotate-180' : 'bg-slate-200/60 text-slate-500'
-                      }`}>
-                        <ChevronDown className="w-4 h-4" />
-                      </div>
-                    </div>
-                  </button>
-
-                  {/* ACCORDION BODY: List kebawah barang transaksi & Untungnya berapa */}
-                  {isExpanded && (
-                    <div className="px-4 pb-4 pt-1 border-t border-slate-100 space-y-3 bg-white animate-in slide-in-from-top-1 duration-150">
-                      {/* List Barang yang Dibeli */}
-                      <div className="space-y-1.5 pt-1">
-                        <div className="flex items-center justify-between text-[11px] font-bold text-slate-500 uppercase tracking-wider pb-1 border-b border-slate-100">
-                          <span>Daftar Barang ({totalItems} item)</span>
-                          <span>Subtotal</span>
-                        </div>
-
-                        {t.items.map((item, idx) => (
-                          <div
-                            key={idx}
-                            className="flex items-center justify-between gap-2 text-xs py-1 border-b border-slate-50 last:border-0"
-                          >
-                            <div className="min-w-0">
-                              <span className="font-bold text-slate-800">
-                                {item.quantity}x {item.productName}
-                              </span>
-                              <span className="text-[11px] text-slate-400 block">
-                                @ {formatRupiah(item.sellPrice)} / {item.unit}
-                              </span>
-                            </div>
-                            <span className="font-bold text-slate-800 tabular-nums shrink-0">
-                              {formatRupiah(item.sellPrice * item.quantity)}
-                            </span>
-                          </div>
-                        ))}
-                      </div>
-
-                      {/* Detail Keuntungan & Pembayaran */}
-                      <div className="pt-2 border-t border-slate-100 bg-emerald-50/70 p-3 rounded-xl flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-                        <div className="flex items-center gap-1.5">
-                          <Coins className="w-4 h-4 text-emerald-700 shrink-0" />
-                          <span className="text-xs font-bold text-emerald-950">
-                            Keuntungan Transaksi:
-                          </span>
-                        </div>
-                        <span className="text-xs sm:text-sm font-black text-emerald-800 tabular-nums">
-                          +{formatRupiah(t.totalProfit)}
-                        </span>
-                      </div>
-
-                      {/* Info Bayar Tunai & Kembalian jika ada */}
-                      {t.cashPaid > 0 && (
-                        <div className="text-[11px] text-slate-500 flex items-center justify-between px-1">
-                          <span>Tunai Diterima: {formatRupiah(t.cashPaid)}</span>
-                          <span>Kembalian: {formatRupiah(t.change)}</span>
-                        </div>
-                      )}
+                  {/* Right-Side Action Button (Revealed when card is slid to the left) */}
+                  {!isCancelled && (
+                    <div className="absolute inset-y-0 right-0 w-[148px] bg-rose-600 flex items-center justify-end rounded-2xl">
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setSwipedTxId(null);
+                          onCancelTransaction?.(t);
+                        }}
+                        className="w-full h-full px-3 flex flex-col items-center justify-center gap-1 text-white font-bold text-[11px] hover:bg-rose-700 active:bg-rose-800 transition-colors cursor-pointer text-center leading-tight"
+                      >
+                        <RotateCcw className="w-4 h-4 shrink-0" />
+                        <span>Batalkan Transaksi</span>
+                      </button>
                     </div>
                   )}
+
+                  {/* Foreground Sliding Transaction Card */}
+                  <div
+                    onTouchStart={(e) => {
+                      const touch = e.touches[0];
+                      handlePointerStart(t.id, isCancelled, touch.clientX, touch.clientY);
+                    }}
+                    onTouchMove={(e) => {
+                      const touch = e.touches[0];
+                      handlePointerMove(t.id, isCancelled, touch.clientX, touch.clientY);
+                    }}
+                    onTouchEnd={handlePointerEnd}
+                    onMouseDown={(e) => handlePointerStart(t.id, isCancelled, e.clientX, e.clientY)}
+                    onMouseMove={(e) => {
+                      if (e.buttons === 1) {
+                        handlePointerMove(t.id, isCancelled, e.clientX, e.clientY);
+                      }
+                    }}
+                    onMouseUp={handlePointerEnd}
+                    style={{
+                      transform: isSwiped ? 'translateX(-148px)' : 'translateX(0px)',
+                    }}
+                    className={`relative z-10 border rounded-2xl transition-all duration-200 overflow-hidden ${
+                      isCancelled
+                        ? 'bg-slate-100 border-slate-200/90 opacity-75'
+                        : isExpanded
+                        ? 'bg-white border-emerald-300 shadow-sm'
+                        : 'bg-slate-50 hover:bg-slate-100 border-slate-200/90'
+                    }`}
+                  >
+                    {/* ACCORDION HEADER */}
+                    <button
+                      type="button"
+                      onClick={() => {
+                        if (dragStateRef.current.isHorizontalSwipe) return;
+                        if (isSwiped) {
+                          setSwipedTxId(null);
+                          return;
+                        }
+                        toggleTxExpand(t.id);
+                      }}
+                      className="w-full p-3.5 sm:p-4 flex items-center justify-between gap-3 text-left cursor-pointer transition-colors"
+                    >
+                      {/* Kiri: Jam, Tanggal & Status Dibatalkan */}
+                      <div className="flex items-center gap-2.5 min-w-0">
+                        <div
+                          className={`w-8 h-8 rounded-xl flex items-center justify-center shrink-0 ${
+                            isCancelled
+                              ? 'bg-slate-200 text-slate-400'
+                              : 'bg-slate-200/70 text-slate-700'
+                          }`}
+                        >
+                          {isCancelled ? (
+                            <Ban className="w-4 h-4 text-slate-400" />
+                          ) : (
+                            <Clock className="w-4 h-4 text-slate-600" />
+                          )}
+                        </div>
+                        <div className="min-w-0">
+                          <div className="flex items-center gap-2 flex-wrap">
+                            <span
+                              className={`text-xs sm:text-sm font-bold tabular-nums ${
+                                isCancelled ? 'text-slate-500' : 'text-slate-900'
+                              }`}
+                            >
+                              {formatTime(t.timestamp)}
+                            </span>
+                            {isCancelled && (
+                              <span className="inline-flex items-center gap-1 text-[10px] font-bold bg-slate-200 text-slate-600 border border-slate-300 px-2 py-0.5 rounded-md">
+                                Transaksi Dibatalkan
+                              </span>
+                            )}
+                          </div>
+                          <div className="text-[11px] text-slate-500 font-medium truncate">
+                            {dateObj.toLocaleDateString('id-ID', {
+                              weekday: 'short',
+                              day: 'numeric',
+                              month: 'short',
+                              year: 'numeric',
+                            })}
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Kanan: Total Transaksi & Icon Dropdown */}
+                      <div className="flex items-center gap-2.5 shrink-0">
+                        <span
+                          className={`text-sm sm:text-base font-black tabular-nums ${
+                            isCancelled
+                              ? 'text-slate-400 line-through'
+                              : 'text-slate-900'
+                          }`}
+                        >
+                          {formatRupiah(t.totalAmount)}
+                        </span>
+                        <div
+                          className={`w-7 h-7 rounded-lg flex items-center justify-center transition-transform ${
+                            isExpanded
+                              ? isCancelled
+                                ? 'bg-slate-200 text-slate-700 rotate-180'
+                                : 'bg-emerald-100 text-emerald-800 rotate-180'
+                              : 'bg-slate-200/60 text-slate-500'
+                          }`}
+                        >
+                          <ChevronDown className="w-4 h-4" />
+                        </div>
+                      </div>
+                    </button>
+
+                    {/* ACCORDION BODY: List kebawah barang transaksi & Untungnya berapa */}
+                    {isExpanded && (
+                      <div
+                        className={`px-4 pb-4 pt-1 border-t border-slate-100 space-y-3 animate-in slide-in-from-top-1 duration-150 ${
+                          isCancelled ? 'bg-slate-50/90 text-slate-500' : 'bg-white'
+                        }`}
+                      >
+                        {isCancelled && (
+                          <div className="mt-2 p-2.5 rounded-xl bg-slate-200/70 border border-slate-300/80 text-[11px] font-semibold text-slate-600 flex items-center gap-2">
+                            <RotateCcw className="w-3.5 h-3.5 text-slate-500 shrink-0" />
+                            <span>
+                              Transaksi ini telah dibatalkan dan stok barang telah dikembalikan ke etalase.
+                            </span>
+                          </div>
+                        )}
+
+                        {/* List Barang yang Dibeli */}
+                        <div className="space-y-1.5 pt-1">
+                          <div className="flex items-center justify-between text-[11px] font-bold text-slate-500 uppercase tracking-wider pb-1 border-b border-slate-100">
+                            <span>Daftar Barang ({totalItems} item)</span>
+                            <span>Subtotal</span>
+                          </div>
+
+                          {t.items.map((item, idx) => (
+                            <div
+                              key={idx}
+                              className="flex items-center justify-between gap-2 text-xs py-1 border-b border-slate-50 last:border-0"
+                            >
+                              <div className="min-w-0">
+                                <span
+                                  className={`font-bold ${
+                                    isCancelled ? 'text-slate-500 line-through' : 'text-slate-800'
+                                  }`}
+                                >
+                                  {item.quantity}x {item.productName}
+                                </span>
+                                <span className="text-[11px] text-slate-400 block">
+                                  @ {formatRupiah(item.sellPrice)} / {item.unit}
+                                </span>
+                              </div>
+                              <span
+                                className={`font-bold tabular-nums shrink-0 ${
+                                  isCancelled ? 'text-slate-400 line-through' : 'text-slate-800'
+                                }`}
+                              >
+                                {formatRupiah(item.sellPrice * item.quantity)}
+                              </span>
+                            </div>
+                          ))}
+                        </div>
+
+                        {/* Detail Keuntungan & Pembayaran */}
+                        <div
+                          className={`pt-2 border-t border-slate-100 p-3 rounded-xl flex flex-col sm:flex-row sm:items-center justify-between gap-2 ${
+                            isCancelled ? 'bg-slate-200/50' : 'bg-emerald-50/70'
+                          }`}
+                        >
+                          <div className="flex items-center gap-1.5">
+                            <Coins
+                              className={`w-4 h-4 shrink-0 ${
+                                isCancelled ? 'text-slate-400' : 'text-emerald-700'
+                              }`}
+                            />
+                            <span
+                              className={`text-xs font-bold ${
+                                isCancelled ? 'text-slate-500' : 'text-emerald-950'
+                              }`}
+                            >
+                              Keuntungan Transaksi:
+                            </span>
+                          </div>
+                          <span
+                            className={`text-xs sm:text-sm font-black tabular-nums ${
+                              isCancelled
+                                ? 'text-slate-400 line-through'
+                                : 'text-emerald-800'
+                            }`}
+                          >
+                            +{formatRupiah(t.totalProfit)}
+                          </span>
+                        </div>
+
+                        {/* Info Bayar Tunai & Kembalian jika ada */}
+                        {t.cashPaid > 0 && (
+                          <div className="text-[11px] text-slate-500 flex items-center justify-between px-1">
+                            <span>Tunai Diterima: {formatRupiah(t.cashPaid)}</span>
+                            <span>Kembalian: {formatRupiah(t.change)}</span>
+                          </div>
+                        )}
+                      </div>
+                    )}
+                  </div>
                 </div>
               );
             })}

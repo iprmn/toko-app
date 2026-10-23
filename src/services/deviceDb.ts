@@ -79,7 +79,7 @@ async function seedDeviceDbIfEmpty(db: IDBDatabase): Promise<void> {
     const txsOs = tx.objectStore('transactions');
     for (const [storeId, txs] of Object.entries(sampleTxsByStore)) {
       for (const t of txs) {
-        const record: StoredTransaction = { ...t, storeId };
+        const record: StoredTransaction = { ...t, status: t.status || 'completed', storeId };
         txsOs.put(record);
       }
     }
@@ -138,7 +138,10 @@ export const deviceDb = {
           if (new Date(t.timestamp).getTime() >= sevenDaysAgoMs) {
             const { storeId, ...txData } = t;
             if (!transactionsMap[storeId]) transactionsMap[storeId] = [];
-            transactionsMap[storeId].push(txData);
+            transactionsMap[storeId].push({
+              ...txData,
+              status: txData.status === 'cancelled' ? 'cancelled' : 'completed',
+            });
           }
         }
 
@@ -291,7 +294,11 @@ export const deviceDb = {
       const txOs = tx.objectStore('transactions');
       const prodOs = tx.objectStore('products');
 
-      const record: StoredTransaction = { ...transaction, storeId };
+      const record: StoredTransaction = {
+        ...transaction,
+        status: transaction.status || 'completed',
+        storeId,
+      };
       txOs.put(record);
 
       const nowIso = new Date().toISOString();
@@ -304,6 +311,52 @@ export const deviceDb = {
           }
         };
       }
+
+      tx.oncomplete = () => resolve();
+      tx.onerror = () => reject(tx.error);
+    });
+
+    const full = await this.bootstrap();
+    return {
+      products: full.productsMap[storeId] || [],
+      transactions: full.transactionsMap[storeId] || [],
+    };
+  },
+
+  async cancelTransaction(
+    storeId: string,
+    transactionId: string
+  ): Promise<{ products: Product[]; transactions: Transaction[] }> {
+    const db = await openDeviceDb();
+    await new Promise<void>((resolve, reject) => {
+      const tx = db.transaction(['transactions', 'products'], 'readwrite');
+      const txOs = tx.objectStore('transactions');
+      const prodOs = tx.objectStore('products');
+
+      const getTxReq = txOs.get(transactionId);
+      getTxReq.onsuccess = () => {
+        const existingTx = getTxReq.result as StoredTransaction | undefined;
+        if (!existingTx || existingTx.storeId !== storeId || existingTx.status === 'cancelled') {
+          return;
+        }
+
+        txOs.put({ ...existingTx, status: 'cancelled' });
+
+        const nowIso = new Date().toISOString();
+        for (const item of existingTx.items) {
+          const getProdReq = prodOs.get(item.productId);
+          getProdReq.onsuccess = () => {
+            if (getProdReq.result && getProdReq.result.storeId === storeId) {
+              const restoredStock = Number(getProdReq.result.stock) + Number(item.quantity);
+              prodOs.put({
+                ...getProdReq.result,
+                stock: restoredStock,
+                updatedAt: nowIso,
+              });
+            }
+          };
+        }
+      };
 
       tx.oncomplete = () => resolve();
       tx.onerror = () => reject(tx.error);

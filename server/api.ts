@@ -12,6 +12,7 @@ import {
   adjustProductStock,
   deleteProducts,
   recordTransactionAndReduceStock,
+  cancelTransactionAndRestoreStock,
   clearStoreTransactions,
 } from './db';
 import { Product, StoreAccount, Transaction } from '../src/types/store';
@@ -150,6 +151,23 @@ export function createApiApp() {
       const updatedProducts = getProductsByStore(storeId);
       const updatedTransactions = getTransactionsByStore(storeId);
       res.status(201).json({
+        ok: true,
+        products: updatedProducts,
+        transactions: updatedTransactions,
+      });
+    } catch (err: any) {
+      res.status(500).json({ error: err.message });
+    }
+  });
+
+  // Cancel sale transaction and restore product stock atomically
+  app.patch('/stores/:storeId/transactions/:transactionId/cancel', (req, res) => {
+    try {
+      const { storeId, transactionId } = req.params;
+      cancelTransactionAndRestoreStock(storeId, transactionId);
+      const updatedProducts = getProductsByStore(storeId);
+      const updatedTransactions = getTransactionsByStore(storeId);
+      res.json({
         ok: true,
         products: updatedProducts,
         transactions: updatedTransactions,

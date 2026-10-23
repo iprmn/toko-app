@@ -180,11 +180,11 @@ export default function App() {
     return counts;
   }, [products]);
 
-  // Today's total revenue
+  // Today's total revenue (excluding cancelled transactions)
   const todayRevenue = useMemo(() => {
     const todayStr = new Date().toDateString();
     return transactions
-      .filter((t) => new Date(t.timestamp).toDateString() === todayStr)
+      .filter((t) => t.status !== 'cancelled' && new Date(t.timestamp).toDateString() === todayStr)
       .reduce((sum, t) => sum + t.totalAmount, 0);
   }, [transactions]);
 
@@ -354,6 +354,33 @@ export default function App() {
           showSuccessPopup(
             'Riwayat Berhasil Dikosongkan!',
             'Catatan transaksi kas 7 hari terakhir telah dihapus dari Database.'
+          );
+        }
+      },
+    });
+  };
+
+  const handleCancelTransaction = (tx: Transaction) => {
+    if (tx.status === 'cancelled') return;
+
+    const itemSummary = tx.items
+      .map((item) => `${item.productName} (+${item.quantity} ${item.unit})`)
+      .join(', ');
+
+    showConfirmPopup({
+      title: 'Konfirmasi Batalkan Transaksi',
+      message: `Apakah Anda yakin ingin membatalkan transaksi ${tx.id}? Stok barang pada transaksi ini (${itemSummary}) akan dikembalikan ke stok toko, dan status transaksi akan berubah menjadi "Transaksi Dibatalkan".`,
+      confirmLabel: 'Ya, Batalkan Transaksi',
+      variant: 'danger',
+      onConfirm: async () => {
+        if (soundEnabled) playSound.tap();
+        const res = await dataService.cancelTransaction(activeStoreId, tx.id);
+        if (res.ok && res.products && res.transactions) {
+          setStoreProducts(() => res.products!);
+          setStoreTransactions(() => res.transactions!);
+          showSuccessPopup(
+            'Transaksi Berhasil Dibatalkan!',
+            `Transaksi ${tx.id} telah dibatalkan dan stok barang (${itemSummary}) telah dikembalikan ke gudang toko.`
           );
         }
       },
@@ -779,6 +806,7 @@ export default function App() {
           <SalesHistoryView
             transactions={transactions}
             onClearHistory={handleClearTransactions}
+            onCancelTransaction={handleCancelTransaction}
             storeName={currentStore.name}
             onBackToCatalog={() => setActiveTab('catalog')}
           />

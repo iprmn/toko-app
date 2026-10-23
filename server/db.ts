@@ -66,6 +66,7 @@ db.exec(`
     cash_paid INTEGER NOT NULL,
     change_amount INTEGER NOT NULL,
     notes TEXT,
+    status TEXT NOT NULL DEFAULT 'completed',
     FOREIGN KEY (store_id) REFERENCES stores(id) ON DELETE CASCADE
   );
 
@@ -81,6 +82,13 @@ db.exec(`
     FOREIGN KEY (transaction_id) REFERENCES transactions(id) ON DELETE CASCADE
   );
 `);
+
+// Ensure `status` column exists on `transactions` for existing DB files
+try {
+  db.exec(`ALTER TABLE transactions ADD COLUMN status TEXT NOT NULL DEFAULT 'completed';`);
+} catch {
+  // Column already exists
+}
 
 export function seedDatabaseIfEmpty() {
   const countRow = db.prepare('SELECT COUNT(*) as count FROM stores').get() as { count: number };
@@ -142,8 +150,8 @@ export function seedDatabaseIfEmpty() {
 
     const insertTx = db.prepare(`
       INSERT INTO transactions (
-        id, store_id, timestamp, total_amount, total_profit, cash_paid, change_amount, notes
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+        id, store_id, timestamp, total_amount, total_profit, cash_paid, change_amount, notes, status
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
     `);
 
     const insertTxItem = db.prepare(`
@@ -163,7 +171,8 @@ export function seedDatabaseIfEmpty() {
           tx.totalProfit,
           tx.cashPaid,
           tx.change,
-          tx.notes ?? null
+          tx.notes ?? null,
+          tx.status || 'completed'
         );
         for (const item of tx.items) {
           insertTxItem.run(
@@ -265,6 +274,7 @@ export function getTransactionsByStore(storeId: string): Transaction[] {
       cashPaid: Number(tx.cash_paid),
       change: Number(tx.change_amount),
       notes: tx.notes || undefined,
+      status: tx.status === 'cancelled' ? 'cancelled' : 'completed',
     };
   });
 }
@@ -390,8 +400,8 @@ export function recordTransactionAndReduceStock(storeId: string, tx: Transaction
   try {
     db.prepare(`
       INSERT INTO transactions (
-        id, store_id, timestamp, total_amount, total_profit, cash_paid, change_amount, notes
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+        id, store_id, timestamp, total_amount, total_profit, cash_paid, change_amount, notes, status
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
     `).run(
       tx.id,
       storeId,
@@ -400,7 +410,8 @@ export function recordTransactionAndReduceStock(storeId: string, tx: Transaction
       tx.totalProfit,
       tx.cashPaid,
       tx.change,
-      tx.notes ?? null
+      tx.notes ?? null,
+      tx.status || 'completed'
     );
 
     const insertItem = db.prepare(`
@@ -427,6 +438,45 @@ export function recordTransactionAndReduceStock(storeId: string, tx: Transaction
         item.unit
       );
       reduceStock.run(item.quantity, nowIso, item.productId, storeId);
+    }
+
+    db.exec('COMMIT;');
+  } catch (err) {
+    db.exec('ROLLBACK;');
+    throw err;
+  }
+}
+
+export function cancelTransactionAndRestoreStock(storeId: string, transactionId: string): void {
+  const existingTx = db
+    .prepare('SELECT id, status FROM transactions WHERE id = ? AND store_id = ?')
+    .get(transactionId, storeId) as { id: string; status?: string } | undefined;
+
+  if (!existingTx || existingTx.status === 'cancelled') {
+    return;
+  }
+
+  const itemRows = db
+    .prepare('SELECT product_id, quantity FROM transaction_items WHERE transaction_id = ?')
+    .all(transactionId) as { product_id: string; quantity: number }[];
+
+  db.exec('BEGIN TRANSACTION;');
+  try {
+    db.prepare('UPDATE transactions SET status = ? WHERE id = ? AND store_id = ?').run(
+      'cancelled',
+      transactionId,
+      storeId
+    );
+
+    const restoreStock = db.prepare(`
+      UPDATE products
+      SET stock = stock + ?, updated_at = ?
+      WHERE id = ? AND store_id = ?
+    `);
+
+    const nowIso = new Date().toISOString();
+    for (const item of itemRows) {
+      restoreStock.run(Number(item.quantity), nowIso, item.product_id, storeId);
     }
 
     db.exec('COMMIT;');

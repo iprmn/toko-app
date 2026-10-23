@@ -40,6 +40,7 @@ export interface Transaction {
   cashPaid: number;
   change: number;
   notes?: string;
+  status?: 'completed' | 'cancelled';
 }
 
 export interface StoreAccount {

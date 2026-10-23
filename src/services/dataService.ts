@@ -136,6 +136,25 @@ export const dataService = {
     return { ok: true, products: data.products, transactions: data.transactions };
   },
 
+  async cancelTransaction(
+    storeId: string,
+    transactionId: string
+  ): Promise<{ ok: boolean; products?: Product[]; transactions?: Transaction[] }> {
+    if (useDeviceLocalDb) {
+      const data = await deviceDb.cancelTransaction(storeId, transactionId);
+      return { ok: true, ...data };
+    }
+    const res = await fetch(
+      `/api/stores/${encodeURIComponent(storeId)}/transactions/${encodeURIComponent(transactionId)}/cancel`,
+      {
+        method: 'PATCH',
+      }
+    );
+    if (!res.ok) return { ok: false };
+    const data = await res.json();
+    return { ok: true, products: data.products, transactions: data.transactions };
+  },
+
   async adjustStock(
     storeId: string,
     productId: string,
