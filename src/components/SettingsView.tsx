@@ -523,20 +523,20 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
           </p>
         </div>
 
-        <div className="grid grid-cols-2 gap-2.5 sm:gap-3 pt-0.5">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 sm:gap-3 pt-0.5">
           <div className="bg-slate-50 border border-slate-200 p-3 sm:p-4 rounded-2xl space-y-1">
-            <span className="text-[11px] sm:text-xs text-slate-500 font-medium leading-normal block">
+            <span className="text-xs text-slate-500 font-medium leading-snug block truncate">
               Total Nilai Modal (Harga Beli):
             </span>
-            <div className="text-sm sm:text-xl font-black text-slate-900 tabular-nums leading-normal">
+            <div className="text-base sm:text-xl font-black text-slate-900 tabular-nums leading-snug truncate">
               {formatRupiah(totalAssetValue)}
             </div>
           </div>
           <div className="bg-emerald-50 border border-emerald-100 p-3 sm:p-4 rounded-2xl space-y-1">
-            <span className="text-[11px] sm:text-xs text-emerald-800 font-medium leading-normal block">
+            <span className="text-xs text-emerald-800 font-medium leading-snug block truncate">
               Potensi Keuntungan:
             </span>
-            <div className="text-sm sm:text-xl font-black text-emerald-800 tabular-nums leading-normal">
+            <div className="text-base sm:text-xl font-black text-emerald-800 tabular-nums leading-snug truncate">
               +{formatRupiah(potentialProfit)}
             </div>
           </div>

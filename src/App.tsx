@@ -941,9 +941,9 @@ export default function App() {
         onCloseSuccess={() => setSuccessState(null)}
       />
 
-      {/* Toast Notification (Quick actions) */}
+      {/* Toast Notification (Quick actions - Positioned at Top) */}
       {toastMessage && (
-        <div className="fixed bottom-24 left-1/2 -translate-x-1/2 z-50 bg-slate-900/90 text-white text-xs sm:text-sm font-semibold px-4 py-2.5 rounded-2xl shadow-xl backdrop-blur-md animate-in fade-in slide-in-from-bottom-2 duration-150 flex items-center gap-2 max-w-[90vw]">
+        <div className="fixed top-4 left-1/2 -translate-x-1/2 z-50 bg-slate-900/95 text-white text-xs sm:text-sm font-semibold px-4 py-2.5 rounded-2xl shadow-xl backdrop-blur-md animate-in fade-in slide-in-from-top-2 duration-150 flex items-center gap-2 max-w-[90vw]">
           <span className="w-2 h-2 rounded-full bg-emerald-400 shrink-0" />
           <span className="truncate">{toastMessage}</span>
         </div>

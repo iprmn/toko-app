@@ -218,16 +218,16 @@ export const SalesHistoryView: React.FC<SalesHistoryViewProps> = ({
   };
 
   return (
-    <div className="max-w-4xl mx-auto space-y-6 pb-6">
+    <div className="max-w-4xl mx-auto space-y-2.5 sm:space-y-4 pb-4">
       {/* Top Page Header Banner */}
-      <div className="bg-white rounded-3xl p-5 sm:p-6 border border-stone-200/90 shadow-sm space-y-4">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-          <div className="flex items-center gap-3">
-            <div className="w-12 h-12 rounded-2xl bg-emerald-800 text-white flex items-center justify-center font-bold text-xl shadow-sm shadow-emerald-950/20 shrink-0">
-              <TrendingUp className="w-6 h-6" />
+      <div className="bg-white rounded-2xl sm:rounded-3xl p-3 sm:p-5 border border-stone-200/90 shadow-sm space-y-2.5 sm:space-y-3.5">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 sm:gap-4">
+          <div className="flex items-center gap-2.5 sm:gap-3">
+            <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-2xl bg-emerald-800 text-white flex items-center justify-center font-bold text-xl shadow-sm shadow-emerald-950/20 shrink-0">
+              <TrendingUp className="w-5 h-5 sm:w-6 sm:h-6" />
             </div>
             <div>
-              <h2 className="text-lg sm:text-xl font-bold text-slate-900 leading-normal">
+              <h2 className="text-base sm:text-xl font-bold text-slate-900 leading-normal">
                 Penjualan
               </h2>
             </div>
@@ -237,7 +237,7 @@ export const SalesHistoryView: React.FC<SalesHistoryViewProps> = ({
             <button
               type="button"
               onClick={handleCopyReport}
-              className="h-10 px-3.5 bg-emerald-700 hover:bg-emerald-800 active:scale-95 text-white rounded-xl font-bold text-xs flex items-center justify-center gap-1.5 shadow-sm transition-all cursor-pointer"
+              className="h-9 sm:h-10 px-3 sm:px-3.5 bg-emerald-700 hover:bg-emerald-800 active:scale-95 text-white rounded-xl font-bold text-xs flex items-center justify-center gap-1.5 shadow-sm transition-all cursor-pointer"
             >
               <Copy className="w-3.5 h-3.5" />
               <span>Salin Laporan WA</span>
@@ -246,7 +246,7 @@ export const SalesHistoryView: React.FC<SalesHistoryViewProps> = ({
               <button
                 type="button"
                 onClick={onClearHistory}
-                className="w-full sm:w-auto h-10 px-3.5 bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 rounded-xl font-bold text-xs flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
+                className="w-full sm:w-auto h-9 sm:h-10 px-3 sm:px-3.5 bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 rounded-xl font-bold text-xs flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
                 title="Kosongkan seluruh riwayat penjualan"
               >
                 <Trash2 className="w-3.5 h-3.5" />
@@ -257,7 +257,7 @@ export const SalesHistoryView: React.FC<SalesHistoryViewProps> = ({
         </div>
 
         {/* 7-Day Rule Notice Badge (Bluish Style) */}
-        <div className="bg-sky-50/90 border border-sky-200/90 rounded-2xl p-3 sm:p-3.5 flex items-start gap-2.5">
+        <div className="bg-sky-50/90 border border-sky-200/90 rounded-2xl p-2.5 sm:p-3.5 flex items-start gap-2">
           <Clock className="w-4 h-4 text-sky-700 shrink-0 mt-0.5" />
           <p className="text-xs text-sky-950 font-medium leading-relaxed">
             <strong>Aturan 7 Hari:</strong> Riwayat transaksi otomatis disimpan dan ditampilkan untuk <strong>7 hari terakhir</strong>. Transaksi yang lebih lama dari 7 hari otomatis direset dari awal agar pencatatan warung tetap rapi dan ringan. Jangan lupa menyalin laporan WA pada hari terakhir agar riwayat transaksi tetap terjaga.
@@ -266,67 +266,67 @@ export const SalesHistoryView: React.FC<SalesHistoryViewProps> = ({
       </div>
 
       {/* 4 Metric Summary Cards */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4">
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-2 sm:gap-3">
         {/* Total Omzet 7 Hari */}
-        <div className="bg-white rounded-2xl p-4 sm:p-5 border border-stone-200/90 shadow-sm space-y-1.5">
-          <div className="flex items-center gap-2 text-slate-500 text-xs font-semibold">
-            <Coins className="w-4 h-4 text-emerald-800" />
-            <span>Omzet 7 Hari</span>
+        <div className="bg-white rounded-2xl p-2.5 sm:p-4 border border-stone-200/90 shadow-sm space-y-1">
+          <div className="flex items-center gap-1.5 text-slate-500 text-xs font-semibold">
+            <Coins className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-emerald-800 shrink-0" />
+            <span className="truncate">Omzet 7 Hari</span>
           </div>
-          <div className="text-lg sm:text-xl font-black text-slate-900 tabular-nums leading-normal">
+          <div className="text-base sm:text-xl font-black text-slate-900 tabular-nums leading-snug">
             {formatRupiah(total7DayRevenue)}
           </div>
-          <div className="text-[11px] text-slate-400 font-medium leading-normal">
+          <div className="text-[11px] text-slate-400 font-medium leading-snug">
             Total uang masuk kas
           </div>
         </div>
 
         {/* Total Keuntungan 7 Hari */}
-        <div className="bg-white rounded-2xl p-4 sm:p-5 border border-stone-200/90 shadow-sm space-y-1.5">
-          <div className="flex items-center gap-2 text-emerald-800 text-xs font-bold">
-            <TrendingUp className="w-4 h-4 text-emerald-700" />
-            <span>Untung Bersih</span>
+        <div className="bg-white rounded-2xl p-2.5 sm:p-4 border border-stone-200/90 shadow-sm space-y-1">
+          <div className="flex items-center gap-1.5 text-emerald-800 text-xs font-bold">
+            <TrendingUp className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-emerald-700 shrink-0" />
+            <span className="truncate">Untung Bersih</span>
           </div>
-          <div className="text-lg sm:text-xl font-black text-emerald-800 tabular-nums leading-normal">
+          <div className="text-base sm:text-xl font-black text-emerald-800 tabular-nums leading-snug">
             +{formatRupiah(total7DayProfit)}
           </div>
-          <div className="text-[11px] text-emerald-600 font-medium leading-normal">
+          <div className="text-[11px] text-emerald-600 font-medium leading-snug">
             Selisih harga jual & modal
           </div>
         </div>
 
         {/* Total Transaksi 7 Hari */}
-        <div className="bg-white rounded-2xl p-4 sm:p-5 border border-stone-200/90 shadow-sm space-y-1.5">
-          <div className="flex items-center gap-2 text-slate-500 text-xs font-semibold">
-            <ShoppingBag className="w-4 h-4 text-indigo-700" />
-            <span>Total Transaksi</span>
+        <div className="bg-white rounded-2xl p-2.5 sm:p-4 border border-stone-200/90 shadow-sm space-y-1">
+          <div className="flex items-center gap-1.5 text-slate-500 text-xs font-semibold">
+            <ShoppingBag className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-indigo-700 shrink-0" />
+            <span className="truncate">Total Transaksi</span>
           </div>
-          <div className="text-lg sm:text-xl font-black text-slate-900 tabular-nums leading-normal">
+          <div className="text-base sm:text-xl font-black text-slate-900 tabular-nums leading-snug">
             {active7DaysTransactions.length} <span className="text-xs font-normal text-slate-500">kali</span>
           </div>
-          <div className="text-[11px] text-slate-400 font-medium leading-normal">
+          <div className="text-[11px] text-slate-400 font-medium leading-snug">
             Aktivitas kasir toko
           </div>
         </div>
 
         {/* Rata-Rata per Hari */}
-        <div className="bg-white rounded-2xl p-4 sm:p-5 border border-stone-200/90 shadow-sm space-y-1.5">
-          <div className="flex items-center gap-2 text-slate-500 text-xs font-semibold">
-            <BarChart3 className="w-4 h-4 text-amber-700" />
-            <span>Rata-Rata / Hari</span>
+        <div className="bg-white rounded-2xl p-2.5 sm:p-4 border border-stone-200/90 shadow-sm space-y-1">
+          <div className="flex items-center gap-1.5 text-slate-500 text-xs font-semibold">
+            <BarChart3 className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-amber-700 shrink-0" />
+            <span className="truncate">Rata-Rata / Hari</span>
           </div>
-          <div className="text-lg sm:text-xl font-black text-slate-900 tabular-nums leading-normal">
+          <div className="text-base sm:text-xl font-black text-slate-900 tabular-nums leading-snug">
             {formatRupiah(averageDailyRevenue)}
           </div>
-          <div className="text-[11px] text-slate-400 font-medium leading-normal">
+          <div className="text-[11px] text-slate-400 font-medium leading-snug">
             Estimasi harian
           </div>
         </div>
       </div>
 
       {/* 7-Day Visual Sales Chart */}
-      <div className="bg-white rounded-3xl p-5 sm:p-6 border border-stone-200/90 shadow-sm space-y-4">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-100 pb-3">
+      <div className="bg-white rounded-2xl sm:rounded-3xl p-3 sm:p-5 border border-stone-200/90 shadow-sm space-y-2.5 sm:space-y-3.5">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1.5 border-b border-slate-100 pb-2 sm:pb-3">
           <div>
             <h3 className="text-sm sm:text-base font-bold text-slate-900 leading-normal flex items-center gap-2">
               <BarChart3 className="w-4 h-4 text-emerald-800" />
@@ -339,8 +339,8 @@ export const SalesHistoryView: React.FC<SalesHistoryViewProps> = ({
         </div>
 
         {/* Visual Bar Chart */}
-        <div className="pt-4">
-          <div className="grid grid-cols-7 gap-2 sm:gap-3 items-end h-48 sm:h-56 pb-2">
+        <div className="pt-2">
+          <div className="grid grid-cols-7 gap-1.5 sm:gap-3 items-end h-40 sm:h-52 pb-1">
             {last7DaysData.map((d, idx) => {
               const isSelected = selectedDayIndex === idx;
               const heightPercent = maxRevenue > 0 ? Math.max(12, Math.round((d.revenue / maxRevenue) * 100)) : 12;
@@ -428,8 +428,8 @@ export const SalesHistoryView: React.FC<SalesHistoryViewProps> = ({
       </div>
 
       {/* Transactions List */}
-      <div className="bg-white rounded-3xl p-5 sm:p-6 border border-stone-200/90 shadow-sm space-y-4">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1 border-b border-slate-100 pb-3">
+      <div className="bg-white rounded-2xl sm:rounded-3xl p-3 sm:p-5 border border-stone-200/90 shadow-sm space-y-2.5 sm:space-y-3.5">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1 border-b border-slate-100 pb-2 sm:pb-3">
           <div>
             <h3 className="text-sm sm:text-base font-bold text-slate-900 leading-normal">
               {selectedDayIndex !== null
@@ -443,8 +443,8 @@ export const SalesHistoryView: React.FC<SalesHistoryViewProps> = ({
         </div>
 
         {displayedTransactions.length === 0 ? (
-          <div className="text-center py-12 bg-slate-50 rounded-2xl border border-dashed border-slate-200 space-y-2">
-            <Calendar className="w-10 h-10 text-slate-400 mx-auto" />
+          <div className="text-center py-8 sm:py-12 bg-slate-50 rounded-2xl border border-dashed border-slate-200 space-y-2">
+            <Calendar className="w-9 h-9 text-slate-400 mx-auto" />
             <h4 className="text-sm font-bold text-slate-700">
               Belum ada transaksi pada periode ini
             </h4>
@@ -453,7 +453,7 @@ export const SalesHistoryView: React.FC<SalesHistoryViewProps> = ({
             </p>
           </div>
         ) : (
-          <div className="space-y-2.5">
+          <div className="space-y-2">
             {displayedTransactions.map((t) => {
               const dateObj = new Date(t.timestamp);
               const isExpanded = expandedTxIds.includes(t.id);
@@ -524,9 +524,9 @@ export const SalesHistoryView: React.FC<SalesHistoryViewProps> = ({
                         }
                         toggleTxExpand(t.id);
                       }}
-                      className="w-full p-3.5 sm:p-4 flex items-center justify-between gap-3 text-left cursor-pointer transition-colors"
+                      className="w-full p-2.5 sm:p-3.5 flex items-center justify-between gap-2.5 text-left cursor-pointer transition-colors"
                     >
-                      {/* Kiri: Jam, Tanggal & Status Dibatalkan */}
+                      {/* Kiri: Jam & Tanggal (Tanpa Nama Hari) */}
                       <div className="flex items-center gap-2.5 min-w-0">
                         <div
                           className={`w-8 h-8 rounded-xl flex items-center justify-center shrink-0 ${
@@ -542,23 +542,15 @@ export const SalesHistoryView: React.FC<SalesHistoryViewProps> = ({
                           )}
                         </div>
                         <div className="min-w-0">
-                          <div className="flex items-center gap-2 flex-wrap">
-                            <span
-                              className={`text-xs sm:text-sm font-bold tabular-nums ${
-                                isCancelled ? 'text-slate-500' : 'text-slate-900'
-                              }`}
-                            >
-                              {formatTime(t.timestamp)}
-                            </span>
-                            {isCancelled && (
-                              <span className="inline-flex items-center gap-1 text-[10px] font-bold bg-slate-200 text-slate-600 border border-slate-300 px-2 py-0.5 rounded-md">
-                                Transaksi Dibatalkan
-                              </span>
-                            )}
+                          <div
+                            className={`text-xs sm:text-sm font-bold tabular-nums leading-snug ${
+                              isCancelled ? 'text-slate-500' : 'text-slate-900'
+                            }`}
+                          >
+                            {formatTime(t.timestamp)}
                           </div>
-                          <div className="text-[11px] text-slate-500 font-medium truncate">
+                          <div className="text-[11px] text-slate-500 font-medium truncate leading-snug">
                             {dateObj.toLocaleDateString('id-ID', {
-                              weekday: 'short',
                               day: 'numeric',
                               month: 'short',
                               year: 'numeric',
@@ -567,27 +559,34 @@ export const SalesHistoryView: React.FC<SalesHistoryViewProps> = ({
                         </div>
                       </div>
 
-                      {/* Kanan: Total Transaksi & Icon Dropdown */}
-                      <div className="flex items-center gap-2.5 shrink-0">
-                        <span
-                          className={`text-sm sm:text-base font-black tabular-nums ${
-                            isCancelled
-                              ? 'text-slate-400 line-through'
-                              : 'text-slate-900'
-                          }`}
-                        >
-                          {formatRupiah(t.totalAmount)}
-                        </span>
-                        <div
-                          className={`w-7 h-7 rounded-lg flex items-center justify-center transition-transform ${
-                            isExpanded
-                              ? isCancelled
-                                ? 'bg-slate-200 text-slate-700 rotate-180'
-                                : 'bg-emerald-100 text-emerald-800 rotate-180'
-                              : 'bg-slate-200/60 text-slate-500'
-                          }`}
-                        >
-                          <ChevronDown className="w-4 h-4" />
+                      {/* Kanan: Chip "Dibatalkan" di Kanan Atas (bila batal) + Total Transaksi & Icon Dropdown */}
+                      <div className="flex flex-col items-end justify-center gap-1 shrink-0">
+                        {isCancelled && (
+                          <span className="inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-bold bg-slate-200 text-slate-600 border border-slate-300 leading-none">
+                            Dibatalkan
+                          </span>
+                        )}
+                        <div className="flex items-center gap-2">
+                          <span
+                            className={`text-sm sm:text-base font-black tabular-nums ${
+                              isCancelled
+                                ? 'text-slate-400 line-through'
+                                : 'text-slate-900'
+                            }`}
+                          >
+                            {formatRupiah(t.totalAmount)}
+                          </span>
+                          <div
+                            className={`w-6 h-6 sm:w-7 sm:h-7 rounded-lg flex items-center justify-center transition-transform ${
+                              isExpanded
+                                ? isCancelled
+                                  ? 'bg-slate-200 text-slate-700 rotate-180'
+                                  : 'bg-emerald-100 text-emerald-800 rotate-180'
+                                : 'bg-slate-200/60 text-slate-500'
+                            }`}
+                          >
+                            <ChevronDown className="w-4 h-4" />
+                          </div>
                         </div>
                       </div>
                     </button>
@@ -595,7 +594,7 @@ export const SalesHistoryView: React.FC<SalesHistoryViewProps> = ({
                     {/* ACCORDION BODY: List kebawah barang transaksi & Untungnya berapa */}
                     {isExpanded && (
                       <div
-                        className={`px-4 pb-4 pt-1 border-t border-slate-100 space-y-3 animate-in slide-in-from-top-1 duration-150 ${
+                        className={`px-3 pb-3 pt-1 sm:px-4 sm:pb-4 border-t border-slate-100 space-y-2.5 animate-in slide-in-from-top-1 duration-150 ${
                           isCancelled ? 'bg-slate-50/90 text-slate-500' : 'bg-white'
                         }`}
                       >

@@ -1,8 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { X, Plus, Minus, Trash2, ShoppingBag, CheckCircle2, RotateCcw, Copy, Share2 } from 'lucide-react';
-import { CartItem, Product } from '../types/store';
+import { X, Plus, Minus, ShoppingBag, CheckCircle2, RotateCcw, Copy } from 'lucide-react';
+import { CartItem } from '../types/store';
 import { formatRupiah, formatNumber } from '../utils/format';
-import { PRESET_ICONS } from '../data/initialProducts';
 
 interface CartDrawerProps {
   isOpen: boolean;
@@ -26,6 +25,7 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
   storeName,
 }) => {
   const [cashInput, setCashInput] = useState<string>('');
+  const [editingQtyMap, setEditingQtyMap] = useState<{ [productId: string]: string }>({});
   const [lastReceipt, setLastReceipt] = useState<{
     id: string;
     items: CartItem[];
@@ -60,7 +60,6 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
     const effectiveCash = cashPaid > 0 ? cashPaid : totalAmount;
     const finalChange = Math.max(0, effectiveCash - totalAmount);
 
-    // Save temporary receipt for the success screen
     setLastReceipt({
       id: 'TRX-' + Date.now().toString().slice(-6),
       items: [...cart],
@@ -72,6 +71,7 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
 
     onCompleteSale(effectiveCash, finalChange);
     setCashInput('');
+    setEditingQtyMap({});
   };
 
   return (
@@ -81,7 +81,6 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
 
       {/* Sheet Container */}
       <div className="relative z-10 w-full sm:max-w-xl max-h-[90vh] bg-white rounded-t-3xl sm:rounded-3xl shadow-2xl flex flex-col overflow-hidden animate-in slide-in-from-bottom duration-300">
-        
         {/* Header */}
         <div className="p-4 sm:p-5 border-b border-slate-100 flex items-center justify-between bg-emerald-800 text-white">
           <div className="flex items-center gap-2.5">
@@ -93,7 +92,7 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
                 Keranjang Kasir
               </h2>
               <p className="text-xs text-emerald-100">
-                {totalItemsCount} barang dipilih · {storeName}
+                {totalItemsCount} barang dipilih
               </p>
             </div>
           </div>
@@ -226,89 +225,118 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
           </div>
         ) : (
           /* Active Cart Items */
-          <div className="flex-1 overflow-y-auto p-4 sm:p-5 space-y-3">
-            {/* Items List */}
-            <div className="space-y-2.5">
+          <div className="flex-1 overflow-y-auto p-3.5 sm:p-5 space-y-3">
+            {/* Items List (Tanpa foto/icon dan tanpa tombol hapus teks agar lega) */}
+            <div className="space-y-2">
               {cart.map((item) => {
-                const preset = PRESET_ICONS[item.product.iconType] || PRESET_ICONS['box'];
                 const itemSubtotal = item.product.sellPrice * item.quantity;
+                const displayQty =
+                  editingQtyMap[item.product.id] !== undefined
+                    ? editingQtyMap[item.product.id]
+                    : String(item.quantity);
 
                 return (
                   <div
                     key={item.product.id}
-                    className="p-3 rounded-2xl bg-slate-50 border border-slate-100 flex items-center justify-between gap-3"
+                    className="p-3 rounded-2xl bg-slate-50 border border-slate-100 flex items-center justify-between gap-2.5"
                   >
-                    {/* Item Icon & Title */}
-                    <div className="flex items-center gap-3 min-w-0">
-                      <div className={`w-12 h-12 rounded-xl ${preset.bg} flex items-center justify-center text-2xl shrink-0 overflow-hidden`}>
-                        {item.product.imageUrl ? (
-                          <img
-                            src={item.product.imageUrl}
-                            alt={item.product.name}
-                            className="w-full h-full object-cover"
-                          />
-                        ) : (
-                          preset.icon
-                        )}
-                      </div>
-                      <div className="min-w-0">
-                        <h4 className="text-xs sm:text-sm font-bold text-slate-900 truncate">
-                          {item.product.name}
-                        </h4>
-                        <div className="text-xs text-slate-500 font-medium mt-0.5">
-                          {formatRupiah(item.product.sellPrice)} / {item.product.unit}
-                        </div>
+                    {/* Item Title & Unit Price */}
+                    <div className="min-w-0 flex-1">
+                      <h4 className="text-xs sm:text-sm font-bold text-slate-900 leading-snug break-words">
+                        {item.product.name}
+                      </h4>
+                      <div className="text-[11px] sm:text-xs text-slate-500 font-medium mt-0.5">
+                        {formatRupiah(item.product.sellPrice)} / {item.product.unit}
                       </div>
                     </div>
 
-                    {/* Quantity Stepper & Subtotal */}
-                    <div className="flex items-center gap-3 shrink-0">
+                    {/* Quantity Stepper (Manual Input + Buttons) & Subtotal */}
+                    <div className="flex items-center gap-2.5 shrink-0">
                       <div className="flex items-center bg-white rounded-xl border border-slate-200 p-0.5 shadow-2xs">
                         <button
                           type="button"
                           onClick={() => {
+                            setEditingQtyMap((prev) => {
+                              const next = { ...prev };
+                              delete next[item.product.id];
+                              return next;
+                            });
                             if (item.quantity === 1) {
-                              if (window.confirm(`Hapus "${item.product.name}" dari keranjang?`)) {
-                                onRemoveFromCart(item.product.id);
-                              }
+                              onRemoveFromCart(item.product.id);
                             } else {
                               onUpdateQuantity(item.product.id, item.quantity - 1);
                             }
                           }}
-                          className="w-8 h-8 rounded-lg text-slate-700 hover:text-emerald-700 flex items-center justify-center active:scale-90 transition-transform cursor-pointer"
+                          className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg text-slate-700 hover:text-emerald-700 flex items-center justify-center active:scale-90 transition-transform cursor-pointer"
                           aria-label="Kurangi barang"
                         >
                           <Minus className="w-3.5 h-3.5" />
                         </button>
-                        <span className="w-7 text-center font-bold text-xs text-slate-900 tabular-nums">
-                          {item.quantity}
-                        </span>
+
+                        <input
+                          type="text"
+                          inputMode="numeric"
+                          pattern="[0-9]*"
+                          value={displayQty}
+                          onChange={(e) => {
+                            const digits = e.target.value.replace(/\D/g, '');
+                            setEditingQtyMap((prev) => ({
+                              ...prev,
+                              [item.product.id]: digits,
+                            }));
+                            if (digits !== '') {
+                              const parsed = parseInt(digits, 10);
+                              if (parsed > 0) {
+                                const clamped = Math.min(parsed, item.product.stock);
+                                onUpdateQuantity(item.product.id, clamped);
+                                if (clamped !== parsed) {
+                                  setEditingQtyMap((prev) => ({
+                                    ...prev,
+                                    [item.product.id]: String(clamped),
+                                  }));
+                                }
+                              }
+                            }
+                          }}
+                          onBlur={() => {
+                            const raw = editingQtyMap[item.product.id];
+                            setEditingQtyMap((prev) => {
+                              const next = { ...prev };
+                              delete next[item.product.id];
+                              return next;
+                            });
+                            if (raw === '0') {
+                              onRemoveFromCart(item.product.id);
+                            } else if (raw === '') {
+                              onUpdateQuantity(item.product.id, item.quantity || 1);
+                            }
+                          }}
+                          className="w-9 sm:w-10 text-center font-extrabold text-xs sm:text-sm text-slate-900 bg-transparent outline-none focus:bg-emerald-50 focus:rounded-md tabular-nums py-0.5"
+                          aria-label="Jumlah barang"
+                        />
+
                         <button
                           type="button"
-                          onClick={() => onUpdateQuantity(item.product.id, item.quantity + 1)}
+                          onClick={() => {
+                            setEditingQtyMap((prev) => {
+                              const next = { ...prev };
+                              delete next[item.product.id];
+                              return next;
+                            });
+                            onUpdateQuantity(item.product.id, item.quantity + 1);
+                          }}
                           disabled={item.quantity >= item.product.stock}
-                          className="w-8 h-8 rounded-lg text-slate-700 hover:text-emerald-700 disabled:opacity-30 disabled:cursor-not-allowed flex items-center justify-center active:scale-90 transition-transform cursor-pointer"
+                          className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg text-slate-700 hover:text-emerald-700 disabled:opacity-30 disabled:cursor-not-allowed flex items-center justify-center active:scale-90 transition-transform cursor-pointer"
                           aria-label="Tambah barang"
                         >
                           <Plus className="w-3.5 h-3.5" />
                         </button>
                       </div>
 
-                      <div className="text-right min-w-[70px]">
+                      <div className="text-right min-w-[72px]">
                         <div className="text-xs sm:text-sm font-black text-slate-900 tabular-nums">
                           {formatRupiah(itemSubtotal)}
                         </div>
-                        <button
-                          type="button"
-                          onClick={() => {
-                            if (window.confirm(`Hapus "${item.product.name}" dari keranjang kasir?`)) {
-                              onRemoveFromCart(item.product.id);
-                            }
-                          }}
-                          className="text-[11px] text-rose-500 hover:text-rose-700 underline font-medium cursor-pointer"
-                        >
-                          Hapus
-                        </button>
                       </div>
                     </div>
                   </div>

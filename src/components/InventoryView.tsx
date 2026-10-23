@@ -234,7 +234,7 @@ export const InventoryView: React.FC<InventoryViewProps> = ({
           <button
             type="button"
             onClick={onOpenAddProduct}
-            className="w-full sm:w-auto px-3.5 py-2 sm:px-4 sm:py-2.5 rounded-xl bg-white hover:bg-emerald-50 text-emerald-900 font-bold text-xs flex items-center justify-center gap-1.5 cursor-pointer shadow-xs transition-all active:scale-95"
+            className="w-full sm:w-auto px-3.5 py-2 sm:px-4 sm:py-2.5 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-white border border-emerald-400/80 font-bold text-xs flex items-center justify-center gap-1.5 cursor-pointer shadow-sm shadow-emerald-950/30 transition-all active:scale-95"
           >
             <Plus className="w-4 h-4 stroke-[2.5]" />
             <span>Tambah Barang Baru</span>
@@ -313,19 +313,19 @@ export const InventoryView: React.FC<InventoryViewProps> = ({
         </div>
       )}
 
-      {/* Full-Width Filter Row Outside Card:
+      {/* Horizontal Scrollable Filter Row (Same style as Etalase Page):
           1. Dropdown Rak
           2. Dropdown Status
           3. Dropdown Kategori
           4. Button Semua Barang */}
-      <div className="w-full grid grid-cols-2 lg:grid-cols-4 gap-1.5 sm:gap-2 pt-0.5">
+      <div className="flex items-center gap-1.5 sm:gap-2 overflow-x-auto pb-1.5 pt-0.5 no-scrollbar select-none">
         {/* 1. Dropdown Rak */}
-        <div className="relative w-full">
+        <div className="relative shrink-0">
           <select
             value={selectedShelf}
             onChange={(e) => setSelectedShelf(e.target.value)}
             aria-label="Filter Lokasi Rak"
-            className={`w-full min-h-[38px] sm:min-h-[44px] pl-2.5 sm:pl-3.5 pr-7 sm:pr-9 py-1.5 sm:py-2 rounded-xl sm:rounded-2xl text-[11px] sm:text-sm font-semibold appearance-none transition-all cursor-pointer outline-none border truncate ${
+            className={`min-h-[38px] sm:min-h-[44px] pl-3 sm:pl-3.5 pr-8 sm:pr-9 py-1.5 sm:py-2 rounded-xl sm:rounded-2xl text-xs sm:text-sm font-semibold appearance-none transition-all cursor-pointer outline-none border ${
               selectedShelf !== 'all'
                 ? 'bg-amber-800 text-white border-amber-900 shadow-sm'
                 : 'bg-white hover:bg-slate-100 text-slate-700 border-slate-200/80 shadow-2xs'
@@ -355,12 +355,12 @@ export const InventoryView: React.FC<InventoryViewProps> = ({
         </div>
 
         {/* 2. Dropdown Status */}
-        <div className="relative w-full">
+        <div className="relative shrink-0">
           <select
             value={selectedStatus}
             onChange={(e) => handleStatusChange(e.target.value as StockStatusFilter)}
             aria-label="Filter Status Stok"
-            className={`w-full min-h-[38px] sm:min-h-[44px] pl-2.5 sm:pl-3.5 pr-7 sm:pr-9 py-1.5 sm:py-2 rounded-xl sm:rounded-2xl text-[11px] sm:text-sm font-semibold appearance-none transition-all cursor-pointer outline-none border truncate ${
+            className={`min-h-[38px] sm:min-h-[44px] pl-3 sm:pl-3.5 pr-8 sm:pr-9 py-1.5 sm:py-2 rounded-xl sm:rounded-2xl text-xs sm:text-sm font-semibold appearance-none transition-all cursor-pointer outline-none border ${
               selectedStatus === 'low'
                 ? 'bg-amber-600 text-white border-amber-700 shadow-sm'
                 : selectedStatus === 'out'
@@ -391,12 +391,12 @@ export const InventoryView: React.FC<InventoryViewProps> = ({
         </div>
 
         {/* 3. Dropdown Kategori */}
-        <div className="relative w-full">
+        <div className="relative shrink-0">
           <select
             value={selectedCategory}
             onChange={(e) => setSelectedCategory(e.target.value)}
             aria-label="Filter Kategori Barang"
-            className={`w-full min-h-[38px] sm:min-h-[44px] pl-2.5 sm:pl-3.5 pr-7 sm:pr-9 py-1.5 sm:py-2 rounded-xl sm:rounded-2xl text-[11px] sm:text-sm font-semibold appearance-none transition-all cursor-pointer outline-none border truncate ${
+            className={`min-h-[38px] sm:min-h-[44px] pl-3 sm:pl-3.5 pr-8 sm:pr-9 py-1.5 sm:py-2 rounded-xl sm:rounded-2xl text-xs sm:text-sm font-semibold appearance-none transition-all cursor-pointer outline-none border ${
               selectedCategory !== 'all'
                 ? 'bg-emerald-700 text-white border-emerald-800 shadow-sm'
                 : 'bg-white hover:bg-slate-100 text-slate-700 border-slate-200/80 shadow-2xs'
@@ -434,7 +434,7 @@ export const InventoryView: React.FC<InventoryViewProps> = ({
             setSelectedCategory('all');
             setSearch('');
           }}
-          className={`w-full min-h-[38px] sm:min-h-[44px] px-2.5 sm:px-3.5 py-1.5 sm:py-2 rounded-xl sm:rounded-2xl text-[11px] sm:text-sm font-semibold flex items-center justify-center gap-1.5 sm:gap-2 transition-all cursor-pointer border ${
+          className={`shrink-0 min-h-[38px] sm:min-h-[44px] px-3 sm:px-4 py-1.5 sm:py-2 rounded-xl sm:rounded-2xl text-xs sm:text-sm font-semibold flex items-center justify-center gap-1.5 sm:gap-2 transition-all cursor-pointer border ${
             isAllFilterReset
               ? 'bg-emerald-700 text-white border-emerald-800 shadow-sm shadow-emerald-800/20'
               : 'bg-white hover:bg-slate-100 text-slate-700 border-slate-200/80 shadow-2xs'
@@ -531,14 +531,14 @@ export const InventoryView: React.FC<InventoryViewProps> = ({
                     onEditProduct(p);
                   }
                 }}
-                className={`relative bg-white rounded-xl sm:rounded-2xl p-2.5 sm:p-4 border transition-all flex flex-col sm:flex-row sm:items-center justify-between gap-2 sm:gap-4 select-none cursor-pointer ${
+                className={`relative bg-white rounded-xl sm:rounded-2xl px-3 py-3.5 sm:p-4 border transition-all flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4 min-h-[144px] sm:min-h-0 select-none cursor-pointer ${
                   isSelected
                     ? 'ring-2 ring-emerald-600 bg-emerald-50/50 border-emerald-300 shadow-md'
                     : 'border-stone-200/90 shadow-sm hover:shadow-md'
                 }`}
               >
                 {/* Bagian 1: Checkbox Seleksi, Icon / Foto, Nama Barang & Harga Jual/Beli di bawah judul */}
-                <div className="flex items-center gap-2.5 sm:gap-3 w-full sm:w-auto sm:flex-1 min-w-0">
+                <div className="flex items-center gap-3 w-full sm:w-auto sm:flex-1 min-w-0">
                   {isSelectionMode && (
                     <div
                       onClick={(e) => {
@@ -557,7 +557,7 @@ export const InventoryView: React.FC<InventoryViewProps> = ({
                   )}
 
                   <div
-                    className={`w-10 h-10 sm:w-12 sm:h-12 rounded-xl ${
+                    className={`w-11 h-11 sm:w-12 sm:h-12 rounded-xl ${
                       preset.bg
                     } flex items-center justify-center text-xl sm:text-2xl shrink-0 overflow-hidden relative shadow-2xs ${
                       isOutOfStock ? 'opacity-60 grayscale-[0.5]' : ''
@@ -575,7 +575,7 @@ export const InventoryView: React.FC<InventoryViewProps> = ({
                   </div>
 
                   <div className="min-w-0 flex-1">
-                    <h4 className="text-xs sm:text-sm font-bold text-slate-900 break-words leading-snug">
+                    <h4 className="text-sm sm:text-base font-bold text-slate-900 break-words leading-snug">
                       {p.name}
                     </h4>
                     {/* Harga Jual dan Beli di bawah judul produk */}
