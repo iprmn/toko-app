@@ -520,19 +520,11 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
         <div className="pt-1 pb-1 px-2 sm:px-4">
           {/* Checkpoint Bar Track & Nodes */}
           <div className="relative flex items-center justify-between">
-            {/* Background Track */}
+            {/* Background Track (Neutral Gray) */}
             <div className="absolute left-4 right-4 h-1.5 bg-slate-200 rounded-full pointer-events-none" />
-            {/* Active Progress Track */}
-            <div
-              className="absolute left-4 h-1.5 bg-emerald-600 rounded-full transition-all duration-200 pointer-events-none"
-              style={{
-                width: `calc(${((fontSizeLevel - 1) / 3) * 100}% - ${((fontSizeLevel - 1) / 3) * 2}rem)`,
-              }}
-            />
 
             {FONT_CHECKPOINTS.map((cp) => {
               const isSelected = fontSizeLevel === cp.level;
-              const isPassed = fontSizeLevel >= cp.level;
               return (
                 <button
                   key={cp.level}
@@ -544,8 +536,6 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                     className={`w-8 h-8 sm:w-9 sm:h-9 rounded-full flex items-center justify-center font-bold text-xs transition-all ${
                       isSelected
                         ? 'bg-emerald-700 text-white ring-4 ring-emerald-600/25 scale-110 shadow-sm'
-                        : isPassed
-                        ? 'bg-emerald-600 text-white'
                         : 'bg-white border-2 border-slate-300 text-slate-500 hover:border-emerald-500'
                     }`}
                   >
@@ -563,6 +553,13 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
             })}
           </div>
         </div>
+      </div>
+
+      {/* Footer Powered By */}
+      <div className="pt-5 pb-3 text-center">
+        <p className="text-xs font-medium text-slate-400 tracking-wide">
+          Powered by: Wong Cilik Digital
+        </p>
       </div>
     </div>
   );
