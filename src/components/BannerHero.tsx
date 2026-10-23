@@ -129,10 +129,10 @@ export const BannerHero: React.FC<BannerHeroProps> = ({
             </button>
           </div>
 
-          {/* Right Side: 3 Metric Cards (Horizontal Side-by-Side, Scrollable if needed) */}
-          <div className="flex items-stretch gap-2 sm:gap-2.5 overflow-x-auto no-scrollbar w-full lg:w-auto pb-0.5">
+          {/* Right Side: 2 Metric Cards (Total Item & Kas Masuk Harian) with top separator line on mobile */}
+          <div className="grid grid-cols-2 gap-2 sm:gap-2.5 w-full lg:w-auto pt-2.5 mt-0.5 border-t border-white/15 lg:border-t-0 lg:pt-0 lg:mt-0">
             {/* 1. Total Item */}
-            <div className="flex-1 shrink-0 min-w-[112px] sm:min-w-[125px] bg-white/15 backdrop-blur-md border border-white/20 rounded-xl px-3 py-2 sm:px-3.5 sm:py-2.5 flex flex-col items-start justify-between gap-1.5">
+            <div className="min-w-0 sm:min-w-[135px] bg-white/15 backdrop-blur-md border border-white/20 rounded-xl px-3 py-2 sm:px-3.5 sm:py-2.5 flex flex-col items-start justify-between gap-1.5">
               <div className="flex items-center gap-1.5">
                 <div className="w-6 h-6 sm:w-7 sm:h-7 rounded-lg bg-white/20 flex items-center justify-center shrink-0">
                   <Package className="w-3.5 h-3.5 text-white" />
@@ -149,44 +149,11 @@ export const BannerHero: React.FC<BannerHeroProps> = ({
               </div>
             </div>
 
-            {/* 2. Stok Kritis */}
-            <button
-              type="button"
-              onClick={onFilterLowStock}
-              className={`flex-1 shrink-0 min-w-[112px] sm:min-w-[125px] border rounded-xl px-3 py-2 sm:px-3.5 sm:py-2.5 flex flex-col items-start justify-between gap-1.5 transition-all cursor-pointer ${
-                lowStockCount > 0
-                  ? 'bg-amber-400 text-amber-950 border-amber-300 shadow-xs active:scale-95 hover:bg-amber-300'
-                  : 'bg-white/15 text-white border-white/20 hover:bg-white/20'
-              }`}
-              title="Klik untuk melihat barang stok kritis di halaman stok"
-            >
-              <div className="flex items-center gap-1.5">
-                <div
-                  className={`w-6 h-6 sm:w-7 sm:h-7 rounded-lg flex items-center justify-center shrink-0 ${
-                    lowStockCount > 0 ? 'bg-amber-950/15' : 'bg-white/20'
-                  }`}
-                >
-                  <AlertTriangle className="w-3.5 h-3.5 shrink-0" />
-                </div>
-                <span className="text-xs font-semibold whitespace-nowrap">
-                  Stok Kritis
-                </span>
-              </div>
-              <div className="flex items-baseline gap-1 shrink-0 pl-0.5">
-                <span className="text-sm sm:text-lg font-black tabular-nums">
-                  {lowStockCount}
-                </span>
-                <span className="text-[11px] font-medium opacity-80">
-                  barang
-                </span>
-              </div>
-            </button>
-
-            {/* 3. Kas Masuk Harian */}
+            {/* 2. Kas Masuk Harian */}
             <button
               type="button"
               onClick={onOpenSalesHistory}
-              className="flex-1 shrink-0 min-w-[132px] sm:min-w-[150px] bg-white text-slate-900 border border-white rounded-xl px-3 py-2 sm:px-3.5 sm:py-2.5 flex flex-col items-start justify-between gap-1.5 shadow-xs hover:bg-emerald-50 transition-all cursor-pointer active:scale-95"
+              className="min-w-0 sm:min-w-[155px] bg-white text-slate-900 border border-white rounded-xl px-3 py-2 sm:px-3.5 sm:py-2.5 flex flex-col items-start justify-between gap-1.5 shadow-xs hover:bg-emerald-50 transition-all cursor-pointer active:scale-95 text-left"
               title="Klik untuk rincian penjualan hari ini"
             >
               <div className="flex items-center gap-1.5">
@@ -197,8 +164,8 @@ export const BannerHero: React.FC<BannerHeroProps> = ({
                   Kas Masuk Harian
                 </span>
               </div>
-              <div className="shrink-0 pl-0.5">
-                <span className="text-xs sm:text-sm font-black text-slate-900 tabular-nums whitespace-nowrap">
+              <div className="shrink-0 pl-0.5 max-w-full">
+                <span className="text-xs sm:text-sm font-black text-slate-900 tabular-nums truncate block">
                   {formatRupiah(todayRevenue)}
                 </span>
               </div>

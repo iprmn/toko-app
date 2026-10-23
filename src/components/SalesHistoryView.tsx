@@ -11,6 +11,8 @@ import {
   ChevronDown,
   RotateCcw,
   Ban,
+  HelpCircle,
+  X,
 } from 'lucide-react';
 import { Transaction } from '../types/store';
 import { formatRupiah, formatDateIndo, formatTime } from '../utils/format';
@@ -32,6 +34,7 @@ export const SalesHistoryView: React.FC<SalesHistoryViewProps> = ({
   const [selectedDayIndex, setSelectedDayIndex] = useState<number | null>(null);
   const [expandedTxIds, setExpandedTxIds] = useState<string[]>([]);
   const [swipedTxId, setSwipedTxId] = useState<string | null>(null);
+  const [showGuideModal, setShowGuideModal] = useState(false);
 
   // Track horizontal swipe/slide gesture per card
   const dragStateRef = useRef<{
@@ -220,17 +223,27 @@ export const SalesHistoryView: React.FC<SalesHistoryViewProps> = ({
   return (
     <div className="max-w-4xl mx-auto space-y-2.5 sm:space-y-4 pb-4">
       {/* Top Page Header Banner */}
-      <div className="bg-white rounded-2xl sm:rounded-3xl p-3 sm:p-5 border border-stone-200/90 shadow-sm space-y-2.5 sm:space-y-3.5">
+      <div className="bg-white rounded-2xl sm:rounded-3xl p-3 sm:p-5 border border-stone-200/90 shadow-sm">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 sm:gap-4">
-          <div className="flex items-center gap-2.5 sm:gap-3">
-            <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-2xl bg-emerald-800 text-white flex items-center justify-center font-bold text-xl shadow-sm shadow-emerald-950/20 shrink-0">
-              <TrendingUp className="w-5 h-5 sm:w-6 sm:h-6" />
-            </div>
-            <div>
+          <div className="flex items-center justify-between sm:justify-start gap-2.5 sm:gap-3 w-full sm:w-auto">
+            <div className="flex items-center gap-2.5 sm:gap-3">
+              <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-2xl bg-emerald-800 text-white flex items-center justify-center font-bold text-xl shadow-sm shadow-emerald-950/20 shrink-0">
+                <TrendingUp className="w-5 h-5 sm:w-6 sm:h-6" />
+              </div>
               <h2 className="text-base sm:text-xl font-bold text-slate-900 leading-normal">
                 Penjualan
               </h2>
             </div>
+
+            <button
+              type="button"
+              onClick={() => setShowGuideModal(true)}
+              className="px-2.5 py-1.5 sm:px-3 sm:py-1.5 rounded-xl bg-sky-50 hover:bg-sky-100 text-sky-900 text-xs font-bold border border-sky-200 flex items-center gap-1.5 cursor-pointer transition-colors shadow-2xs shrink-0"
+              title="Buka petunjuk aturan 7 hari"
+            >
+              <HelpCircle className="w-3.5 h-3.5 text-sky-700" />
+              <span>Petunjuk</span>
+            </button>
           </div>
 
           <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 shrink-0 w-full sm:w-auto">
@@ -255,17 +268,55 @@ export const SalesHistoryView: React.FC<SalesHistoryViewProps> = ({
             )}
           </div>
         </div>
-
-        {/* 7-Day Rule Notice Badge (Bluish Style) */}
-        <div className="bg-sky-50/90 border border-sky-200/90 rounded-2xl p-2.5 sm:p-3.5 flex items-start gap-2">
-          <Clock className="w-4 h-4 text-sky-700 shrink-0 mt-0.5" />
-          <p className="text-xs text-sky-950 font-medium leading-relaxed">
-            <strong>Aturan 7 Hari:</strong> Riwayat transaksi otomatis disimpan dan ditampilkan untuk <strong>7 hari terakhir</strong>. Transaksi yang lebih lama dari 7 hari otomatis direset dari awal agar pencatatan warung tetap rapi dan ringan. Jangan lupa menyalin laporan WA pada hari terakhir agar riwayat transaksi tetap terjaga.
-          </p>
-        </div>
       </div>
 
-      {/* 4 Metric Summary Cards */}
+      {/* Popup Petunjuk Aturan 7 Hari */}
+      {showGuideModal && (
+        <div
+          className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4 animate-in fade-in duration-200"
+          onClick={() => setShowGuideModal(false)}
+        >
+          <div
+            className="bg-white rounded-3xl p-4 sm:p-6 max-w-sm w-full border border-slate-200 shadow-2xl space-y-4"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-center justify-between pb-3 border-b border-slate-100">
+              <div className="flex items-center gap-2">
+                <div className="w-8 h-8 rounded-xl bg-sky-100 text-sky-800 flex items-center justify-center font-bold">
+                  <HelpCircle className="w-4 h-4" />
+                </div>
+                <h3 className="font-bold text-base text-slate-900">
+                  Petunjuk Aturan 7 Hari
+                </h3>
+              </div>
+              <button
+                type="button"
+                onClick={() => setShowGuideModal(false)}
+                className="w-8 h-8 rounded-lg hover:bg-slate-100 text-slate-400 hover:text-slate-600 flex items-center justify-center cursor-pointer"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            <div className="bg-sky-50/90 border border-sky-200/90 rounded-2xl p-3.5 flex items-start gap-2.5">
+              <Clock className="w-4 h-4 text-sky-700 shrink-0 mt-0.5" />
+              <p className="text-xs sm:text-sm text-sky-950 font-medium leading-relaxed">
+                <strong>Aturan 7 Hari:</strong> Riwayat transaksi otomatis disimpan dan ditampilkan untuk <strong>7 hari terakhir</strong>. Transaksi yang lebih lama dari 7 hari otomatis direset dari awal agar pencatatan warung tetap rapi dan ringan. Jangan lupa menyalin laporan WA pada hari terakhir agar riwayat transaksi tetap terjaga.
+              </p>
+            </div>
+
+            <button
+              type="button"
+              onClick={() => setShowGuideModal(false)}
+              className="w-full py-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs cursor-pointer transition-colors shadow-sm"
+            >
+              Mengerti
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* 4 Metric Summary Cards (Hanya Judul & Angka) */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-2 sm:gap-3">
         {/* Total Omzet 7 Hari */}
         <div className="bg-white rounded-2xl p-2.5 sm:p-4 border border-stone-200/90 shadow-sm space-y-1">
@@ -275,9 +326,6 @@ export const SalesHistoryView: React.FC<SalesHistoryViewProps> = ({
           </div>
           <div className="text-base sm:text-xl font-black text-slate-900 tabular-nums leading-snug">
             {formatRupiah(total7DayRevenue)}
-          </div>
-          <div className="text-[11px] text-slate-400 font-medium leading-snug">
-            Total uang masuk kas
           </div>
         </div>
 
@@ -290,9 +338,6 @@ export const SalesHistoryView: React.FC<SalesHistoryViewProps> = ({
           <div className="text-base sm:text-xl font-black text-emerald-800 tabular-nums leading-snug">
             +{formatRupiah(total7DayProfit)}
           </div>
-          <div className="text-[11px] text-emerald-600 font-medium leading-snug">
-            Selisih harga jual & modal
-          </div>
         </div>
 
         {/* Total Transaksi 7 Hari */}
@@ -303,9 +348,6 @@ export const SalesHistoryView: React.FC<SalesHistoryViewProps> = ({
           </div>
           <div className="text-base sm:text-xl font-black text-slate-900 tabular-nums leading-snug">
             {active7DaysTransactions.length} <span className="text-xs font-normal text-slate-500">kali</span>
-          </div>
-          <div className="text-[11px] text-slate-400 font-medium leading-snug">
-            Aktivitas kasir toko
           </div>
         </div>
 
@@ -318,24 +360,16 @@ export const SalesHistoryView: React.FC<SalesHistoryViewProps> = ({
           <div className="text-base sm:text-xl font-black text-slate-900 tabular-nums leading-snug">
             {formatRupiah(averageDailyRevenue)}
           </div>
-          <div className="text-[11px] text-slate-400 font-medium leading-snug">
-            Estimasi harian
-          </div>
         </div>
       </div>
 
       {/* 7-Day Visual Sales Chart */}
       <div className="bg-white rounded-2xl sm:rounded-3xl p-3 sm:p-5 border border-stone-200/90 shadow-sm space-y-2.5 sm:space-y-3.5">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1.5 border-b border-slate-100 pb-2 sm:pb-3">
-          <div>
-            <h3 className="text-sm sm:text-base font-bold text-slate-900 leading-normal flex items-center gap-2">
-              <BarChart3 className="w-4 h-4 text-emerald-800" />
-              <span>Grafik Penjualan 7 Hari Terakhir</span>
-            </h3>
-            <p className="text-xs text-slate-500 leading-relaxed">
-              Klik salah satu hari untuk melihat rincian transaksi hari tersebut
-            </p>
-          </div>
+          <h3 className="text-sm sm:text-base font-bold text-slate-900 leading-normal flex items-center gap-2">
+            <BarChart3 className="w-4 h-4 text-emerald-800" />
+            <span>Grafik Penjualan 7 Hari Terakhir</span>
+          </h3>
         </div>
 
         {/* Visual Bar Chart */}
@@ -437,7 +471,7 @@ export const SalesHistoryView: React.FC<SalesHistoryViewProps> = ({
                 : `Semua Transaksi 7 Hari Terakhir (${displayedTransactions.length})`}
             </h3>
             <p className="text-xs text-slate-500 leading-relaxed">
-              Daftar struk kasir · Geser kartu ke kiri untuk membatalkan transaksi
+              Geser kartu ke kiri untuk membatalkan transaksi
             </p>
           </div>
         </div>

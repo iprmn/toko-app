@@ -164,7 +164,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                 Kelola Toko ({stores.length}/3)
               </h2>
               <p className="text-xs sm:text-sm text-slate-500 font-medium leading-relaxed">
-                Kelola hingga maksimal 3 cabang toko atau warung berbeda
+                Kelola hingga maksimal 3 toko
               </p>
             </div>
           </div>
@@ -401,11 +401,8 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
       <div className="bg-white rounded-2xl sm:rounded-3xl p-3 sm:p-6 border border-stone-200/90 shadow-sm space-y-3.5 sm:space-y-5">
         <div className="border-b border-slate-100 pb-2.5 sm:pb-3">
           <h2 className="text-base sm:text-lg font-bold text-slate-900 leading-normal">
-            Pengaturan Toko Aktif: "{activeStore?.name}"
+            Pengaturan Toko
           </h2>
-          <p className="text-xs sm:text-sm text-slate-500 font-medium leading-relaxed">
-            Perubahan ini berlaku untuk toko yang sedang Anda gunakan saat ini.
-          </p>
         </div>
 
         <form onSubmit={handleSaveActiveStore} className="space-y-3.5 sm:space-y-4">
