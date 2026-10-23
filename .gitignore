@@ -8,3 +8,4 @@ coverage/
 !.env.example
 database/*.db-wal
 database/*.db-shm
+toko-app-offline.apk

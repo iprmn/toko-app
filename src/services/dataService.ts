@@ -1,13 +1,23 @@
+import { Capacitor } from '@capacitor/core';
 import { Product, StoreAccount, Transaction } from '../types/store';
 import { deviceDb } from './deviceDb';
 
-let useDeviceLocalDb = false;
+let useDeviceLocalDb = true;
 
 async function detectBackendMode(): Promise<boolean> {
-  // If running inside Capacitor Android APK (capacitor:// or https://localhost without Node API)
+  if (typeof window === 'undefined') {
+    useDeviceLocalDb = true;
+    return true;
+  }
+
+  // Immediately use local device DB on Capacitor Android APK or static hosting (GitHub Pages)
   const isCapacitorNative =
-    typeof window !== 'undefined' &&
-    Boolean((window as any).Capacitor?.isNativePlatform?.());
+    Capacitor.isNativePlatform() ||
+    Boolean((window as any).Capacitor?.isNativePlatform?.()) ||
+    window.location.protocol === 'capacitor:' ||
+    window.location.protocol === 'file:' ||
+    (window.location.hostname === 'localhost' && !window.location.port) ||
+    window.location.hostname.endsWith('github.io');
 
   if (isCapacitorNative) {
     useDeviceLocalDb = true;
@@ -15,10 +25,14 @@ async function detectBackendMode(): Promise<boolean> {
   }
 
   try {
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), 1200);
     const res = await fetch('/api/bootstrap', {
       cache: 'no-store',
       headers: { Accept: 'application/json' },
+      signal: controller.signal,
     });
+    clearTimeout(timer);
     const contentType = res.headers.get('content-type') || '';
     if (res.ok && contentType.includes('application/json')) {
       useDeviceLocalDb = false;

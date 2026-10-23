@@ -16,8 +16,17 @@ interface StoredTransaction extends Transaction {
   storeId: string;
 }
 
+let cachedDbPromise: Promise<IDBDatabase> | null = null;
+
 function openDeviceDb(): Promise<IDBDatabase> {
-  return new Promise((resolve, reject) => {
+  if (cachedDbPromise) return cachedDbPromise;
+
+  // Request persistent storage on Android WebView / browser so OS never evicts DB
+  if (typeof navigator !== 'undefined' && navigator.storage && navigator.storage.persist) {
+    navigator.storage.persist().catch(() => {});
+  }
+
+  cachedDbPromise = new Promise((resolve, reject) => {
     const req = indexedDB.open(DB_NAME, DB_VERSION);
 
     req.onupgradeneeded = () => {
@@ -38,9 +47,24 @@ function openDeviceDb(): Promise<IDBDatabase> {
       }
     };
 
-    req.onsuccess = () => resolve(req.result);
-    req.onerror = () => reject(req.error);
+    req.onsuccess = () => {
+      const db = req.result;
+      db.onclose = () => {
+        cachedDbPromise = null;
+      };
+      db.onversionchange = () => {
+        db.close();
+        cachedDbPromise = null;
+      };
+      resolve(db);
+    };
+    req.onerror = () => {
+      cachedDbPromise = null;
+      reject(req.error);
+    };
   });
+
+  return cachedDbPromise;
 }
 
 async function seedDeviceDbIfEmpty(db: IDBDatabase): Promise<void> {

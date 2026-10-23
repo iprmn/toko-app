@@ -62,7 +62,8 @@ jobs:
         uses: softprops/action-gh-release@v2
         with:
           tag_name: v1.0.0-apk
+          target_commitish: ${{ github.sha }}
           name: "Toko App Android APK (Offline DB)"
-          body: "Download file **toko-app-offline.apk** di bawah ini untuk menginstal aplikasi Toko App di perangkat Android (100% Offline dengan Database Lokal)."
+          body: "Download file **toko-app-offline.apk** di bawah ini untuk menginstal aplikasi Toko App di perangkat Android (100% Offline dengan Database Lokal & Ikon Toko Hijau-Oren)."
           files: ./toko-app-offline.apk
           prerelease: false
