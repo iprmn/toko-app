@@ -673,7 +673,6 @@ export const AddProductModal: React.FC<AddProductModalProps> = ({
                   placeholder="Contoh: 12000"
                   className="w-full h-11 px-3.5 bg-white border border-slate-300 focus:border-emerald-600 rounded-xl text-sm font-semibold text-slate-700 outline-none tabular-nums shadow-2xs"
                 />
-                <span className="text-[10px] text-slate-400">Modal saat beli barang</span>
               </div>
             </div>
 
@@ -681,7 +680,7 @@ export const AddProductModal: React.FC<AddProductModalProps> = ({
             <div className="grid grid-cols-2 gap-3">
               <div>
                 <label className="block text-xs font-bold text-slate-800 mb-1">
-                  Jumlah Stok Sekarang:
+                  Jumlah Stok:
                 </label>
                 <input
                   type="number"
@@ -702,7 +701,6 @@ export const AddProductModal: React.FC<AddProductModalProps> = ({
                   placeholder="3"
                   className="w-full h-11 px-3.5 bg-white border border-slate-300 focus:border-emerald-600 rounded-xl text-sm font-semibold text-amber-800 outline-none tabular-nums shadow-2xs"
                 />
-                <span className="text-[10px] text-slate-400">Peringatan bila tersisa sedikit</span>
               </div>
             </div>
           </div>

@@ -19,10 +19,18 @@ import { dataService } from './services/dataService';
 import { playSound } from './utils/sound';
 import { Plus, Package, Database } from 'lucide-react';
 
-// Helper to strictly keep only transactions within the last 7 calendar days
+// Helper to keep transactions within the current weekly cycle (Monday to Sunday) & last 7 days
 const prune7DaysTransactions = (txs: Transaction[]): Transaction[] => {
+  const now = new Date();
+  const dayOfWeek = now.getDay();
+  const distanceToMonday = dayOfWeek === 0 ? 6 : dayOfWeek - 1;
+  const monday = new Date(now);
+  monday.setDate(now.getDate() - distanceToMonday);
+  monday.setHours(0, 0, 0, 0);
+
   const SEVEN_DAYS_MS = 7 * 24 * 60 * 60 * 1000;
-  const cutoff = Date.now() - SEVEN_DAYS_MS;
+  const cutoff = Math.min(monday.getTime(), Date.now() - SEVEN_DAYS_MS);
+
   return txs.filter((t) => {
     const time = new Date(t.timestamp).getTime();
     return time >= cutoff;

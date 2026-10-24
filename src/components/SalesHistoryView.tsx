@@ -57,35 +57,28 @@ export const SalesHistoryView: React.FC<SalesHistoryViewProps> = ({
     );
   };
 
-  // 1. Enforce 7-day limit: Transactions within the last 7 days only
-  const SEVEN_DAYS_MS = 7 * 24 * 60 * 60 * 1000;
-
-  const valid7DaysTransactions = useMemo(() => {
-    const cutoff = Date.now() - SEVEN_DAYS_MS;
-    return transactions.filter((t) => {
-      const time = new Date(t.timestamp).getTime();
-      return time >= cutoff && time <= Date.now() + 60000;
-    });
-  }, [transactions, SEVEN_DAYS_MS]);
-
-  // Active (non-cancelled) transactions for revenue/profit metrics
-  const active7DaysTransactions = useMemo(
-    () => valid7DaysTransactions.filter((t) => t.status !== 'cancelled'),
-    [valid7DaysTransactions]
-  );
-
-  // 2. Prepare 7 daily buckets for the visual chart, ordered Monday (Sen) to Sunday (Min) by default
+  // 1. Prepare 7 daily buckets for the visual chart (Monday to Sunday of the current real-time week)
   const last7DaysData = useMemo(() => {
-    const rawDays = [];
-    const dayNames = ['Min', 'Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab'];
+    const now = new Date();
+    // In JS getDay(): 0 is Sunday, 1 is Monday, ..., 6 is Saturday
+    // Distance back to Monday: Sunday = 6 days ago, Monday = 0 days ago, etc.
+    const dayOfWeek = now.getDay();
+    const distanceToMonday = dayOfWeek === 0 ? 6 : dayOfWeek - 1;
 
-    for (let i = 6; i >= 0; i--) {
-      const d = new Date();
-      d.setDate(d.getDate() - i);
+    const monday = new Date(now);
+    monday.setDate(now.getDate() - distanceToMonday);
+    monday.setHours(0, 0, 0, 0);
+
+    const dayNames = ['Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab', 'Min'];
+    const days = [];
+
+    for (let i = 0; i < 7; i++) {
+      const d = new Date(monday);
+      d.setDate(monday.getDate() + i);
       const dateStr = d.toDateString();
 
       // Find all transactions on this date (for display list)
-      const dayTransactions = valid7DaysTransactions.filter(
+      const dayTransactions = transactions.filter(
         (t) => new Date(t.timestamp).toDateString() === dateStr
       );
 
@@ -94,31 +87,43 @@ export const SalesHistoryView: React.FC<SalesHistoryViewProps> = ({
       const dayRevenue = activeDayTxs.reduce((acc, t) => acc + t.totalAmount, 0);
       const dayProfit = activeDayTxs.reduce((acc, t) => acc + t.totalProfit, 0);
 
-      const shortDayName = dayNames[d.getDay()];
       const dayDateLabel = `${d.getDate()}/${d.getMonth() + 1}`;
 
-      rawDays.push({
+      days.push({
         dayOfWeek: d.getDay(),
         date: d,
         dateStr,
-        dayName: shortDayName,
+        dayName: dayNames[i],
         dayDateLabel,
         revenue: dayRevenue,
         profit: dayProfit,
         transactionCount: activeDayTxs.length,
         transactions: dayTransactions,
+        index: i,
+        isToday: dateStr === now.toDateString(),
+        isFuture: d.getTime() > now.getTime() && dateStr !== now.toDateString(),
       });
     }
 
-    // Sort starting from Monday (1) to Sunday (0 -> 7)
-    const getMondayOrder = (day: number) => (day === 0 ? 7 : day);
-    rawDays.sort((a, b) => getMondayOrder(a.dayOfWeek) - getMondayOrder(b.dayOfWeek));
+    return days;
+  }, [transactions]);
 
-    return rawDays.map((item, idx) => ({
-      ...item,
-      index: idx,
-    }));
-  }, [valid7DaysTransactions]);
+  const weeklyDateStrings = useMemo(() => {
+    return new Set(last7DaysData.map((d) => d.dateStr));
+  }, [last7DaysData]);
+
+  // Transactions within the current week's 7 days
+  const valid7DaysTransactions = useMemo(() => {
+    return transactions.filter((t) =>
+      weeklyDateStrings.has(new Date(t.timestamp).toDateString())
+    );
+  }, [transactions, weeklyDateStrings]);
+
+  // Active (non-cancelled) transactions for revenue/profit metrics
+  const active7DaysTransactions = useMemo(
+    () => valid7DaysTransactions.filter((t) => t.status !== 'cancelled'),
+    [valid7DaysTransactions]
+  );
 
   // Max daily revenue to calculate chart bar percentages
   const maxRevenue = useMemo(() => {

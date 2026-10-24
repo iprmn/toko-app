@@ -112,7 +112,14 @@ export const deviceDb = {
           productsMap[storeId].push(prod);
         }
 
-        const sevenDaysAgoMs = Date.now() - 7 * 24 * 60 * 60 * 1000;
+        const now = new Date();
+        const dayOfWeek = now.getDay();
+        const distanceToMonday = dayOfWeek === 0 ? 6 : dayOfWeek - 1;
+        const monday = new Date(now);
+        monday.setDate(now.getDate() - distanceToMonday);
+        monday.setHours(0, 0, 0, 0);
+
+        const sevenDaysAgoMs = Math.min(monday.getTime(), Date.now() - 7 * 24 * 60 * 60 * 1000);
         const allTxs: StoredTransaction[] = txsReq.result || [];
         for (const t of allTxs) {
           if (new Date(t.timestamp).getTime() >= sevenDaysAgoMs) {
