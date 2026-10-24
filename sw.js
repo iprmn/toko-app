@@ -1,4 +1,4 @@
-const CACHE_NAME = "toko-app-pwa-v1792838208862";
+const CACHE_NAME = "toko-app-pwa-v1792838241848";
 const PRECACHE_ASSETS = [
   "./",
   "./index.html",
