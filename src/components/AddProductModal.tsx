@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useCallback } from 'react';
+import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { X, Check, Package, Camera, Upload, Trash2, ChevronDown, RefreshCw } from 'lucide-react';
 import { Product, ProductCategory } from '../types/store';
 import { PRESET_ICONS, MASTER_DEPARTMENTS } from '../data/initialProducts';
@@ -8,6 +8,7 @@ interface AddProductModalProps {
   onClose: () => void;
   onSaveProduct: (productData: Partial<Product>) => void;
   initialProduct?: Product | null;
+  existingShelves?: string[];
 }
 
 // Helper to compress raw camera/gallery images into compact data URL
@@ -51,6 +52,7 @@ export const AddProductModal: React.FC<AddProductModalProps> = ({
   onClose,
   onSaveProduct,
   initialProduct,
+  existingShelves = [],
 }) => {
   const [departmentId, setDepartmentId] = useState<string>('sembako');
   const [name, setName] = useState('');
@@ -61,6 +63,7 @@ export const AddProductModal: React.FC<AddProductModalProps> = ({
   const [minStock, setMinStock] = useState('3');
   const [unit, setUnit] = useState('pcs');
   const [shelf, setShelf] = useState('');
+  const [isShelfFocused, setIsShelfFocused] = useState(false);
   const [iconType, setIconType] = useState('box');
   const [imageUrl, setImageUrl] = useState<string>('');
   const [visualMode, setVisualMode] = useState<'icon' | 'photo'>('icon');
@@ -77,6 +80,26 @@ export const AddProductModal: React.FC<AddProductModalProps> = ({
   const cameraInputRef = useRef<HTMLInputElement | null>(null);
 
   const currentDept = MASTER_DEPARTMENTS.find((d) => d.id === departmentId) || MASTER_DEPARTMENTS[0];
+
+  const shelfSuggestions = useMemo(() => {
+    const query = shelf.trim().toLowerCase();
+    if (!query) return [];
+    const pool =
+      existingShelves && existingShelves.length > 0
+        ? existingShelves
+        : [
+            'Rak 1 - Sembako & Beras',
+            'Rak 2 - Makanan & Mi Instan',
+            'Rak 3 - Bumbu & Dapur',
+            'Rak 4 - Sabun & Kebersihan',
+            'Etalase Minuman Dingin',
+            'Etalase Kasir Utama',
+            'Gantungan Snack & Renceng',
+          ];
+    return pool.filter(
+      (s) => s.toLowerCase().includes(query) && s.toLowerCase() !== query
+    );
+  }, [shelf, existingShelves]);
 
   const stopCameraStream = useCallback(() => {
     if (streamRef.current) {
@@ -532,187 +555,196 @@ export const AddProductModal: React.FC<AddProductModalProps> = ({
             )}
           </div>
 
-          {/* 2. NAMA BARANG */}
-          <div>
-            <label className="block text-xs font-bold text-slate-700 mb-1">
-              Nama Barang <span className="text-rose-500">*</span>:
-            </label>
-            <input
-              type="text"
-              required
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              placeholder="Contoh: Beras Rojo 5kg, Kabel Data Type C, Kaos Polos..."
-              className="w-full h-11 px-3.5 bg-slate-100 focus:bg-white border border-transparent focus:border-emerald-600 rounded-xl text-sm font-semibold text-slate-900 outline-none"
-            />
-          </div>
+          {/* CARD 1: NAMA BARANG, PILIHAN KATEGORI, SATUAN BARANG */}
+          <div className="bg-slate-50/90 border border-slate-200/90 rounded-2xl p-3.5 sm:p-4 space-y-3.5">
+            {/* Nama Barang */}
+            <div>
+              <label className="block text-xs font-bold text-slate-800 mb-1">
+                Nama Barang <span className="text-rose-500">*</span>:
+              </label>
+              <input
+                type="text"
+                required
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                placeholder="Contoh: Beras Rojo 5kg, Kabel Data Type C, Kaos Polos..."
+                className="w-full h-11 px-3.5 bg-white border border-slate-300 focus:border-emerald-600 rounded-xl text-sm font-semibold text-slate-900 outline-none shadow-2xs"
+              />
+            </div>
 
-          {/* 3. SARAN KATEGORI BARANG SESUAI DROPDOWN */}
-          <div>
-            <div className="flex items-center justify-between mb-1.5">
-              <label className="text-xs font-bold text-slate-700">
+            {/* Pilihan Kategori (Scroll Kesamping) */}
+            <div>
+              <label className="block text-xs font-bold text-slate-800 mb-1.5">
                 Pilihan Kategori:
               </label>
+              <div className="flex items-center gap-1.5 overflow-x-auto pb-1.5 no-scrollbar shrink-0">
+                {currentDept.suggestedCategories.map((c) => {
+                  const isSelected = category.toLowerCase() === c.id.toLowerCase() && !customCategoryInput;
+                  return (
+                    <button
+                      key={c.id}
+                      type="button"
+                      onClick={() => {
+                        setCategory(c.id);
+                        setCustomCategoryInput('');
+                      }}
+                      className={`py-1.5 px-3 rounded-xl text-xs font-bold transition-all cursor-pointer shrink-0 whitespace-nowrap ${
+                        isSelected
+                          ? 'bg-emerald-700 text-white shadow-2xs scale-[1.02]'
+                          : 'bg-white border border-slate-200 text-slate-700 hover:bg-slate-100'
+                      }`}
+                    >
+                      {c.label}
+                    </button>
+                  );
+                })}
+              </div>
+              <input
+                type="text"
+                value={customCategoryInput}
+                onChange={(e) => {
+                  setCustomCategoryInput(e.target.value);
+                  setCategory(e.target.value.toLowerCase().replace(/\s+/g, '-'));
+                }}
+                placeholder="Atau ketik nama kategori baru..."
+                className="w-full h-9 px-3 mt-1 bg-white border border-slate-200 focus:border-emerald-600 rounded-lg text-xs font-medium text-slate-800 outline-none"
+              />
             </div>
-            <div className="flex flex-wrap gap-1.5 mb-2">
-              {currentDept.suggestedCategories.map((c) => {
-                const isSelected = category.toLowerCase() === c.id.toLowerCase() && !customCategoryInput;
-                return (
-                  <button
-                    key={c.id}
-                    type="button"
-                    onClick={() => {
-                      setCategory(c.id);
-                      setCustomCategoryInput('');
-                    }}
-                    className={`py-1.5 px-3 rounded-xl text-xs font-bold transition-all cursor-pointer ${
-                      isSelected
-                        ? 'bg-emerald-700 text-white shadow-2xs scale-[1.02]'
-                        : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
-                    }`}
-                  >
-                    {c.label}
-                  </button>
-                );
-              })}
-            </div>
-            <input
-              type="text"
-              value={customCategoryInput}
-              onChange={(e) => {
-                setCustomCategoryInput(e.target.value);
-                setCategory(e.target.value.toLowerCase().replace(/\s+/g, '-'));
-              }}
-              placeholder="Atau ketik nama kategori baru..."
-              className="w-full h-9 px-3 bg-slate-50 focus:bg-white border border-slate-200 focus:border-emerald-600 rounded-lg text-xs font-medium text-slate-800 outline-none"
-            />
-          </div>
 
-          {/* 4. HARGA JUAL & HARGA BELI */}
-          <div className="grid grid-cols-2 gap-3">
+            {/* Satuan Barang (Scroll Kesamping + Textbox Full Width) */}
             <div>
-              <label className="block text-xs font-bold text-slate-700 mb-1">
-                Harga Jual (Rp) <span className="text-rose-500">*</span>:
-              </label>
-              <input
-                type="number"
-                required
-                value={sellPrice}
-                onChange={(e) => setSellPrice(e.target.value)}
-                placeholder="Contoh: 15000"
-                className="w-full h-11 px-3.5 bg-slate-100 focus:bg-white border border-transparent focus:border-emerald-600 rounded-xl text-sm font-bold text-emerald-800 outline-none tabular-nums"
-              />
-            </div>
-            <div>
-              <label className="block text-xs font-bold text-slate-700 mb-1">
-                Harga Beli (Rp):
-              </label>
-              <input
-                type="number"
-                value={buyPrice}
-                onChange={(e) => setBuyPrice(e.target.value)}
-                placeholder="Contoh: 12000"
-                className="w-full h-11 px-3.5 bg-slate-100 focus:bg-white border border-transparent focus:border-emerald-600 rounded-xl text-sm font-semibold text-slate-700 outline-none tabular-nums"
-              />
-              <span className="text-[10px] text-slate-400">Modal saat beli barang</span>
-            </div>
-          </div>
-
-          {/* 5. STOK & PERINGATAN */}
-          <div className="grid grid-cols-2 gap-3">
-            <div>
-              <label className="block text-xs font-bold text-slate-700 mb-1">
-                Jumlah Stok Sekarang:
-              </label>
-              <input
-                type="number"
-                value={stock}
-                onChange={(e) => setStock(e.target.value)}
-                placeholder="10"
-                className="w-full h-11 px-3.5 bg-slate-100 focus:bg-white border border-transparent focus:border-emerald-600 rounded-xl text-sm font-bold text-slate-900 outline-none tabular-nums"
-              />
-            </div>
-            <div>
-              <label className="block text-xs font-bold text-slate-700 mb-1">
-                Batas Stok Menipis:
-              </label>
-              <input
-                type="number"
-                value={minStock}
-                onChange={(e) => setMinStock(e.target.value)}
-                placeholder="3"
-                className="w-full h-11 px-3.5 bg-slate-100 focus:bg-white border border-transparent focus:border-emerald-600 rounded-xl text-sm font-semibold text-amber-800 outline-none tabular-nums"
-              />
-              <span className="text-[10px] text-slate-400">Peringatan bila tersisa sedikit</span>
-            </div>
-          </div>
-
-          {/* 6. SATUAN BARANG */}
-          <div>
-            <div className="flex items-center justify-between mb-1.5">
-              <label className="text-xs font-bold text-slate-700">
+              <label className="block text-xs font-bold text-slate-800 mb-1.5">
                 Satuan Barang:
               </label>
-              <span className="text-[11px] font-bold text-emerald-800 bg-emerald-50 px-2 py-0.5 rounded">
-                Terpilih: {unit}
-              </span>
-            </div>
-            <div className="flex flex-wrap items-center gap-1.5">
-              {currentDept.suggestedUnits.map((u) => {
-                const isSelected = unit.toLowerCase() === u.toLowerCase();
-                return (
-                  <button
-                    key={u}
-                    type="button"
-                    onClick={() => setUnit(u)}
-                    className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
-                      isSelected
-                        ? 'bg-emerald-700 text-white font-bold shadow-2xs'
-                        : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
-                    }`}
-                  >
-                    {u}
-                  </button>
-                );
-              })}
+              <div className="flex items-center gap-1.5 overflow-x-auto pb-1.5 no-scrollbar shrink-0">
+                {currentDept.suggestedUnits.map((u) => {
+                  const isSelected = unit.toLowerCase() === u.toLowerCase() && currentDept.suggestedUnits.includes(unit);
+                  return (
+                    <button
+                      key={u}
+                      type="button"
+                      onClick={() => setUnit(u)}
+                      className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer shrink-0 whitespace-nowrap ${
+                        isSelected
+                          ? 'bg-emerald-700 text-white font-bold shadow-2xs'
+                          : 'bg-white border border-slate-200 text-slate-700 hover:bg-slate-100'
+                      }`}
+                    >
+                      {u}
+                    </button>
+                  );
+                })}
+              </div>
               <input
                 type="text"
                 value={currentDept.suggestedUnits.includes(unit) ? '' : unit}
                 onChange={(e) => setUnit(e.target.value)}
-                placeholder="+ Satuan lain"
-                className="h-8 px-2.5 w-28 bg-slate-50 focus:bg-white border border-slate-200 focus:border-emerald-600 rounded-lg text-xs font-medium text-slate-800 outline-none"
+                placeholder="+ Ketik satuan lain..."
+                className="w-full h-9 px-3 mt-1 bg-white border border-slate-200 focus:border-emerald-600 rounded-lg text-xs font-medium text-slate-800 outline-none"
               />
             </div>
           </div>
 
-          {/* 7. PILIHAN RAK / ETALASE */}
-          <div className="bg-slate-50 border border-slate-200/90 rounded-2xl p-3.5 space-y-1.5">
-            <div className="flex items-center justify-between">
-              <label className="text-xs font-bold text-slate-800">
-                Pilihan Rak / Etalase (Lokasi Pajang):
-              </label>
-              <span className="text-[10px] text-slate-400 font-medium">Diisi manual</span>
+          {/* CARD 2: HARGA JUAL, HARGA BELI, JUMLAH STOK, BATAS STOK */}
+          <div className="bg-slate-50/90 border border-slate-200/90 rounded-2xl p-3.5 sm:p-4 space-y-3.5">
+            {/* Harga Jual & Harga Beli */}
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className="block text-xs font-bold text-slate-800 mb-1">
+                  Harga Jual (Rp) <span className="text-rose-500">*</span>:
+                </label>
+                <input
+                  type="number"
+                  required
+                  value={sellPrice}
+                  onChange={(e) => setSellPrice(e.target.value)}
+                  placeholder="Contoh: 15000"
+                  className="w-full h-11 px-3.5 bg-white border border-slate-300 focus:border-emerald-600 rounded-xl text-sm font-bold text-emerald-800 outline-none tabular-nums shadow-2xs"
+                />
+              </div>
+              <div>
+                <label className="block text-xs font-bold text-slate-800 mb-1">
+                  Harga Beli (Rp):
+                </label>
+                <input
+                  type="number"
+                  value={buyPrice}
+                  onChange={(e) => setBuyPrice(e.target.value)}
+                  placeholder="Contoh: 12000"
+                  className="w-full h-11 px-3.5 bg-white border border-slate-300 focus:border-emerald-600 rounded-xl text-sm font-semibold text-slate-700 outline-none tabular-nums shadow-2xs"
+                />
+                <span className="text-[10px] text-slate-400">Modal saat beli barang</span>
+              </div>
             </div>
-            <input
-              type="text"
-              value={shelf}
-              onChange={(e) => setShelf(e.target.value)}
-              placeholder="Contoh: Rak 1 - Sembako, Etalase Depan, Rak Bumbu..."
-              list="shelf-suggestions"
-              className="w-full h-11 px-3.5 bg-white border border-slate-300 focus:border-emerald-600 rounded-xl text-xs sm:text-sm font-semibold text-slate-900 outline-none transition-all"
-            />
-            <datalist id="shelf-suggestions">
-              <option value="Rak 1 - Sembako & Beras" />
-              <option value="Rak 2 - Makanan & Mi Instan" />
-              <option value="Rak 3 - Bumbu & Dapur" />
-              <option value="Rak 4 - Sabun & Kebersihan" />
-              <option value="Etalase Minuman Dingin" />
-              <option value="Etalase Kasir Utama" />
-              <option value="Gantungan Snack & Renceng" />
-            </datalist>
-            <p className="text-[10px] text-slate-500 leading-tight">
-              Ketik manual nama rak tempat barang disimpan. Barang yang berada di rak sama akan dikelompokkan dalam ambalan rak pajang di etalase toko.
-            </p>
+
+            {/* Jumlah Stok & Batas Stok */}
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className="block text-xs font-bold text-slate-800 mb-1">
+                  Jumlah Stok Sekarang:
+                </label>
+                <input
+                  type="number"
+                  value={stock}
+                  onChange={(e) => setStock(e.target.value)}
+                  placeholder="10"
+                  className="w-full h-11 px-3.5 bg-white border border-slate-300 focus:border-emerald-600 rounded-xl text-sm font-bold text-slate-900 outline-none tabular-nums shadow-2xs"
+                />
+              </div>
+              <div>
+                <label className="block text-xs font-bold text-slate-800 mb-1">
+                  Batas Stok Menipis:
+                </label>
+                <input
+                  type="number"
+                  value={minStock}
+                  onChange={(e) => setMinStock(e.target.value)}
+                  placeholder="3"
+                  className="w-full h-11 px-3.5 bg-white border border-slate-300 focus:border-emerald-600 rounded-xl text-sm font-semibold text-amber-800 outline-none tabular-nums shadow-2xs"
+                />
+                <span className="text-[10px] text-slate-400">Peringatan bila tersisa sedikit</span>
+              </div>
+            </div>
+          </div>
+
+          {/* CARD 3: PILIH RAK */}
+          <div className="bg-slate-50/90 border border-slate-200/90 rounded-2xl p-3.5 sm:p-4 space-y-2">
+            <label className="block text-xs font-bold text-slate-800">
+              Pilih Rak
+            </label>
+            <div className="relative">
+              <input
+                type="text"
+                autoComplete="off"
+                value={shelf}
+                onFocus={() => setIsShelfFocused(true)}
+                onBlur={() => setTimeout(() => setIsShelfFocused(false), 200)}
+                onChange={(e) => setShelf(e.target.value)}
+                placeholder="Contoh: Rak 1 - Sembako, Etalase Depan, Rak Bumbu..."
+                className="w-full h-11 px-3.5 bg-white border border-slate-300 focus:border-emerald-600 rounded-xl text-xs sm:text-sm font-semibold text-slate-900 outline-none transition-all shadow-2xs"
+              />
+              {isShelfFocused && shelfSuggestions.length > 0 && (
+                <div className="absolute left-0 right-0 top-full mt-1.5 z-20 bg-white border border-slate-200 rounded-xl shadow-lg max-h-48 overflow-y-auto divide-y divide-slate-100 animate-in fade-in zoom-in-95 duration-100">
+                  {shelfSuggestions.map((s) => (
+                    <button
+                      key={s}
+                      type="button"
+                      onMouseDown={(e) => {
+                        e.preventDefault();
+                        setShelf(s);
+                        setIsShelfFocused(false);
+                      }}
+                      className="w-full px-3.5 py-2.5 text-left text-xs font-semibold text-slate-800 hover:bg-emerald-50 hover:text-emerald-900 transition-colors flex items-center justify-between cursor-pointer"
+                    >
+                      <span>{s}</span>
+                      <span className="text-[10px] text-emerald-700 font-bold bg-emerald-50 px-2 py-0.5 rounded-md">
+                        Gunakan
+                      </span>
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
           </div>
 
           {/* SUBMIT CTA */}

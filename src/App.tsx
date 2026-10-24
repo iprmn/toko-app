@@ -981,6 +981,7 @@ export default function App() {
         }}
         onSaveProduct={handleSaveProduct}
         initialProduct={editingProduct}
+        existingShelves={availableShelves}
       />
 
       {/* 3. Kulak / Tambah Pasokan Cepat Modal */}
