@@ -16,6 +16,7 @@ async function detectBackendMode(): Promise<boolean> {
     Boolean((window as any).Capacitor?.isNativePlatform?.()) ||
     window.location.protocol === 'capacitor:' ||
     window.location.protocol === 'file:' ||
+    window.location.protocol === 'app:' ||
     (window.location.hostname === 'localhost' && !window.location.port) ||
     window.location.hostname.endsWith('github.io');
 

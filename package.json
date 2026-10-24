@@ -3,13 +3,56 @@
   "private": true,
   "version": "1.0.0",
   "type": "module",
+  "main": "electron/main.cjs",
   "scripts": {
     "dev": "vite --port=3000 --host=0.0.0.0",
     "build": "vite build",
     "preview": "vite preview",
     "clean": "rm -rf dist",
     "lint": "tsc --noEmit",
-    "apk:sync": "npm run build && npx cap sync android"
+    "apk:sync": "npm run build && npx cap sync android",
+    "electron:start": "electron .",
+    "build:exe": "npm run build && electron-builder --win"
+  },
+  "build": {
+    "appId": "com.iprmn.tokoapp",
+    "productName": "Toko App",
+    "copyright": "Copyright © 2026 Wong Cilik Digital",
+    "directories": {
+      "output": "release"
+    },
+    "files": [
+      "dist/**/*",
+      "electron/**/*",
+      "build/**/*"
+    ],
+    "win": {
+      "target": [
+        {
+          "target": "nsis",
+          "arch": [
+            "x64"
+          ]
+        },
+        {
+          "target": "portable",
+          "arch": [
+            "x64"
+          ]
+        }
+      ],
+      "icon": "build/icon.ico"
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "shortcutName": "Toko App"
+    },
+    "portable": {
+      "artifactName": "Toko-App-Portable.exe"
+    }
   },
   "dependencies": {
     "@capacitor/android": "^8.5.3",
@@ -32,6 +75,8 @@
     "@types/react": "^19.3.0",
     "@types/react-dom": "^19.3.0",
     "autoprefixer": "^10.4.21",
+    "electron": "^45.0.0",
+    "electron-builder": "^26.18.0",
     "esbuild": "^0.27.0",
     "tailwindcss": "^4.3.3",
     "tsx": "^4.21.0",
