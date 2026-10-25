@@ -135,3 +135,36 @@ body {
 .animate-success-halo {
   animation: successHalo 1.4s ease-out infinite;
 }
+
+/* Splash Screen Floating & Ripple Animations */
+@keyframes splashFloat {
+  0%, 100% {
+    transform: translateY(0px) scale(1);
+  }
+  50% {
+    transform: translateY(-8px) scale(1.03);
+  }
+}
+
+@keyframes splashRipple {
+  0% {
+    transform: scale(0.85);
+    opacity: 0.6;
+  }
+  50% {
+    transform: scale(1.25);
+    opacity: 0.2;
+  }
+  100% {
+    transform: scale(1.5);
+    opacity: 0;
+  }
+}
+
+.animate-splash-float {
+  animation: splashFloat 2.8s ease-in-out infinite;
+}
+
+.animate-splash-ripple {
+  animation: splashRipple 2.2s cubic-bezier(0.25, 0.8, 0.25, 1) infinite;
+}

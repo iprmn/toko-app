@@ -9,6 +9,7 @@ import { SalesHistoryView } from './components/SalesHistoryView';
 import { BottomNav } from './components/BottomNav';
 import { InventoryView, StockStatusFilter } from './components/InventoryView';
 import { SettingsView } from './components/SettingsView';
+import { SplashScreen } from './components/SplashScreen';
 import {
   FeedbackModal,
   ConfirmModalState,
@@ -643,7 +644,7 @@ export default function App() {
       message: isEdit
         ? `Apakah Anda yakin ingin menyimpan perubahan pada barang "${productName}"?`
         : `Apakah Anda yakin ingin menambahkan barang baru "${productName}" ke toko?`,
-      confirmLabel: isEdit ? 'Ya, Simpan Perubahan' : 'Ya, tambahkan',
+      confirmLabel: isEdit ? 'Ya, Simpan' : 'Ya, tambahkan',
       cancelLabel: 'Cek Lagi',
       variant: 'primary',
       onCancel: () => {
@@ -1027,6 +1028,9 @@ export default function App() {
           <span className="truncate">{toastMessage}</span>
         </div>
       )}
+
+      {/* Splash Screen */}
+      <SplashScreen />
     </div>
   );
 }
