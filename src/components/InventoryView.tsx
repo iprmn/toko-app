@@ -402,7 +402,7 @@ export const InventoryView: React.FC<InventoryViewProps> = ({
               📊 Semua Status ({products.length})
             </option>
             <option value="safe" className="bg-white text-slate-800 font-semibold">
-              ✅ Stok Aman ({safeStockCount})
+              ✅ Stok Tersedia ({safeStockCount})
             </option>
             <option value="low" className="bg-white text-slate-800 font-semibold">
               ⚠️ Stok Kritis ({lowStockCount})
@@ -666,11 +666,11 @@ export const InventoryView: React.FC<InventoryViewProps> = ({
                         isOutOfStock
                           ? 'bg-rose-50 text-rose-700 border-rose-200'
                           : isLowStock
-                          ? 'bg-amber-50 text-amber-800 border-amber-200'
+                          ? 'bg-orange-50 text-orange-600 border-orange-300'
                           : 'bg-emerald-50 text-emerald-700 border-emerald-200'
                       }`}
                     >
-                      {isOutOfStock ? 'Habis' : isLowStock ? 'Menipis' : 'Aman'}
+                      {isOutOfStock ? 'Habis' : isLowStock ? 'Menipis' : 'Tersedia'}
                     </span>
                   </div>
 

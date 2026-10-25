@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { ShoppingCart, AlertCircle, CheckCircle, Plus, X } from 'lucide-react';
+import { ShoppingCart, AlertCircle, AlertTriangle, CheckCircle, Plus, X } from 'lucide-react';
 import { Product } from '../types/store';
 import { formatRupiah } from '../utils/format';
 import { PRESET_ICONS } from '../data/initialProducts';
@@ -42,8 +42,9 @@ export const ProductCard: React.FC<ProductCardProps> = ({
 }) => {
   const [isDetailOpen, setIsDetailOpen] = useState(false);
 
-  const isOutOfStock = product.stock <= 0;
   const availableStock = Math.max(0, product.stock - cartQuantity);
+  const isEffectivelyOutOfStock = product.stock <= 0 || availableStock <= 0;
+  const isLowStock = !isEffectivelyOutOfStock && availableStock <= product.minStock;
   const preset = PRESET_ICONS[product.iconType] || PRESET_ICONS['box'];
 
   return (
@@ -51,7 +52,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({
       <div
         onClick={() => setIsDetailOpen(true)}
         className={`group relative rounded-xl sm:rounded-2xl p-2 sm:p-3 border transition-all flex flex-col justify-between cursor-pointer ${
-          isOutOfStock
+          isEffectivelyOutOfStock
             ? 'bg-slate-100/80 border-slate-300/80 shadow-2xs opacity-80 filter grayscale-[0.55]'
             : 'bg-white border-stone-200/90 shadow-sm hover:shadow-md'
         }`}
@@ -62,16 +63,21 @@ export const ProductCard: React.FC<ProductCardProps> = ({
             {product.category}
           </span>
 
-          {/* Stock Status Badge: Only 'Ready' or 'Habis' */}
-          {isOutOfStock || availableStock <= 0 ? (
+          {/* Stock Status Badge: Habis (Red), Menipis (Orange), Tersedia (Green) */}
+          {isEffectivelyOutOfStock ? (
             <span className="inline-flex items-center gap-0.5 text-[9.5px] sm:text-[10px] font-bold text-rose-600 bg-rose-50 px-1.5 sm:px-2 py-0.5 rounded-md border border-rose-200/60 shadow-2xs shrink-0">
               <AlertCircle className="w-2.5 h-2.5" />
               Habis
             </span>
+          ) : isLowStock ? (
+            <span className="inline-flex items-center gap-0.5 text-[9.5px] sm:text-[10px] font-bold text-orange-600 bg-orange-50 px-1.5 sm:px-2 py-0.5 rounded-md border border-orange-300 shadow-2xs shrink-0">
+              <AlertTriangle className="w-2.5 h-2.5" />
+              Menipis
+            </span>
           ) : (
             <span className="inline-flex items-center gap-0.5 text-[9.5px] sm:text-[10px] font-semibold text-emerald-800 bg-emerald-50 px-1.5 sm:px-2 py-0.5 rounded-md border border-emerald-200/60 shadow-2xs shrink-0">
               <CheckCircle className="w-2.5 h-2.5" />
-              Ready
+              Tersedia
             </span>
           )}
         </div>
@@ -79,7 +85,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({
         {/* Product Visual Container (Compact) */}
         <div
           className={`w-full h-18 sm:h-24 rounded-lg sm:rounded-xl ${
-            isOutOfStock ? 'bg-slate-200/70' : preset.bg
+            isEffectivelyOutOfStock ? 'bg-slate-200/70' : preset.bg
           } flex items-center justify-center relative select-none overflow-hidden`}
         >
           {product.imageUrl ? (
@@ -87,11 +93,11 @@ export const ProductCard: React.FC<ProductCardProps> = ({
               src={product.imageUrl}
               alt={product.name}
               className={`w-full h-full object-cover rounded-lg sm:rounded-xl ${
-                isOutOfStock ? 'opacity-60 grayscale-[0.6]' : ''
+                isEffectivelyOutOfStock ? 'opacity-60 grayscale-[0.6]' : ''
               }`}
             />
           ) : (
-            <span className={`text-2xl sm:text-4xl drop-shadow-2xs ${isOutOfStock ? 'opacity-60' : ''}`}>
+            <span className={`text-2xl sm:text-4xl drop-shadow-2xs ${isEffectivelyOutOfStock ? 'opacity-60' : ''}`}>
               {preset.icon}
             </span>
           )}
@@ -112,7 +118,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({
 
           <h4
             className={`text-[11.5px] sm:text-sm font-bold line-clamp-1 leading-snug ${
-              isOutOfStock ? 'text-slate-600' : 'text-slate-900'
+              isEffectivelyOutOfStock ? 'text-slate-600' : 'text-slate-900'
             }`}
             title={product.name}
           >
@@ -122,7 +128,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({
           <div>
             <div
               className={`text-[13px] sm:text-base font-black tabular-nums leading-tight ${
-                isOutOfStock ? 'text-slate-600' : 'text-emerald-800'
+                isEffectivelyOutOfStock ? 'text-slate-600' : 'text-emerald-800'
               }`}
             >
               {formatRupiah(product.sellPrice)}
@@ -138,7 +144,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({
           <div className="min-w-0 flex flex-col justify-center">
             <span
               className={`text-[13px] sm:text-base font-black tabular-nums leading-none transition-colors ${
-                isOutOfStock || availableStock <= 0
+                isEffectivelyOutOfStock
                   ? 'text-rose-500'
                   : cartQuantity > 0
                   ? 'text-emerald-700'
@@ -152,8 +158,8 @@ export const ProductCard: React.FC<ProductCardProps> = ({
             </span>
           </div>
 
-          {/* Action Button: 'Tambah Stok' when Habis in DB, 'Keranjangin' when Ready */}
-          {isOutOfStock ? (
+          {/* Action Button: 'Tambah Stok' when effectively out of stock, 'Keranjangin' when stock available */}
+          {isEffectivelyOutOfStock ? (
             <button
               type="button"
               onClick={(e) => {
@@ -173,11 +179,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({
                 e.stopPropagation();
                 onAddToCart(product);
               }}
-              className={`h-7 sm:h-8 px-2 sm:px-3 rounded-lg sm:rounded-xl font-bold text-[10.5px] sm:text-xs flex items-center justify-center gap-1 shadow-xs text-white cursor-pointer active:scale-95 transition-all whitespace-nowrap shrink-0 ${
-                availableStock <= 0
-                  ? 'bg-slate-400 hover:bg-slate-500'
-                  : 'bg-emerald-700 hover:bg-emerald-800 shadow-emerald-900/10'
-              }`}
+              className="h-7 sm:h-8 px-2 sm:px-3 rounded-lg sm:rounded-xl font-bold text-[10.5px] sm:text-xs flex items-center justify-center gap-1 shadow-xs text-white cursor-pointer active:scale-95 transition-all whitespace-nowrap shrink-0 bg-emerald-700 hover:bg-emerald-800 shadow-emerald-900/10"
               title="Masukkan ke keranjang kasir"
             >
               <ShoppingCart className="w-3 h-3 sm:w-3.5 sm:h-3.5 shrink-0" />
@@ -196,7 +198,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({
           <div
             onClick={(e) => e.stopPropagation()}
             className={`relative w-full max-w-xs rounded-2xl p-4 border shadow-2xl flex flex-col justify-between animate-in zoom-in-95 duration-150 ${
-              isOutOfStock
+              isEffectivelyOutOfStock
                 ? 'bg-slate-100 border-slate-300'
                 : 'bg-white border-stone-200'
             }`}
@@ -208,15 +210,20 @@ export const ProductCard: React.FC<ProductCardProps> = ({
               </span>
 
               <div className="flex items-center gap-1.5">
-                {isOutOfStock || availableStock <= 0 ? (
+                {isEffectivelyOutOfStock ? (
                   <span className="inline-flex items-center gap-1 text-xs font-bold text-rose-600 bg-rose-50 px-2 py-0.5 rounded-md border border-rose-200/60 shadow-2xs shrink-0">
                     <AlertCircle className="w-3.5 h-3.5" />
                     Habis
                   </span>
+                ) : isLowStock ? (
+                  <span className="inline-flex items-center gap-1 text-xs font-bold text-orange-600 bg-orange-50 px-2 py-0.5 rounded-md border border-orange-300 shadow-2xs shrink-0">
+                    <AlertTriangle className="w-3.5 h-3.5" />
+                    Menipis
+                  </span>
                 ) : (
                   <span className="inline-flex items-center gap-1 text-xs font-semibold text-emerald-800 bg-emerald-50 px-2 py-0.5 rounded-md border border-emerald-200/60 shadow-2xs shrink-0">
                     <CheckCircle className="w-3.5 h-3.5" />
-                    Ready
+                    Tersedia
                   </span>
                 )}
                 <button
@@ -233,7 +240,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({
             {/* Product Visual Container */}
             <div
               className={`w-full h-40 rounded-xl ${
-                isOutOfStock ? 'bg-slate-200/70' : preset.bg
+                isEffectivelyOutOfStock ? 'bg-slate-200/70' : preset.bg
               } flex items-center justify-center relative select-none overflow-hidden`}
             >
               {product.imageUrl ? (
@@ -241,11 +248,11 @@ export const ProductCard: React.FC<ProductCardProps> = ({
                   src={product.imageUrl}
                   alt={product.name}
                   className={`w-full h-full object-cover rounded-xl ${
-                    isOutOfStock ? 'opacity-60 grayscale-[0.6]' : ''
+                    isEffectivelyOutOfStock ? 'opacity-60 grayscale-[0.6]' : ''
                   }`}
                 />
               ) : (
-                <span className={`text-5xl drop-shadow-2xs ${isOutOfStock ? 'opacity-60' : ''}`}>
+                <span className={`text-5xl drop-shadow-2xs ${isEffectivelyOutOfStock ? 'opacity-60' : ''}`}>
                   {preset.icon}
                 </span>
               )}
@@ -263,7 +270,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({
 
               <h4
                 className={`text-base font-bold break-words leading-snug ${
-                  isOutOfStock ? 'text-slate-600' : 'text-slate-900'
+                  isEffectivelyOutOfStock ? 'text-slate-600' : 'text-slate-900'
                 }`}
               >
                 {product.name}
@@ -272,7 +279,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({
               <div>
                 <div
                   className={`text-lg font-black tabular-nums leading-tight ${
-                    isOutOfStock ? 'text-slate-600' : 'text-emerald-800'
+                    isEffectivelyOutOfStock ? 'text-slate-600' : 'text-emerald-800'
                   }`}
                 >
                   {formatRupiah(product.sellPrice)}
@@ -288,7 +295,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({
               <div className="min-w-0 flex flex-col justify-center">
                 <span
                   className={`text-base font-black tabular-nums leading-none ${
-                    isOutOfStock || availableStock <= 0
+                    isEffectivelyOutOfStock
                       ? 'text-rose-500'
                       : cartQuantity > 0
                       ? 'text-emerald-700'
@@ -302,7 +309,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({
                 </span>
               </div>
 
-              {isOutOfStock ? (
+              {isEffectivelyOutOfStock ? (
                 <button
                   type="button"
                   onClick={() => {
@@ -320,11 +327,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({
                   onClick={() => {
                     onAddToCart(product);
                   }}
-                  className={`h-9 px-4 rounded-xl font-bold text-xs flex items-center justify-center gap-1.5 shadow-xs text-white cursor-pointer active:scale-95 transition-all whitespace-nowrap shrink-0 ${
-                    availableStock <= 0
-                      ? 'bg-slate-400 hover:bg-slate-500'
-                      : 'bg-emerald-700 hover:bg-emerald-800 shadow-emerald-900/10'
-                  }`}
+                  className="h-9 px-4 rounded-xl font-bold text-xs flex items-center justify-center gap-1.5 shadow-xs text-white cursor-pointer active:scale-95 transition-all whitespace-nowrap shrink-0 bg-emerald-700 hover:bg-emerald-800 shadow-emerald-900/10"
                 >
                   <ShoppingCart className="w-4 h-4 shrink-0" />
                   <span>Keranjangin</span>
