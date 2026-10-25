@@ -1,7 +1,7 @@
 import React, { useState, useRef } from 'react';
 import { Store, Save, Plus, Trash2, ShieldAlert, Camera } from 'lucide-react';
 import { StoreAccount, Product, Transaction } from '../types/store';
-import { formatRupiah } from '../utils/format';
+import { formatRupiah, formatRupiahFull } from '../utils/format';
 
 interface SettingsViewProps {
   stores: StoreAccount[];
@@ -521,7 +521,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
               Total Nilai Modal:
             </span>
             <div className="text-base sm:text-xl font-black text-slate-900 tabular-nums leading-snug truncate">
-              {formatRupiah(totalAssetValue)}
+              {formatRupiahFull(totalAssetValue)}
             </div>
           </div>
           <div className="bg-emerald-50 border border-emerald-100 p-3 sm:p-4 rounded-2xl space-y-1">
@@ -529,7 +529,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
               Potensi Keuntungan:
             </span>
             <div className="text-base sm:text-xl font-black text-emerald-800 tabular-nums leading-snug truncate">
-              +{formatRupiah(potentialGain)}
+              +{formatRupiahFull(potentialGain)}
             </div>
           </div>
           <div className="bg-rose-50 border border-rose-100 p-3 sm:p-4 rounded-2xl space-y-1">
@@ -537,7 +537,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
               Potensi Kerugian:
             </span>
             <div className="text-base sm:text-xl font-black text-rose-700 tabular-nums leading-snug truncate">
-              -{formatRupiah(potentialLoss)}
+              -{formatRupiahFull(potentialLoss)}
             </div>
           </div>
         </div>

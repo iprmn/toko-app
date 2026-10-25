@@ -1,28 +1,43 @@
 /**
  * Format number into Indonesian Rupiah format with exactly 1 space after Rp (e.g., Rp 15.000).
  * Batas nilai penuh adalah di bawah 10 juta (misal Rp 9.000.000).
- * Jika puluhan/ratusan juta atau lebih, disederhanakan: 10 JT, 324 JT, 1 M, 10 M, dst.
+ * Jika puluhan/ratusan juta atau lebih, disederhanakan dengan 1 angka di belakang koma: 10,0 JT, 324,5 JT, 1,0 M, 10,0 M, dst.
  */
 export function formatRupiah(value: number, forceFull = false): string {
   if (isNaN(value)) return 'Rp 0';
   const isNegative = value < 0;
   const absVal = Math.abs(value);
 
+  if (forceFull || absVal < 10_000_000) {
+    const formatted = new Intl.NumberFormat('id-ID').format(absVal);
+    return isNegative ? `-Rp ${formatted}` : `Rp ${formatted}`;
+  }
+
+  const numFormatter = new Intl.NumberFormat('id-ID', {
+    minimumFractionDigits: 1,
+    maximumFractionDigits: 1,
+  });
+
   let formatted: string;
-  if (!forceFull && absVal >= 1_000_000_000_000) {
+  if (absVal >= 1_000_000_000_000) {
     const t = absVal / 1_000_000_000_000;
-    formatted = `${new Intl.NumberFormat('id-ID', { maximumFractionDigits: 1 }).format(t)} T`;
-  } else if (!forceFull && absVal >= 1_000_000_000) {
+    formatted = `${numFormatter.format(t)} T`;
+  } else if (absVal >= 1_000_000_000) {
     const m = absVal / 1_000_000_000;
-    formatted = `${new Intl.NumberFormat('id-ID', { maximumFractionDigits: 1 }).format(m)} M`;
-  } else if (!forceFull && absVal >= 10_000_000) {
-    const jt = absVal / 1_000_000;
-    formatted = `${new Intl.NumberFormat('id-ID', { maximumFractionDigits: 1 }).format(jt)} JT`;
+    formatted = `${numFormatter.format(m)} M`;
   } else {
-    formatted = new Intl.NumberFormat('id-ID').format(absVal);
+    const jt = absVal / 1_000_000;
+    formatted = `${numFormatter.format(jt)} JT`;
   }
 
   return isNegative ? `-Rp ${formatted}` : `Rp ${formatted}`;
+}
+
+/**
+ * Selalu format angka menjadi nominal Rupiah lengkap tanpa penyingkatan (misal Rp 15.000.000)
+ */
+export function formatRupiahFull(value: number): string {
+  return formatRupiah(value, true);
 }
 
 /**

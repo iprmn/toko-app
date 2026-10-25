@@ -16,7 +16,7 @@ import {
   AlertCircle,
 } from 'lucide-react';
 import { Transaction } from '../types/store';
-import { formatRupiah, formatDateIndo, formatTime } from '../utils/format';
+import { formatRupiah, formatRupiahFull, formatDateIndo, formatTime } from '../utils/format';
 
 interface SalesHistoryViewProps {
   transactions: Transaction[];
@@ -179,8 +179,8 @@ export const SalesHistoryView: React.FC<SalesHistoryViewProps> = ({
       `🏪 Toko: ${storeName}`,
       `📅 Tanggal: ${formatDateIndo(new Date().toISOString())}`,
       `--------------------------------`,
-      `💰 *Total Omzet Masuk:* ${formatRupiah(selectedDayIndex !== null ? last7DaysData[selectedDayIndex].revenue : total7DayRevenue)}`,
-      `📈 *Estimasi Keuntungan:* ${formatRupiah(selectedDayIndex !== null ? last7DaysData[selectedDayIndex].profit : total7DayProfit)}`,
+      `💰 *Total Omzet Masuk:* ${formatRupiahFull(selectedDayIndex !== null ? last7DaysData[selectedDayIndex].revenue : total7DayRevenue)}`,
+      `📈 *Estimasi Keuntungan:* ${formatRupiahFull(selectedDayIndex !== null ? last7DaysData[selectedDayIndex].profit : total7DayProfit)}`,
       `🧾 *Jumlah Transaksi:* ${activeDisplayedTxs.length} transaksi`,
       `--------------------------------`,
       `*Rincian 7 Hari Terakhir:*`,
@@ -193,7 +193,7 @@ export const SalesHistoryView: React.FC<SalesHistoryViewProps> = ({
         });
         const itemNames = t.items.map((i) => `${i.quantity}x ${i.productName}`).join(', ');
         const cancelLabel = t.status === 'cancelled' ? ' (DIBATALKAN)' : '';
-        return `${idx + 1}. [${dateFormatted}, ${formatTime(t.timestamp)}] ${formatRupiah(t.totalAmount)}${cancelLabel} - ${itemNames}`;
+        return `${idx + 1}. [${dateFormatted}, ${formatTime(t.timestamp)}] ${formatRupiahFull(t.totalAmount)}${cancelLabel} - ${itemNames}`;
       }),
     ];
 
@@ -494,9 +494,9 @@ export const SalesHistoryView: React.FC<SalesHistoryViewProps> = ({
                   >
                     {hasSales ? (
                       d.revenue >= 1000000000
-                        ? `${new Intl.NumberFormat('id-ID', { maximumFractionDigits: 1 }).format(d.revenue / 1000000000)} M`
+                        ? `${new Intl.NumberFormat('id-ID', { minimumFractionDigits: 1, maximumFractionDigits: 1 }).format(d.revenue / 1000000000)} M`
                         : d.revenue >= 10000000
-                        ? `${new Intl.NumberFormat('id-ID', { maximumFractionDigits: 1 }).format(d.revenue / 1000000)} JT`
+                        ? `${new Intl.NumberFormat('id-ID', { minimumFractionDigits: 1, maximumFractionDigits: 1 }).format(d.revenue / 1000000)} JT`
                         : d.revenue >= 1000000
                         ? `${(d.revenue / 1000000).toFixed(1)}jt`
                         : `${Math.round(d.revenue / 1000)}rb`
@@ -775,7 +775,7 @@ export const SalesHistoryView: React.FC<SalesHistoryViewProps> = ({
                                   {item.quantity}x {item.productName}
                                 </span>
                                 <span className="text-[11px] text-slate-400 block">
-                                  @ {formatRupiah(item.sellPrice)} / {item.unit}
+                                  @ {formatRupiahFull(item.sellPrice)} / {item.unit}
                                 </span>
                               </div>
                               <span
@@ -783,7 +783,7 @@ export const SalesHistoryView: React.FC<SalesHistoryViewProps> = ({
                                   isCancelled ? 'text-slate-400 line-through' : 'text-slate-800'
                                 }`}
                               >
-                                {formatRupiah(item.sellPrice * item.quantity)}
+                                {formatRupiahFull(item.sellPrice * item.quantity)}
                               </span>
                             </div>
                           ))}
@@ -816,15 +816,15 @@ export const SalesHistoryView: React.FC<SalesHistoryViewProps> = ({
                                 : 'text-emerald-800'
                             }`}
                           >
-                            +{formatRupiah(t.totalProfit)}
+                            +{formatRupiahFull(t.totalProfit)}
                           </span>
                         </div>
 
                         {/* Info Bayar Tunai & Kembalian jika ada */}
                         {t.cashPaid > 0 && (
                           <div className="text-[11px] text-slate-500 flex items-center justify-between px-1">
-                            <span>Tunai Diterima: {formatRupiah(t.cashPaid)}</span>
-                            <span>Kembalian: {formatRupiah(t.change)}</span>
+                            <span>Tunai Diterima: {formatRupiahFull(t.cashPaid)}</span>
+                            <span>Kembalian: {formatRupiahFull(t.change)}</span>
                           </div>
                         )}
                       </div>

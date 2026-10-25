@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { X, Plus, Minus, ShoppingBag, CheckCircle2, RotateCcw, Copy, Check } from 'lucide-react';
 import { CartItem } from '../types/store';
-import { formatRupiah, formatNumber, formatThousands, parseThousands } from '../utils/format';
+import { formatRupiah, formatRupiahFull, formatNumber, formatThousands, parseThousands } from '../utils/format';
 
 interface CartDrawerProps {
   isOpen: boolean;
@@ -159,7 +159,7 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
                       {it.quantity}x {it.product.name}
                     </span>
                     <span className="tabular-nums font-semibold">
-                      {formatRupiah(it.product.sellPrice * it.quantity)}
+                      {formatRupiahFull(it.product.sellPrice * it.quantity)}
                     </span>
                   </div>
                 ))}
@@ -168,15 +168,15 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
               <div className="pt-2 border-t border-dashed border-slate-300 space-y-1">
                 <div className="flex justify-between font-bold text-sm text-slate-900">
                   <span>TOTAL</span>
-                  <span>{formatRupiah(lastReceipt.total)}</span>
+                  <span>{formatRupiahFull(lastReceipt.total)}</span>
                 </div>
                 <div className="flex justify-between text-slate-600">
                   <span>Uang Diterima</span>
-                  <span>{formatRupiah(lastReceipt.cashPaid)}</span>
+                  <span>{formatRupiahFull(lastReceipt.cashPaid)}</span>
                 </div>
                 <div className="flex justify-between font-bold text-emerald-800 bg-emerald-100/70 px-2 py-1 rounded">
                   <span>KEMBALIAN</span>
-                  <span>{formatRupiah(lastReceipt.change)}</span>
+                  <span>{formatRupiahFull(lastReceipt.change)}</span>
                 </div>
               </div>
             </div>
@@ -186,7 +186,7 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
               <button
                 type="button"
                 onClick={() => {
-                  const text = `*STRUK BELANJA - ${storeName}*\nTotal: ${formatRupiah(lastReceipt.total)}\nBayar: ${formatRupiah(lastReceipt.cashPaid)}\nKembalian: ${formatRupiah(lastReceipt.change)}\nTerima kasih telah berbelanja!`;
+                  const text = `*STRUK BELANJA - ${storeName}*\nTotal: ${formatRupiahFull(lastReceipt.total)}\nBayar: ${formatRupiahFull(lastReceipt.cashPaid)}\nKembalian: ${formatRupiahFull(lastReceipt.change)}\nTerima kasih telah berbelanja!`;
                   navigator.clipboard.writeText(text);
                   alert('Struk berhasil disalin! Bisa langsung dipaste ke WhatsApp.');
                 }}
@@ -253,7 +253,7 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
                           {item.product.name}
                         </h4>
                         <div className="text-[11px] sm:text-xs text-slate-500 font-medium mt-0.5">
-                          {formatRupiah(item.product.sellPrice)} / {item.product.unit}
+                          {formatRupiahFull(item.product.sellPrice)} / {item.product.unit}
                         </div>
                       </div>
 
@@ -343,7 +343,7 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
                     {/* Kanan: Subtotal Harga */}
                     <div className="text-right shrink-0">
                       <div className="text-xs sm:text-sm font-black text-slate-900 tabular-nums">
-                        {formatRupiah(itemSubtotal)}
+                        {formatRupiahFull(itemSubtotal)}
                       </div>
                     </div>
                   </div>
@@ -357,7 +357,7 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
               <div className="flex items-baseline justify-between bg-emerald-50 p-3.5 rounded-2xl border border-emerald-200/80">
                 <span className="text-sm font-bold text-slate-800">Total Tagihan:</span>
                 <span className="text-lg sm:text-xl font-black text-emerald-800 tabular-nums">
-                  {formatRupiah(totalAmount)}
+                  {formatRupiahFull(totalAmount)}
                 </span>
               </div>
 
@@ -384,7 +384,7 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
                 {isCashEntered && !isCashSufficient && (
                   <p className="text-xs font-bold text-rose-600 mt-1.5 flex items-center gap-1">
                     <span>⚠️</span>
-                    <span>Pembayaran kurang {formatRupiah(totalAmount - cashPaid)}</span>
+                    <span>Pembayaran kurang {formatRupiahFull(totalAmount - cashPaid)}</span>
                   </p>
                 )}
 
@@ -434,7 +434,7 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
                     {isCashSufficient ? 'Kembalian Pembeli:' : 'Pembayaran kurang:'}
                   </span>
                   <span className="text-base sm:text-lg font-black tabular-nums">
-                    {isCashSufficient ? formatRupiah(change) : formatRupiah(totalAmount - cashPaid)}
+                    {isCashSufficient ? formatRupiahFull(change) : formatRupiahFull(totalAmount - cashPaid)}
                   </span>
                 </div>
               )}

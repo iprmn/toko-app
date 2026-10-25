@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { ShoppingCart, AlertCircle, AlertTriangle, CheckCircle, Plus, X } from 'lucide-react';
 import { Product } from '../types/store';
-import { formatRupiah } from '../utils/format';
+import { formatRupiah, formatRupiahFull } from '../utils/format';
 import { PRESET_ICONS } from '../data/initialProducts';
 
 interface ProductCardProps {
@@ -11,19 +11,20 @@ interface ProductCardProps {
   onRestockProduct?: (product: Product) => void;
 }
 
-const renderProfitBadge = (sellPrice: number, buyPrice: number, sizeClass = 'text-[9.5px] sm:text-[10px]') => {
+const renderProfitBadge = (sellPrice: number, buyPrice: number, sizeClass = 'text-[9.5px] sm:text-[10px]', forceFull = false) => {
   const diff = sellPrice - buyPrice;
+  const fn = forceFull ? formatRupiahFull : formatRupiah;
   if (diff > 0) {
     return (
       <span className={`${sizeClass} text-emerald-600 font-bold truncate leading-tight`}>
-        Untung + {formatRupiah(diff)}
+        Untung + {fn(diff)}
       </span>
     );
   }
   if (diff < 0) {
     return (
       <span className={`${sizeClass} text-rose-600 font-bold truncate leading-tight`}>
-        Rugi - {formatRupiah(Math.abs(diff))}
+        Rugi - {fn(Math.abs(diff))}
       </span>
     );
   }
@@ -282,10 +283,10 @@ export const ProductCard: React.FC<ProductCardProps> = ({
                     isEffectivelyOutOfStock ? 'text-slate-600' : 'text-emerald-800'
                   }`}
                 >
-                  {formatRupiah(product.sellPrice)}
+                  {formatRupiahFull(product.sellPrice)}
                 </div>
                 <div className="mt-0.5 leading-tight">
-                  {renderProfitBadge(product.sellPrice, product.buyPrice, 'text-xs')}
+                  {renderProfitBadge(product.sellPrice, product.buyPrice, 'text-xs', true)}
                 </div>
               </div>
             </div>

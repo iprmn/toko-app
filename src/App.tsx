@@ -643,7 +643,7 @@ export default function App() {
       message: isEdit
         ? `Apakah Anda yakin ingin menyimpan perubahan pada barang "${productName}"?`
         : `Apakah Anda yakin ingin menambahkan barang baru "${productName}" ke toko?`,
-      confirmLabel: isEdit ? 'Ya, Simpan Perubahan' : 'Ya, Tambahkan Barang',
+      confirmLabel: isEdit ? 'Ya, Simpan Perubahan' : 'Ya, tambahkan',
       cancelLabel: 'Cek Lagi',
       variant: 'primary',
       onCancel: () => {
