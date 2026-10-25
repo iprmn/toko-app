@@ -493,7 +493,11 @@ export const SalesHistoryView: React.FC<SalesHistoryViewProps> = ({
                     }`}
                   >
                     {hasSales ? (
-                      d.revenue >= 1000000
+                      d.revenue >= 1000000000
+                        ? `${new Intl.NumberFormat('id-ID', { maximumFractionDigits: 1 }).format(d.revenue / 1000000000)} M`
+                        : d.revenue >= 10000000
+                        ? `${new Intl.NumberFormat('id-ID', { maximumFractionDigits: 1 }).format(d.revenue / 1000000)} JT`
+                        : d.revenue >= 1000000
                         ? `${(d.revenue / 1000000).toFixed(1)}jt`
                         : `${Math.round(d.revenue / 1000)}rb`
                     ) : (

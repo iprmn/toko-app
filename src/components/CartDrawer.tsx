@@ -356,7 +356,7 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
               {/* Grand Total */}
               <div className="flex items-baseline justify-between bg-emerald-50 p-3.5 rounded-2xl border border-emerald-200/80">
                 <span className="text-sm font-bold text-slate-800">Total Tagihan:</span>
-                <span className="text-xl sm:text-2xl font-black text-emerald-800 tabular-nums">
+                <span className="text-lg sm:text-xl font-black text-emerald-800 tabular-nums">
                   {formatRupiah(totalAmount)}
                 </span>
               </div>
@@ -456,7 +456,7 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
               }`}
             >
               <CheckCircle2 className="w-5 h-5" />
-              <span>Selesai & Catat ({formatRupiah(totalAmount)})</span>
+              <span>Selesai & Catat</span>
             </button>
           </div>
         )}
