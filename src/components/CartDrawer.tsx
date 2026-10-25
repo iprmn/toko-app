@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { X, Plus, Minus, ShoppingBag, CheckCircle2, RotateCcw, Copy } from 'lucide-react';
 import { CartItem } from '../types/store';
-import { formatRupiah, formatNumber } from '../utils/format';
+import { formatRupiah, formatNumber, formatThousands, parseThousands } from '../utils/format';
 
 interface CartDrawerProps {
   isOpen: boolean;
@@ -38,9 +38,10 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
   const totalAmount = cart.reduce((sum, item) => sum + item.product.sellPrice * item.quantity, 0);
   const totalItemsCount = cart.reduce((sum, item) => sum + item.quantity, 0);
 
-  const cashPaid = parseFloat(cashInput.replace(/\D/g, '')) || 0;
+  const cashPaid = parseThousands(cashInput);
   const change = Math.max(0, cashPaid - totalAmount);
   const isCashSufficient = cashPaid >= totalAmount;
+  const isCashEntered = cashInput.trim() !== '';
 
   // Reset receipt when reopening cart or cart becomes non-empty
   useEffect(() => {
@@ -52,7 +53,7 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
   if (!isOpen) return null;
 
   const handleQuickCash = (amount: number) => {
-    setCashInput(amount.toString());
+    setCashInput(formatThousands(amount));
   };
 
   const handleFinishTransaction = () => {
@@ -358,21 +359,29 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
               {/* Uang Diterima / Tunai dari Pembeli */}
               <div>
                 <label className="block text-xs font-bold text-slate-700 mb-1.5">
-                  💵 Uang Tunai Pembeli (Opsional untuk hitung kembalian):
+                  💵 Uang Pembali:
                 </label>
                 <div className="relative">
                   <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-500 font-bold text-xs">
                     Rp
                   </div>
                   <input
-                    type="number"
+                    type="text"
                     inputMode="numeric"
                     value={cashInput}
-                    onChange={(e) => setCashInput(e.target.value)}
-                    placeholder={formatNumber(totalAmount)}
+                    onChange={(e) => setCashInput(formatThousands(e.target.value))}
+                    placeholder={formatThousands(totalAmount)}
                     className="w-full h-11 pl-10 pr-4 bg-slate-100 text-slate-900 font-bold rounded-xl border border-transparent focus:border-emerald-600 focus:bg-white outline-none text-base tabular-nums"
                   />
                 </div>
+
+                {/* Warning Text Saat Pembayaran Kurang */}
+                {isCashEntered && !isCashSufficient && (
+                  <p className="text-xs font-bold text-rose-600 mt-1.5 flex items-center gap-1">
+                    <span>⚠️</span>
+                    <span>Pembayaran kurang {formatRupiah(totalAmount - cashPaid)}</span>
+                  </p>
+                )}
 
                 {/* Quick Cash Buttons */}
                 <div className="grid grid-cols-4 gap-1.5 mt-2">
@@ -413,11 +422,11 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
                   className={`p-3.5 rounded-2xl flex items-center justify-between border ${
                     isCashSufficient
                       ? 'bg-emerald-50 border-emerald-200 text-emerald-900'
-                      : 'bg-amber-50 border-amber-200 text-amber-900'
+                      : 'bg-rose-50 border-rose-200 text-rose-900'
                   }`}
                 >
                   <span className="text-xs font-bold">
-                    {isCashSufficient ? 'Kembalian Pembeli:' : 'Uang Kurang:'}
+                    {isCashSufficient ? 'Kembalian Pembeli:' : 'Pembayaran kurang:'}
                   </span>
                   <span className="text-base sm:text-lg font-black tabular-nums">
                     {isCashSufficient ? formatRupiah(change) : formatRupiah(totalAmount - cashPaid)}
@@ -434,7 +443,12 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
             <button
               type="button"
               onClick={handleFinishTransaction}
-              className="w-full h-12 sm:h-14 bg-emerald-700 hover:bg-emerald-800 active:scale-[0.98] text-white rounded-2xl font-bold text-sm sm:text-base flex items-center justify-center gap-2 shadow-lg shadow-emerald-800/20 transition-all cursor-pointer"
+              disabled={!isCashEntered || !isCashSufficient}
+              className={`w-full h-12 sm:h-14 rounded-2xl font-bold text-sm sm:text-base flex items-center justify-center gap-2 shadow-lg transition-all ${
+                !isCashEntered || !isCashSufficient
+                  ? 'bg-slate-200 text-slate-400 cursor-not-allowed shadow-none'
+                  : 'bg-emerald-700 hover:bg-emerald-800 active:scale-[0.98] text-white shadow-emerald-800/20 cursor-pointer'
+              }`}
             >
               <CheckCircle2 className="w-5 h-5" />
               <span>Selesai & Catat ({formatRupiah(totalAmount)})</span>

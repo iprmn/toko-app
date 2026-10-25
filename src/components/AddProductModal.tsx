@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react'
 import { X, Check, Package, Camera, Upload, Trash2, ChevronDown, RefreshCw } from 'lucide-react';
 import { Product, ProductCategory } from '../types/store';
 import { PRESET_ICONS, MASTER_DEPARTMENTS } from '../data/initialProducts';
-import { formatRupiah } from '../utils/format';
+import { formatRupiah, formatThousands, parseThousands } from '../utils/format';
 
 interface AddProductModalProps {
   isOpen: boolean;
@@ -184,10 +184,10 @@ export const AddProductModal: React.FC<AddProductModalProps> = ({
     if (initialProduct) {
       setName(initialProduct.name);
       setCategory(initialProduct.category);
-      setSellPrice(initialProduct.sellPrice.toString());
-      setBuyPrice(initialProduct.buyPrice.toString());
-      setStock(initialProduct.stock.toString());
-      setMinStock(initialProduct.minStock.toString());
+      setSellPrice(formatThousands(initialProduct.sellPrice.toString()));
+      setBuyPrice(formatThousands(initialProduct.buyPrice.toString()));
+      setStock(formatThousands(initialProduct.stock.toString()));
+      setMinStock(formatThousands(initialProduct.minStock.toString()));
       setUnit(initialProduct.unit);
       setShelf(initialProduct.shelf || '');
       setIconType(initialProduct.iconType);
@@ -286,22 +286,26 @@ export const AddProductModal: React.FC<AddProductModalProps> = ({
       return;
     }
 
-    if (!sellPrice.trim() || isNaN(parseFloat(sellPrice)) || parseFloat(sellPrice) <= 0) {
+    const parsedSellPrice = parseThousands(sellPrice);
+    if (!sellPrice.trim() || isNaN(parsedSellPrice) || parsedSellPrice <= 0) {
       alert('Harga jual wajib diisi!');
       return;
     }
 
-    if (!buyPrice.trim() || isNaN(parseFloat(buyPrice)) || parseFloat(buyPrice) < 0) {
+    const parsedBuyPrice = parseThousands(buyPrice);
+    if (!buyPrice.trim() || isNaN(parsedBuyPrice) || parsedBuyPrice < 0) {
       alert('Harga beli wajib diisi!');
       return;
     }
 
-    if (!stock.trim() || isNaN(parseInt(stock)) || parseInt(stock) < 0) {
+    const parsedStock = parseThousands(stock);
+    if (!stock.trim() || isNaN(parsedStock) || parsedStock < 0) {
       alert('Jumlah stok wajib diisi!');
       return;
     }
 
-    if (!minStock.trim() || isNaN(parseInt(minStock)) || parseInt(minStock) < 0) {
+    const parsedMinStock = parseThousands(minStock);
+    if (!minStock.trim() || isNaN(parsedMinStock) || parsedMinStock < 0) {
       alert('Batas stok menipis wajib diisi!');
       return;
     }
@@ -311,10 +315,10 @@ export const AddProductModal: React.FC<AddProductModalProps> = ({
       return;
     }
 
-    const sPrice = parseFloat(sellPrice);
-    const bPrice = parseFloat(buyPrice);
-    const sStock = parseInt(stock);
-    const mStock = parseInt(minStock);
+    const sPrice = parsedSellPrice;
+    const bPrice = parsedBuyPrice;
+    const sStock = Math.round(parsedStock);
+    const mStock = Math.round(parsedMinStock);
 
     onSaveProduct({
       ...(initialProduct ? { id: initialProduct.id } : {}),
@@ -677,11 +681,12 @@ export const AddProductModal: React.FC<AddProductModalProps> = ({
                   Harga Jual (Rp):
                 </label>
                 <input
-                  type="number"
+                  type="text"
+                  inputMode="numeric"
                   required
                   value={sellPrice}
-                  onChange={(e) => setSellPrice(e.target.value)}
-                  placeholder="Contoh: 15000"
+                  onChange={(e) => setSellPrice(formatThousands(e.target.value))}
+                  placeholder="Contoh: 15.000"
                   className="w-full h-11 px-3.5 bg-white border border-slate-300 focus:border-emerald-600 rounded-xl text-sm font-bold text-emerald-800 outline-none tabular-nums shadow-2xs"
                 />
               </div>
@@ -690,22 +695,23 @@ export const AddProductModal: React.FC<AddProductModalProps> = ({
                   Harga Beli (Rp):
                 </label>
                 <input
-                  type="number"
+                  type="text"
+                  inputMode="numeric"
                   required
                   value={buyPrice}
-                  onChange={(e) => setBuyPrice(e.target.value)}
-                  placeholder="Contoh: 12000"
+                  onChange={(e) => setBuyPrice(formatThousands(e.target.value))}
+                  placeholder="Contoh: 12.000"
                   className="w-full h-11 px-3.5 bg-white border border-slate-300 focus:border-emerald-600 rounded-xl text-sm font-semibold text-slate-700 outline-none tabular-nums shadow-2xs"
                 />
-                {buyPrice.trim() !== '' && !isNaN(parseFloat(buyPrice)) && sellPrice.trim() !== '' && !isNaN(parseFloat(sellPrice)) && (
+                {buyPrice.trim() !== '' && !isNaN(parseThousands(buyPrice)) && sellPrice.trim() !== '' && !isNaN(parseThousands(sellPrice)) && (
                   <div className="mt-1 text-[11px] font-bold leading-tight truncate">
-                    {parseFloat(sellPrice) - parseFloat(buyPrice) > 0 ? (
+                    {parseThousands(sellPrice) - parseThousands(buyPrice) > 0 ? (
                       <span className="text-emerald-600">
-                        Untung + {formatRupiah(parseFloat(sellPrice) - parseFloat(buyPrice))}
+                        Untung + {formatRupiah(parseThousands(sellPrice) - parseThousands(buyPrice))}
                       </span>
-                    ) : parseFloat(sellPrice) - parseFloat(buyPrice) < 0 ? (
+                    ) : parseThousands(sellPrice) - parseThousands(buyPrice) < 0 ? (
                       <span className="text-rose-600">
-                        Rugi - {formatRupiah(Math.abs(parseFloat(sellPrice) - parseFloat(buyPrice)))}
+                        Rugi - {formatRupiah(Math.abs(parseThousands(sellPrice) - parseThousands(buyPrice)))}
                       </span>
                     ) : (
                       <span className="text-amber-800">
@@ -724,10 +730,11 @@ export const AddProductModal: React.FC<AddProductModalProps> = ({
                   Jumlah Stok:
                 </label>
                 <input
-                  type="number"
+                  type="text"
+                  inputMode="numeric"
                   required
                   value={stock}
-                  onChange={(e) => setStock(e.target.value)}
+                  onChange={(e) => setStock(formatThousands(e.target.value))}
                   placeholder="10"
                   className="w-full h-11 px-3.5 bg-white border border-slate-300 focus:border-emerald-600 rounded-xl text-sm font-bold text-slate-900 outline-none tabular-nums shadow-2xs"
                 />
@@ -737,10 +744,11 @@ export const AddProductModal: React.FC<AddProductModalProps> = ({
                   Batas Stok Menipis:
                 </label>
                 <input
-                  type="number"
+                  type="text"
+                  inputMode="numeric"
                   required
                   value={minStock}
-                  onChange={(e) => setMinStock(e.target.value)}
+                  onChange={(e) => setMinStock(formatThousands(e.target.value))}
                   placeholder="3"
                   className="w-full h-11 px-3.5 bg-white border border-slate-300 focus:border-emerald-600 rounded-xl text-sm font-semibold text-amber-800 outline-none tabular-nums shadow-2xs"
                 />

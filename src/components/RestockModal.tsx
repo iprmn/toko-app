@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
-import { X, PackagePlus, Check, ArrowRight } from 'lucide-react';
+import { X, PackagePlus, Check } from 'lucide-react';
 import { Product } from '../types/store';
 import { PRESET_ICONS } from '../data/initialProducts';
+import { formatThousands, parseThousands } from '../utils/format';
 
 interface RestockModalProps {
   isOpen: boolean;
@@ -132,9 +133,13 @@ export const RestockModal: React.FC<RestockModalProps> = ({
 
             {/* Custom Input */}
             <input
-              type="number"
-              value={amount}
-              onChange={(e) => setAmount(Math.max(1, parseInt(e.target.value) || 0))}
+              type="text"
+              inputMode="numeric"
+              value={amount ? formatThousands(amount.toString()) : ''}
+              onChange={(e) => {
+                const parsed = parseThousands(e.target.value);
+                setAmount(isNaN(parsed) ? 0 : Math.max(0, Math.round(parsed)));
+              }}
               placeholder="Atau ketik jumlah..."
               className="w-full h-11 px-3.5 bg-slate-100 text-slate-900 font-bold rounded-xl border border-transparent focus:border-emerald-600 focus:bg-white outline-none text-base tabular-nums"
             />

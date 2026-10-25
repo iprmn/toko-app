@@ -1,14 +1,11 @@
 /**
- * Format number into Indonesian Rupiah format (e.g., Rp 15.000)
+ * Format number into Indonesian Rupiah format with exactly 1 space after Rp (e.g., Rp 15.000)
  */
 export function formatRupiah(value: number): string {
   if (isNaN(value)) return 'Rp 0';
-  return new Intl.NumberFormat('id-ID', {
-    style: 'currency',
-    currency: 'IDR',
-    minimumFractionDigits: 0,
-    maximumFractionDigits: 0,
-  }).format(value);
+  const isNegative = value < 0;
+  const formatted = new Intl.NumberFormat('id-ID').format(Math.abs(value));
+  return isNegative ? `-Rp ${formatted}` : `Rp ${formatted}`;
 }
 
 /**
@@ -17,6 +14,23 @@ export function formatRupiah(value: number): string {
 export function formatNumber(value: number): string {
   if (isNaN(value)) return '0';
   return new Intl.NumberFormat('id-ID').format(value);
+}
+
+/**
+ * Format raw string or number into Indonesian thousand dot formatted string (e.g. 15.000)
+ */
+export function formatThousands(value: string | number): string {
+  const digits = String(value).replace(/\D/g, '');
+  if (!digits) return '';
+  return new Intl.NumberFormat('id-ID').format(parseInt(digits, 10));
+}
+
+/**
+ * Parse thousand dot formatted string back to number
+ */
+export function parseThousands(value: string | number): number {
+  const digits = String(value).replace(/\D/g, '');
+  return digits ? parseInt(digits, 10) : 0;
 }
 
 /**

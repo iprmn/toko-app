@@ -12,7 +12,7 @@ import {
   ChevronDown,
 } from 'lucide-react';
 import { Product } from '../types/store';
-import { formatRupiah } from '../utils/format';
+import { formatRupiah, formatThousands } from '../utils/format';
 import { PRESET_ICONS, CATEGORIES } from '../data/initialProducts';
 
 export type StockStatusFilter = 'all' | 'safe' | 'low' | 'out';
@@ -696,8 +696,8 @@ export const InventoryView: React.FC<InventoryViewProps> = ({
                       <input
                         type="text"
                         inputMode="numeric"
-                        pattern="[0-9]*"
-                        value={p.stock}
+                        pattern="[0-9.]*"
+                        value={formatThousands(p.stock.toString())}
                         onPointerDown={(e) => e.stopPropagation()}
                         onClick={(e) => {
                           e.stopPropagation();

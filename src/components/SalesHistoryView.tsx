@@ -26,6 +26,14 @@ interface SalesHistoryViewProps {
   onBackToCatalog?: () => void;
 }
 
+const getDynamicFontSize = (text: string): string => {
+  const len = text.length;
+  if (len > 16) return 'text-[11px] sm:text-sm';
+  if (len > 13) return 'text-xs sm:text-base';
+  if (len > 10) return 'text-sm sm:text-lg';
+  return 'text-base sm:text-xl';
+};
+
 export const SalesHistoryView: React.FC<SalesHistoryViewProps> = ({
   transactions,
   onClearHistory,
@@ -411,7 +419,7 @@ export const SalesHistoryView: React.FC<SalesHistoryViewProps> = ({
             <Coins className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-emerald-800 shrink-0" />
             <span className="truncate">Omzet 7 Hari</span>
           </div>
-          <div className="text-base sm:text-xl font-black text-slate-900 tabular-nums leading-snug">
+          <div className={`${getDynamicFontSize(formatRupiah(total7DayRevenue))} font-black text-slate-900 tabular-nums leading-snug truncate`}>
             {formatRupiah(total7DayRevenue)}
           </div>
         </div>
@@ -422,7 +430,7 @@ export const SalesHistoryView: React.FC<SalesHistoryViewProps> = ({
             <TrendingUp className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-emerald-700 shrink-0" />
             <span className="truncate">Untung Bersih</span>
           </div>
-          <div className="text-base sm:text-xl font-black text-emerald-800 tabular-nums leading-snug">
+          <div className={`${getDynamicFontSize(`+${formatRupiah(total7DayProfit)}`)} font-black text-emerald-800 tabular-nums leading-snug truncate`}>
             +{formatRupiah(total7DayProfit)}
           </div>
         </div>
@@ -433,7 +441,7 @@ export const SalesHistoryView: React.FC<SalesHistoryViewProps> = ({
             <ShoppingBag className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-indigo-700 shrink-0" />
             <span className="truncate">Total Transaksi</span>
           </div>
-          <div className="text-base sm:text-xl font-black text-slate-900 tabular-nums leading-snug">
+          <div className={`${getDynamicFontSize(`${active7DaysTransactions.length} kali`)} font-black text-slate-900 tabular-nums leading-snug truncate`}>
             {active7DaysTransactions.length} <span className="text-xs font-normal text-slate-500">kali</span>
           </div>
         </div>
@@ -444,7 +452,7 @@ export const SalesHistoryView: React.FC<SalesHistoryViewProps> = ({
             <BarChart3 className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-amber-700 shrink-0" />
             <span className="truncate">Rata-Rata / Hari</span>
           </div>
-          <div className="text-base sm:text-xl font-black text-slate-900 tabular-nums leading-snug">
+          <div className={`${getDynamicFontSize(formatRupiah(averageDailyRevenue))} font-black text-slate-900 tabular-nums leading-snug truncate`}>
             {formatRupiah(averageDailyRevenue)}
           </div>
         </div>

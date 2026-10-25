@@ -163,7 +163,7 @@ export const BannerHero: React.FC<BannerHeroProps> = ({
                   <TrendingUp className="w-3.5 h-3.5 text-emerald-800" />
                 </div>
                 <span className="text-xs font-bold text-slate-800 whitespace-nowrap">
-                  Kas Masuk Harian
+                  Kas Harian
                 </span>
               </div>
               <div className="shrink-0 pl-0.5 max-w-full">
