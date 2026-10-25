@@ -13,6 +13,7 @@ import {
   Ban,
   HelpCircle,
   X,
+  AlertCircle,
 } from 'lucide-react';
 import { Transaction } from '../types/store';
 import { formatRupiah, formatDateIndo, formatTime } from '../utils/format';
@@ -35,6 +36,7 @@ export const SalesHistoryView: React.FC<SalesHistoryViewProps> = ({
   const [expandedTxIds, setExpandedTxIds] = useState<string[]>([]);
   const [swipedTxId, setSwipedTxId] = useState<string | null>(null);
   const [showGuideModal, setShowGuideModal] = useState(false);
+  const [showLastDayWarningModal, setShowLastDayWarningModal] = useState(false);
 
   // Track horizontal swipe/slide gesture per card
   const dragStateRef = useRef<{
@@ -107,6 +109,11 @@ export const SalesHistoryView: React.FC<SalesHistoryViewProps> = ({
 
     return days;
   }, [transactions]);
+
+  // Check if today is the last day of the 7-day weekly period (Sunday)
+  const isLastDayOfWeek = useMemo(() => {
+    return last7DaysData[6]?.isToday || new Date().getDay() === 0;
+  }, [last7DaysData]);
 
   const weeklyDateStrings = useMemo(() => {
     return new Set(last7DaysData.map((d) => d.dateStr));
@@ -240,15 +247,31 @@ export const SalesHistoryView: React.FC<SalesHistoryViewProps> = ({
               </h2>
             </div>
 
-            <button
-              type="button"
-              onClick={() => setShowGuideModal(true)}
-              className="px-2.5 py-1.5 sm:px-3 sm:py-1.5 rounded-xl bg-sky-50 hover:bg-sky-100 text-sky-900 text-xs font-bold border border-sky-200 flex items-center gap-1.5 cursor-pointer transition-colors shadow-2xs shrink-0"
-              title="Buka petunjuk aturan 7 hari"
-            >
-              <HelpCircle className="w-3.5 h-3.5 text-sky-700" />
-              <span>Petunjuk</span>
-            </button>
+            <div className="flex items-center gap-1.5 sm:gap-2">
+              {/* Icon Peringatan Hari Terakhir Periode 7 Hari */}
+              {isLastDayOfWeek && (
+                <button
+                  type="button"
+                  onClick={() => setShowLastDayWarningModal(true)}
+                  className="relative w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-amber-500 hover:bg-amber-600 active:scale-95 text-white flex items-center justify-center cursor-pointer shadow-md transition-all shrink-0 animate-bounce"
+                  title="Peringatan Hari Terakhir Minggu Ini"
+                  aria-label="Peringatan Hari Terakhir Periode 7 Hari"
+                >
+                  <span className="absolute -inset-1 rounded-full bg-amber-400 opacity-75 animate-ping pointer-events-none" />
+                  <AlertCircle className="w-5 h-5 relative z-10 stroke-[2.5]" />
+                </button>
+              )}
+
+              <button
+                type="button"
+                onClick={() => setShowGuideModal(true)}
+                className="px-2.5 py-1.5 sm:px-3 sm:py-1.5 rounded-xl bg-sky-50 hover:bg-sky-100 text-sky-900 text-xs font-bold border border-sky-200 flex items-center gap-1.5 cursor-pointer transition-colors shadow-2xs shrink-0"
+                title="Buka petunjuk aturan 7 hari"
+              >
+                <HelpCircle className="w-3.5 h-3.5 text-sky-700" />
+                <span>Petunjuk</span>
+              </button>
+            </div>
           </div>
 
           <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 shrink-0 w-full sm:w-auto">
@@ -274,6 +297,65 @@ export const SalesHistoryView: React.FC<SalesHistoryViewProps> = ({
           </div>
         </div>
       </div>
+
+      {/* Popup Peringatan Hari Terakhir Periode 7 Hari */}
+      {showLastDayWarningModal && (
+        <div
+          className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4 animate-in fade-in duration-200"
+          onClick={() => setShowLastDayWarningModal(false)}
+        >
+          <div
+            className="bg-white rounded-3xl p-5 sm:p-6 max-w-sm w-full border border-amber-200 shadow-2xl space-y-4 animate-in zoom-in-95 duration-150"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-center justify-between pb-3 border-b border-slate-100">
+              <div className="flex items-center gap-2.5">
+                <div className="w-9 h-9 rounded-2xl bg-amber-100 text-amber-700 flex items-center justify-center font-bold">
+                  <AlertCircle className="w-5 h-5" />
+                </div>
+                <h3 className="font-bold text-base text-slate-900 leading-tight">
+                  Peringatan Hari Terakhir
+                </h3>
+              </div>
+              <button
+                type="button"
+                onClick={() => setShowLastDayWarningModal(false)}
+                className="w-8 h-8 rounded-lg hover:bg-slate-100 text-slate-400 hover:text-slate-600 flex items-center justify-center cursor-pointer transition-colors"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            <div className="bg-amber-50/90 border border-amber-200/90 rounded-2xl p-4 flex items-start gap-3">
+              <AlertCircle className="w-5 h-5 text-amber-600 shrink-0 mt-0.5" />
+              <p className="text-xs sm:text-sm text-amber-950 font-medium leading-relaxed">
+                Ini adalah hari terakhir pada minggu ini, jangan lupa untuk melakukan pembukuan laporan penjualan mingguan dengan cara <strong>Salin Laporan WA</strong>, dan tempel/paste ke pesan WA anda.
+              </p>
+            </div>
+
+            <div className="flex items-center gap-2 pt-1">
+              <button
+                type="button"
+                onClick={() => {
+                  handleCopyReport();
+                  setShowLastDayWarningModal(false);
+                }}
+                className="flex-1 py-2.5 rounded-xl bg-emerald-700 hover:bg-emerald-800 text-white font-bold text-xs flex items-center justify-center gap-1.5 cursor-pointer transition-colors shadow-sm"
+              >
+                <Copy className="w-3.5 h-3.5" />
+                <span>Salin Laporan WA</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => setShowLastDayWarningModal(false)}
+                className="px-4 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs cursor-pointer transition-colors"
+              >
+                Tutup
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Popup Petunjuk Aturan 7 Hari */}
       {showGuideModal && (
@@ -306,7 +388,7 @@ export const SalesHistoryView: React.FC<SalesHistoryViewProps> = ({
             <div className="bg-sky-50/90 border border-sky-200/90 rounded-2xl p-3.5 flex items-start gap-2.5">
               <Clock className="w-4 h-4 text-sky-700 shrink-0 mt-0.5" />
               <p className="text-xs sm:text-sm text-sky-950 font-medium leading-relaxed">
-                <strong>Aturan 7 Hari:</strong> Riwayat transaksi otomatis disimpan dan ditampilkan untuk <strong>7 hari terakhir</strong>. Transaksi yang lebih lama dari 7 hari otomatis direset dari awal agar pencatatan warung tetap rapi dan ringan. Jangan lupa menyalin laporan WA pada hari terakhir agar riwayat transaksi tetap terjaga.
+                <strong>Aturan 7 Hari:</strong> Riwayat transaksi otomatis disimpan dan ditampilkan untuk <strong>7 hari terakhir</strong>. Transaksi yang lebih lama dari 7 hari otomatis direset dari awal agar pencatatan warung tetap rapi dan ringan. Jangan lupa menyalin laporan WA pada hari terakhir kemudian tempel/paste ke pesan WA anda, agar riwayat transaksi tetap tercatat.
               </p>
             </div>
 
@@ -412,7 +494,11 @@ export const SalesHistoryView: React.FC<SalesHistoryViewProps> = ({
                   </div>
 
                   {/* Vertical Bar */}
-                  <div className="w-full max-w-[42px] sm:max-w-[50px] bg-slate-100 rounded-t-xl overflow-hidden flex items-end h-full">
+                  <div
+                    className={`w-full max-w-[42px] sm:max-w-[50px] bg-slate-100 rounded-t-xl overflow-hidden flex items-end h-full transition-all ${
+                      d.isToday ? 'border-2 border-emerald-500 ring-2 ring-emerald-500/30 shadow-xs' : ''
+                    }`}
+                  >
                     <div
                       style={{ height: `${hasSales ? heightPercent : 6}%` }}
                       className={`w-full rounded-t-xl transition-all duration-300 ${
@@ -429,12 +515,22 @@ export const SalesHistoryView: React.FC<SalesHistoryViewProps> = ({
                   <div className="mt-2 text-center">
                     <span
                       className={`block text-[11px] sm:text-xs font-bold leading-tight ${
-                        isSelected ? 'text-emerald-900' : 'text-slate-800'
+                        d.isToday
+                          ? 'text-emerald-600 font-extrabold'
+                          : isSelected
+                          ? 'text-emerald-900'
+                          : 'text-slate-800'
                       }`}
                     >
                       {d.dayName}
                     </span>
-                    <span className="block text-[9px] sm:text-[10px] text-slate-400 font-medium">
+                    <span
+                      className={`block text-[9px] sm:text-[10px] ${
+                        d.isToday
+                          ? 'text-emerald-600 font-semibold'
+                          : 'text-slate-400 font-medium'
+                      }`}
+                    >
                       {d.dayDateLabel}
                     </span>
                   </div>

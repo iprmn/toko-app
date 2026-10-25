@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react'
 import { X, Check, Package, Camera, Upload, Trash2, ChevronDown, RefreshCw } from 'lucide-react';
 import { Product, ProductCategory } from '../types/store';
 import { PRESET_ICONS, MASTER_DEPARTMENTS } from '../data/initialProducts';
+import { formatRupiah } from '../utils/format';
 
 interface AddProductModalProps {
   isOpen: boolean;
@@ -84,18 +85,7 @@ export const AddProductModal: React.FC<AddProductModalProps> = ({
   const shelfSuggestions = useMemo(() => {
     const query = shelf.trim().toLowerCase();
     if (!query) return [];
-    const pool =
-      existingShelves && existingShelves.length > 0
-        ? existingShelves
-        : [
-            'Rak 1 - Sembako & Beras',
-            'Rak 2 - Makanan & Mi Instan',
-            'Rak 3 - Bumbu & Dapur',
-            'Rak 4 - Sabun & Kebersihan',
-            'Etalase Minuman Dingin',
-            'Etalase Kasir Utama',
-            'Gantungan Snack & Renceng',
-          ];
+    const pool = existingShelves && existingShelves.length > 0 ? existingShelves : [];
     return pool.filter(
       (s) => s.toLowerCase().includes(query) && s.toLowerCase() !== query
     );
@@ -279,17 +269,52 @@ export const AddProductModal: React.FC<AddProductModalProps> = ({
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     stopCameraStream();
+
     if (!name.trim()) {
-      alert('Mohon isi nama barang!');
+      alert('Nama barang wajib diisi!');
       return;
     }
 
-    const sPrice = parseFloat(sellPrice) || 0;
-    const bPrice = parseFloat(buyPrice) || 0;
-    const sStock = parseInt(stock) || 0;
-    const mStock = parseInt(minStock) || 3;
-
     const finalCategory = customCategoryInput.trim() || category || currentDept.id;
+    if (!finalCategory.trim()) {
+      alert('Kategori barang wajib dipilih atau diisi!');
+      return;
+    }
+
+    if (!unit.trim()) {
+      alert('Satuan barang wajib dipilih atau diisi!');
+      return;
+    }
+
+    if (!sellPrice.trim() || isNaN(parseFloat(sellPrice)) || parseFloat(sellPrice) <= 0) {
+      alert('Harga jual wajib diisi!');
+      return;
+    }
+
+    if (!buyPrice.trim() || isNaN(parseFloat(buyPrice)) || parseFloat(buyPrice) < 0) {
+      alert('Harga beli wajib diisi!');
+      return;
+    }
+
+    if (!stock.trim() || isNaN(parseInt(stock)) || parseInt(stock) < 0) {
+      alert('Jumlah stok wajib diisi!');
+      return;
+    }
+
+    if (!minStock.trim() || isNaN(parseInt(minStock)) || parseInt(minStock) < 0) {
+      alert('Batas stok menipis wajib diisi!');
+      return;
+    }
+
+    if (!shelf.trim()) {
+      alert('Penempatan barang wajib diisi!');
+      return;
+    }
+
+    const sPrice = parseFloat(sellPrice);
+    const bPrice = parseFloat(buyPrice);
+    const sStock = parseInt(stock);
+    const mStock = parseInt(minStock);
 
     onSaveProduct({
       ...(initialProduct ? { id: initialProduct.id } : {}),
@@ -299,8 +324,8 @@ export const AddProductModal: React.FC<AddProductModalProps> = ({
       buyPrice: bPrice,
       stock: sStock,
       minStock: mStock,
-      unit: unit.trim() || 'pcs',
-      shelf: shelf.trim() || undefined,
+      unit: unit.trim(),
+      shelf: shelf.trim(),
       iconType,
       imageUrl: visualMode === 'photo' && imageUrl.trim() ? imageUrl.trim() : undefined,
       bgColor: PRESET_ICONS[iconType]?.bg || 'bg-slate-50 text-slate-700',
@@ -560,7 +585,7 @@ export const AddProductModal: React.FC<AddProductModalProps> = ({
             {/* Nama Barang */}
             <div>
               <label className="block text-xs font-bold text-slate-800 mb-1">
-                Nama Barang <span className="text-rose-500">*</span>:
+                Nama Barang:
               </label>
               <input
                 type="text"
@@ -651,7 +676,7 @@ export const AddProductModal: React.FC<AddProductModalProps> = ({
             <div className="grid grid-cols-2 gap-3">
               <div>
                 <label className="block text-xs font-bold text-slate-800 mb-1">
-                  Harga Jual (Rp) <span className="text-rose-500">*</span>:
+                  Harga Jual (Rp):
                 </label>
                 <input
                   type="number"
@@ -668,11 +693,29 @@ export const AddProductModal: React.FC<AddProductModalProps> = ({
                 </label>
                 <input
                   type="number"
+                  required
                   value={buyPrice}
                   onChange={(e) => setBuyPrice(e.target.value)}
                   placeholder="Contoh: 12000"
                   className="w-full h-11 px-3.5 bg-white border border-slate-300 focus:border-emerald-600 rounded-xl text-sm font-semibold text-slate-700 outline-none tabular-nums shadow-2xs"
                 />
+                {buyPrice.trim() !== '' && !isNaN(parseFloat(buyPrice)) && sellPrice.trim() !== '' && !isNaN(parseFloat(sellPrice)) && (
+                  <div className="mt-1 text-[11px] font-bold leading-tight truncate">
+                    {parseFloat(sellPrice) - parseFloat(buyPrice) > 0 ? (
+                      <span className="text-emerald-600">
+                        Untung + {formatRupiah(parseFloat(sellPrice) - parseFloat(buyPrice))}
+                      </span>
+                    ) : parseFloat(sellPrice) - parseFloat(buyPrice) < 0 ? (
+                      <span className="text-rose-600">
+                        Rugi - {formatRupiah(Math.abs(parseFloat(sellPrice) - parseFloat(buyPrice)))}
+                      </span>
+                    ) : (
+                      <span className="text-amber-800">
+                        Tidak untung
+                      </span>
+                    )}
+                  </div>
+                )}
               </div>
             </div>
 
@@ -684,6 +727,7 @@ export const AddProductModal: React.FC<AddProductModalProps> = ({
                 </label>
                 <input
                   type="number"
+                  required
                   value={stock}
                   onChange={(e) => setStock(e.target.value)}
                   placeholder="10"
@@ -696,6 +740,7 @@ export const AddProductModal: React.FC<AddProductModalProps> = ({
                 </label>
                 <input
                   type="number"
+                  required
                   value={minStock}
                   onChange={(e) => setMinStock(e.target.value)}
                   placeholder="3"
@@ -705,20 +750,21 @@ export const AddProductModal: React.FC<AddProductModalProps> = ({
             </div>
           </div>
 
-          {/* CARD 3: PILIH RAK */}
+          {/* CARD 3: PENEMPATAN */}
           <div className="bg-slate-50/90 border border-slate-200/90 rounded-2xl p-3.5 sm:p-4 space-y-2">
             <label className="block text-xs font-bold text-slate-800">
-              Pilih Rak
+              Penempatan
             </label>
             <div className="relative">
               <input
                 type="text"
+                required
                 autoComplete="off"
                 value={shelf}
                 onFocus={() => setIsShelfFocused(true)}
                 onBlur={() => setTimeout(() => setIsShelfFocused(false), 200)}
                 onChange={(e) => setShelf(e.target.value)}
-                placeholder="Contoh: Rak 1 - Sembako, Etalase Depan, Rak Bumbu..."
+                placeholder="Contoh: Rak 1, Etalase Depan, Meja Kasir..."
                 className="w-full h-11 px-3.5 bg-white border border-slate-300 focus:border-emerald-600 rounded-xl text-xs sm:text-sm font-semibold text-slate-900 outline-none transition-all shadow-2xs"
               />
               {isShelfFocused && shelfSuggestions.length > 0 && (

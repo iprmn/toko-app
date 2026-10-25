@@ -11,6 +11,29 @@ interface ProductCardProps {
   onRestockProduct?: (product: Product) => void;
 }
 
+const renderProfitBadge = (sellPrice: number, buyPrice: number, sizeClass = 'text-[9.5px] sm:text-[10px]') => {
+  const diff = sellPrice - buyPrice;
+  if (diff > 0) {
+    return (
+      <span className={`${sizeClass} text-emerald-600 font-bold truncate leading-tight`}>
+        Untung + {formatRupiah(diff)}
+      </span>
+    );
+  }
+  if (diff < 0) {
+    return (
+      <span className={`${sizeClass} text-rose-600 font-bold truncate leading-tight`}>
+        Rugi - {formatRupiah(Math.abs(diff))}
+      </span>
+    );
+  }
+  return (
+    <span className={`${sizeClass} text-amber-800 font-bold truncate leading-tight`}>
+      Tidak untung
+    </span>
+  );
+};
+
 export const ProductCard: React.FC<ProductCardProps> = ({
   product,
   cartQuantity = 0,
@@ -104,8 +127,8 @@ export const ProductCard: React.FC<ProductCardProps> = ({
             >
               {formatRupiah(product.sellPrice)}
             </div>
-            <div className="text-[9.5px] sm:text-[10px] text-slate-400 font-medium truncate mt-0.5 leading-tight">
-              Untung +{formatRupiah(product.sellPrice - product.buyPrice)}
+            <div className="truncate mt-0.5 leading-tight">
+              {renderProfitBadge(product.sellPrice, product.buyPrice, 'text-[9.5px] sm:text-[10px]')}
             </div>
           </div>
         </div>
@@ -254,8 +277,8 @@ export const ProductCard: React.FC<ProductCardProps> = ({
                 >
                   {formatRupiah(product.sellPrice)}
                 </div>
-                <div className="text-xs text-slate-400 font-medium mt-0.5 leading-tight">
-                  Untung +{formatRupiah(product.sellPrice - product.buyPrice)}
+                <div className="mt-0.5 leading-tight">
+                  {renderProfitBadge(product.sellPrice, product.buyPrice, 'text-xs')}
                 </div>
               </div>
             </div>
