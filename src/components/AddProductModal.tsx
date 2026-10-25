@@ -330,8 +330,6 @@ export const AddProductModal: React.FC<AddProductModalProps> = ({
       imageUrl: visualMode === 'photo' && imageUrl.trim() ? imageUrl.trim() : undefined,
       bgColor: PRESET_ICONS[iconType]?.bg || 'bg-slate-50 text-slate-700',
     });
-
-    onClose();
   };
 
   return (

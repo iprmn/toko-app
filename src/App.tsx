@@ -113,6 +113,7 @@ export default function App() {
 
   const [isRestockModalOpen, setIsRestockModalOpen] = useState(false);
   const [restockProductId, setRestockProductId] = useState<string | undefined>(undefined);
+  const [highlightedProductId, setHighlightedProductId] = useState<string | null>(null);
 
   // --- Confirmation & Success Popup State ---
   const [confirmState, setConfirmState] = useState<ConfirmModalState | null>(null);
@@ -643,8 +644,15 @@ export default function App() {
         ? `Apakah Anda yakin ingin menyimpan perubahan pada barang "${productName}"?`
         : `Apakah Anda yakin ingin menambahkan barang baru "${productName}" ke toko?`,
       confirmLabel: isEdit ? 'Ya, Simpan Perubahan' : 'Ya, Tambahkan Barang',
+      cancelLabel: 'Cek Lagi',
       variant: 'primary',
+      onCancel: () => {
+        // User clicks "Cek Lagi": keep AddProductModal open with all filled data intact
+        setIsAddModalOpen(true);
+      },
       onConfirm: async () => {
+        setIsAddModalOpen(false);
+        setEditingProduct(null);
         if (soundEnabled) playSound.tap();
 
         const nowIso = new Date().toISOString();
@@ -893,8 +901,9 @@ export default function App() {
                         onAddToCart={handleAddToCart}
                         onRestockProduct={(p) => {
                           if (soundEnabled) playSound.tap();
-                          setRestockProductId(p.id);
-                          setIsRestockModalOpen(true);
+                          setHighlightedProductId(p.id);
+                          setInventoryStatusFilter('all');
+                          setActiveTab('inventory');
                         }}
                       />
                     );
@@ -912,6 +921,8 @@ export default function App() {
             initialStatusFilter={inventoryStatusFilter}
             onStatusFilterChange={setInventoryStatusFilter}
             onQuickAdjustStock={handleQuickAdjustStock}
+            highlightedProductId={highlightedProductId}
+            onClearHighlight={() => setHighlightedProductId(null)}
             onEditProduct={(p) => {
               setEditingProduct(p);
               setIsAddModalOpen(true);

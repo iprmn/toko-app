@@ -27,6 +27,8 @@ interface InventoryViewProps {
   onDeleteMultipleProducts?: (productIds: string[]) => void;
   onOpenRestock: (productId?: string) => void;
   onOpenAddProduct: () => void;
+  highlightedProductId?: string | null;
+  onClearHighlight?: () => void;
 }
 
 export const InventoryView: React.FC<InventoryViewProps> = ({
@@ -38,6 +40,8 @@ export const InventoryView: React.FC<InventoryViewProps> = ({
   onDeleteProduct,
   onDeleteMultipleProducts,
   onOpenAddProduct,
+  highlightedProductId,
+  onClearHighlight,
 }) => {
   const [selectedShelf, setSelectedShelf] = useState<string>('all');
   const [selectedStatus, setSelectedStatus] = useState<StockStatusFilter>(initialStatusFilter);
@@ -50,6 +54,30 @@ export const InventoryView: React.FC<InventoryViewProps> = ({
   useEffect(() => {
     setSelectedStatus(initialStatusFilter);
   }, [initialStatusFilter]);
+
+  // When navigated directly from "Tambah Stok" on out-of-stock card in Etalase:
+  // Reset all filters so product is visible, smoothly scroll to it, and focus its stock input
+  useEffect(() => {
+    if (!highlightedProductId) return;
+
+    setSelectedStatus('all');
+    setSelectedShelf('all');
+    setSelectedCategory('all');
+    setSearch('');
+
+    const timer = setTimeout(() => {
+      const el = document.getElementById(`inventory-item-${highlightedProductId}`);
+      if (el) {
+        el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        const input = el.querySelector('input');
+        if (input) {
+          input.focus();
+        }
+      }
+    }, 200);
+
+    return () => clearTimeout(timer);
+  }, [highlightedProductId]);
 
   const handleStatusChange = (status: StockStatusFilter) => {
     setSelectedStatus(status);
@@ -512,15 +540,21 @@ export const InventoryView: React.FC<InventoryViewProps> = ({
             const isLowStock = p.stock > 0 && p.stock <= p.minStock;
             const preset = PRESET_ICONS[p.iconType] || PRESET_ICONS['box'];
             const isSelected = selectedIds.includes(p.id);
+            const isHighlighted = highlightedProductId === p.id;
             const shelfLabel = p.shelf && p.shelf.trim() ? p.shelf.trim() : 'Etalase Utama';
 
             return (
               <div
+                id={`inventory-item-${p.id}`}
                 key={p.id}
-                onPointerDown={() => startLongPress(p.id)}
+                onPointerDown={() => {
+                  if (isHighlighted) onClearHighlight?.();
+                  startLongPress(p.id);
+                }}
                 onPointerUp={cancelLongPress}
                 onPointerLeave={cancelLongPress}
                 onClick={() => {
+                  if (isHighlighted) onClearHighlight?.();
                   if (isLongPressActiveRef.current) {
                     isLongPressActiveRef.current = false;
                     return;
@@ -534,6 +568,8 @@ export const InventoryView: React.FC<InventoryViewProps> = ({
                 className={`relative bg-white rounded-xl sm:rounded-2xl px-3 py-3.5 sm:p-4 border transition-all flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4 min-h-[144px] sm:min-h-0 select-none cursor-pointer ${
                   isSelected
                     ? 'ring-2 ring-emerald-600 bg-emerald-50/50 border-emerald-300 shadow-md'
+                    : isHighlighted
+                    ? 'animate-water-ripple'
                     : 'border-stone-200/90 shadow-sm hover:shadow-md'
                 }`}
               >
@@ -575,9 +611,16 @@ export const InventoryView: React.FC<InventoryViewProps> = ({
                   </div>
 
                   <div className="min-w-0 flex-1">
-                    <h4 className="text-sm sm:text-base font-bold text-slate-900 break-words leading-snug">
-                      {p.name}
-                    </h4>
+                    <div className="flex items-center gap-1.5 flex-wrap">
+                      <h4 className="text-sm sm:text-base font-bold text-slate-900 break-words leading-snug">
+                        {p.name}
+                      </h4>
+                      {isHighlighted && (
+                        <span className="inline-flex items-center gap-1 text-[10px] font-bold text-emerald-800 bg-emerald-100 px-2 py-0.5 rounded-full border border-emerald-300 animate-pulse">
+                          <span>💧</span> Tambah stok di sini
+                        </span>
+                      )}
+                    </div>
                     {/* Harga Jual dan Beli di bawah judul produk */}
                     <div className="flex items-center gap-2 sm:gap-2.5 flex-wrap mt-1 sm:mt-1.5 text-[11px] sm:text-xs leading-normal">
                       <span className="text-slate-600 font-semibold">
@@ -639,6 +682,7 @@ export const InventoryView: React.FC<InventoryViewProps> = ({
                         onPointerDown={(e) => e.stopPropagation()}
                         onClick={(e) => {
                           e.stopPropagation();
+                          if (isHighlighted) onClearHighlight?.();
                           onQuickAdjustStock(p, -1);
                         }}
                         disabled={p.stock <= 0}
@@ -655,8 +699,15 @@ export const InventoryView: React.FC<InventoryViewProps> = ({
                         pattern="[0-9]*"
                         value={p.stock}
                         onPointerDown={(e) => e.stopPropagation()}
-                        onClick={(e) => e.stopPropagation()}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          if (isHighlighted) onClearHighlight?.();
+                        }}
+                        onFocus={() => {
+                          if (isHighlighted) onClearHighlight?.();
+                        }}
                         onChange={(e) => {
+                          if (isHighlighted) onClearHighlight?.();
                           const digits = e.target.value.replace(/\D/g, '');
                           const newQty = digits === '' ? 0 : parseInt(digits, 10);
                           onQuickAdjustStock(p, newQty - p.stock);
@@ -671,6 +722,7 @@ export const InventoryView: React.FC<InventoryViewProps> = ({
                         onPointerDown={(e) => e.stopPropagation()}
                         onClick={(e) => {
                           e.stopPropagation();
+                          if (isHighlighted) onClearHighlight?.();
                           onQuickAdjustStock(p, 1);
                         }}
                         className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-white text-slate-800 hover:text-emerald-700 flex items-center justify-center shadow-2xs active:scale-90 transition-transform cursor-pointer"

@@ -9,6 +9,7 @@ export interface ConfirmModalState {
   cancelLabel?: string;
   variant?: 'danger' | 'primary';
   onConfirm: () => void;
+  onCancel?: () => void;
 }
 
 export interface SuccessModalState {
@@ -36,7 +37,10 @@ export const FeedbackModal: React.FC<FeedbackModalProps> = ({
       {confirmState && confirmState.isOpen && (
         <div
           className="fixed inset-0 z-[70] bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4 animate-in fade-in duration-150"
-          onClick={onCloseConfirm}
+          onClick={() => {
+            confirmState.onCancel?.();
+            onCloseConfirm();
+          }}
         >
           <div
             className="bg-white rounded-3xl p-5 sm:p-6 max-w-sm w-full border border-slate-200 shadow-2xl space-y-4 animate-in zoom-in-95 duration-150"
@@ -59,7 +63,10 @@ export const FeedbackModal: React.FC<FeedbackModalProps> = ({
               </div>
               <button
                 type="button"
-                onClick={onCloseConfirm}
+                onClick={() => {
+                  confirmState.onCancel?.();
+                  onCloseConfirm();
+                }}
                 className="w-8 h-8 rounded-lg hover:bg-slate-100 text-slate-400 hover:text-slate-600 flex items-center justify-center cursor-pointer"
               >
                 <X className="w-4 h-4" />
@@ -73,7 +80,10 @@ export const FeedbackModal: React.FC<FeedbackModalProps> = ({
             <div className="flex items-center gap-2.5 pt-2">
               <button
                 type="button"
-                onClick={onCloseConfirm}
+                onClick={() => {
+                  confirmState.onCancel?.();
+                  onCloseConfirm();
+                }}
                 className="flex-1 h-11 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs cursor-pointer transition-colors"
               >
                 {confirmState.cancelLabel || 'Batal'}
