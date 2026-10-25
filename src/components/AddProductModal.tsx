@@ -346,15 +346,15 @@ export const AddProductModal: React.FC<AddProductModalProps> = ({
         }}
       />
 
-      <div className="relative z-10 w-full max-w-lg max-h-[92vh] bg-white rounded-3xl shadow-2xl flex flex-col overflow-hidden animate-in zoom-in-95 duration-200">
+      <div className="relative z-10 w-full max-w-lg max-h-[90vh] bg-white rounded-2xl sm:rounded-3xl shadow-2xl flex flex-col overflow-hidden animate-in zoom-in-95 duration-200">
         {/* Header */}
-        <div className="p-4 sm:p-5 border-b border-slate-100 flex items-center justify-between bg-emerald-800 text-white shrink-0">
-          <div className="flex items-center gap-2.5">
-            <div className="w-10 h-10 rounded-xl bg-white/20 flex items-center justify-center">
-              <Package className="w-5 h-5 text-white" />
+        <div className="px-4 py-3 sm:px-5 sm:py-3.5 border-b border-slate-100 flex items-center justify-between bg-emerald-800 text-white shrink-0">
+          <div className="flex items-center gap-2">
+            <div className="w-8 h-8 rounded-lg bg-white/20 flex items-center justify-center">
+              <Package className="w-4 h-4 text-white" />
             </div>
             <div>
-              <h2 className="text-base sm:text-lg font-bold leading-tight">
+              <h2 className="text-sm sm:text-base font-bold leading-tight">
                 {initialProduct ? 'Ubah Rincian Barang' : 'Tambah Barang Baru'}
               </h2>
             </div>
@@ -365,14 +365,14 @@ export const AddProductModal: React.FC<AddProductModalProps> = ({
               stopCameraStream();
               onClose();
             }}
-            className="w-8 h-8 rounded-full bg-white/20 hover:bg-white/30 text-white flex items-center justify-center transition-colors cursor-pointer"
+            className="w-7 h-7 rounded-full bg-white/20 hover:bg-white/30 text-white flex items-center justify-center transition-colors cursor-pointer"
           >
-            <X className="w-4 h-4" />
+            <X className="w-3.5 h-3.5" />
           </button>
         </div>
 
         {/* Form Body */}
-        <form onSubmit={handleSubmit} className="flex-1 overflow-y-auto p-4 sm:p-5 space-y-4">
+        <form onSubmit={handleSubmit} className="flex-1 overflow-y-auto p-3.5 sm:p-4 space-y-2.5 sm:space-y-3">
           {/* Hidden File Input (Galeri / File) */}
           <input
             ref={fileInputRef}
@@ -402,7 +402,7 @@ export const AddProductModal: React.FC<AddProductModalProps> = ({
                 <select
                   value={departmentId}
                   onChange={(e) => handleDepartmentChange(e.target.value)}
-                  className="w-full h-11 pl-3.5 pr-10 bg-white border-2 border-emerald-600/40 focus:border-emerald-700 rounded-xl text-sm font-bold text-slate-900 appearance-none outline-none transition-all cursor-pointer shadow-2xs truncate"
+                  className="w-full h-9.5 pl-3 pr-9 bg-white border-2 border-emerald-600/40 focus:border-emerald-700 rounded-xl text-xs sm:text-sm font-bold text-slate-900 appearance-none outline-none transition-all cursor-pointer shadow-2xs truncate"
                 >
                   {MASTER_DEPARTMENTS.map((dept) => (
                     <option key={dept.id} value={dept.id}>
@@ -410,14 +410,14 @@ export const AddProductModal: React.FC<AddProductModalProps> = ({
                     </option>
                   ))}
                 </select>
-                <ChevronDown className="w-4 h-4 text-slate-600 pointer-events-none absolute right-3.5 top-1/2 -translate-y-1/2" />
+                <ChevronDown className="w-4 h-4 text-slate-600 pointer-events-none absolute right-3 top-1/2 -translate-y-1/2" />
               </div>
 
               {/* Icon kamera bulat di samping dropdown -> Langsung buka Kamera */}
               <button
                 type="button"
                 onClick={() => startCamera()}
-                className={`w-11 h-11 rounded-full flex items-center justify-center shrink-0 transition-all cursor-pointer shadow-xs border ${
+                className={`w-9.5 h-9.5 rounded-full flex items-center justify-center shrink-0 transition-all cursor-pointer shadow-xs border ${
                   visualMode === 'photo' || imageUrl
                     ? 'bg-emerald-700 text-white border-emerald-700 ring-2 ring-emerald-300'
                     : 'bg-white hover:bg-emerald-50 text-emerald-800 border-emerald-300'
@@ -425,13 +425,13 @@ export const AddProductModal: React.FC<AddProductModalProps> = ({
                 title="Buka Kamera untuk Foto Barang"
                 aria-label="Buka Kamera"
               >
-                <Camera className="w-5 h-5" />
+                <Camera className="w-4 h-4" />
               </button>
             </div>
           </div>
 
           {/* CARD PILIH IKON / UNGGAH FOTO */}
-          <div className="bg-emerald-50/70 border border-emerald-200/80 p-3.5 rounded-2xl space-y-2.5">
+          <div className="bg-emerald-50/70 border border-emerald-200/80 p-2.5 sm:p-3 rounded-xl space-y-2">
             <div className="flex items-center justify-between">
               <span className="text-xs font-bold text-slate-800">
                 Pilih Ikon / Unggah Foto
@@ -566,7 +566,7 @@ export const AddProductModal: React.FC<AddProductModalProps> = ({
                         key={key}
                         type="button"
                         onClick={() => setIconType(key)}
-                        className={`h-11 rounded-xl flex items-center justify-center text-2xl transition-all cursor-pointer ${
+                        className={`h-9 sm:h-10 rounded-lg flex items-center justify-center text-xl transition-all cursor-pointer ${
                           isSelected
                             ? 'ring-2.5 ring-emerald-700 bg-emerald-100/90 scale-105 shadow-xs'
                             : 'bg-white hover:bg-slate-100 text-slate-800 border border-slate-200/80'
@@ -583,7 +583,7 @@ export const AddProductModal: React.FC<AddProductModalProps> = ({
           </div>
 
           {/* CARD 1: NAMA BARANG, PILIHAN KATEGORI, SATUAN BARANG */}
-          <div className="bg-slate-50/90 border border-slate-200/90 rounded-2xl p-3.5 sm:p-4 space-y-3.5">
+          <div className="bg-slate-50/90 border border-slate-200/90 rounded-xl p-2.5 sm:p-3 space-y-2 sm:space-y-2.5">
             {/* Nama Barang */}
             <div>
               <label className="block text-xs font-bold text-slate-800 mb-1">
@@ -595,16 +595,16 @@ export const AddProductModal: React.FC<AddProductModalProps> = ({
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 placeholder="Contoh: Beras Rojo 5kg, Kabel Data Type C, Kaos Polos..."
-                className="w-full h-11 px-3.5 bg-white border border-slate-300 focus:border-emerald-600 rounded-xl text-sm font-semibold text-slate-900 outline-none shadow-2xs"
+                className="w-full h-9.5 px-3 bg-white border border-slate-300 focus:border-emerald-600 rounded-xl text-xs sm:text-sm font-semibold text-slate-900 outline-none shadow-2xs"
               />
             </div>
 
             {/* Pilihan Kategori (Scroll Kesamping) */}
             <div>
-              <label className="block text-xs font-bold text-slate-800 mb-1.5">
+              <label className="block text-xs font-bold text-slate-800 mb-1">
                 Pilihan Kategori:
               </label>
-              <div className="flex items-center gap-1.5 overflow-x-auto pb-1.5 no-scrollbar shrink-0">
+              <div className="flex items-center gap-1.5 overflow-x-auto pb-1 no-scrollbar shrink-0">
                 {currentDept.suggestedCategories.map((c) => {
                   const isSelected = category.toLowerCase() === c.id.toLowerCase() && !customCategoryInput;
                   return (
@@ -615,7 +615,7 @@ export const AddProductModal: React.FC<AddProductModalProps> = ({
                         setCategory(c.id);
                         setCustomCategoryInput('');
                       }}
-                      className={`py-1.5 px-3 rounded-xl text-xs font-bold transition-all cursor-pointer shrink-0 whitespace-nowrap ${
+                      className={`py-1 px-2.5 rounded-lg text-[11px] font-bold transition-all cursor-pointer shrink-0 whitespace-nowrap ${
                         isSelected
                           ? 'bg-emerald-700 text-white shadow-2xs scale-[1.02]'
                           : 'bg-white border border-slate-200 text-slate-700 hover:bg-slate-100'
@@ -634,16 +634,16 @@ export const AddProductModal: React.FC<AddProductModalProps> = ({
                   setCategory(e.target.value.toLowerCase().replace(/\s+/g, '-'));
                 }}
                 placeholder="Atau ketik nama kategori baru..."
-                className="w-full h-9 px-3 mt-1 bg-white border border-slate-200 focus:border-emerald-600 rounded-lg text-xs font-medium text-slate-800 outline-none"
+                className="w-full h-8 px-2.5 mt-1 bg-white border border-slate-200 focus:border-emerald-600 rounded-lg text-xs font-medium text-slate-800 outline-none"
               />
             </div>
 
             {/* Satuan Barang (Scroll Kesamping + Textbox Full Width) */}
             <div>
-              <label className="block text-xs font-bold text-slate-800 mb-1.5">
+              <label className="block text-xs font-bold text-slate-800 mb-1">
                 Satuan Barang:
               </label>
-              <div className="flex items-center gap-1.5 overflow-x-auto pb-1.5 no-scrollbar shrink-0">
+              <div className="flex items-center gap-1.5 overflow-x-auto pb-1 no-scrollbar shrink-0">
                 {currentDept.suggestedUnits.map((u) => {
                   const isSelected = unit.toLowerCase() === u.toLowerCase() && currentDept.suggestedUnits.includes(unit);
                   return (
@@ -651,7 +651,7 @@ export const AddProductModal: React.FC<AddProductModalProps> = ({
                       key={u}
                       type="button"
                       onClick={() => setUnit(u)}
-                      className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer shrink-0 whitespace-nowrap ${
+                      className={`px-2.5 py-1 rounded-lg text-[11px] font-semibold transition-all cursor-pointer shrink-0 whitespace-nowrap ${
                         isSelected
                           ? 'bg-emerald-700 text-white font-bold shadow-2xs'
                           : 'bg-white border border-slate-200 text-slate-700 hover:bg-slate-100'
@@ -667,15 +667,15 @@ export const AddProductModal: React.FC<AddProductModalProps> = ({
                 value={currentDept.suggestedUnits.includes(unit) ? '' : unit}
                 onChange={(e) => setUnit(e.target.value)}
                 placeholder="+ Ketik satuan lain..."
-                className="w-full h-9 px-3 mt-1 bg-white border border-slate-200 focus:border-emerald-600 rounded-lg text-xs font-medium text-slate-800 outline-none"
+                className="w-full h-8 px-2.5 mt-1 bg-white border border-slate-200 focus:border-emerald-600 rounded-lg text-xs font-medium text-slate-800 outline-none"
               />
             </div>
           </div>
 
           {/* CARD 2: HARGA JUAL, HARGA BELI, JUMLAH STOK, BATAS STOK */}
-          <div className="bg-slate-50/90 border border-slate-200/90 rounded-2xl p-3.5 sm:p-4 space-y-3.5">
+          <div className="bg-slate-50/90 border border-slate-200/90 rounded-xl p-2.5 sm:p-3 space-y-2 sm:space-y-2.5">
             {/* Harga Jual & Harga Beli */}
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-2 gap-2 sm:gap-2.5">
               <div>
                 <label className="block text-xs font-bold text-slate-800 mb-1">
                   Harga Jual (Rp):
@@ -687,7 +687,7 @@ export const AddProductModal: React.FC<AddProductModalProps> = ({
                   value={sellPrice}
                   onChange={(e) => setSellPrice(formatThousands(e.target.value))}
                   placeholder="Contoh: 15.000"
-                  className="w-full h-11 px-3.5 bg-white border border-slate-300 focus:border-emerald-600 rounded-xl text-sm font-bold text-emerald-800 outline-none tabular-nums shadow-2xs"
+                  className="w-full h-9.5 px-3 bg-white border border-slate-300 focus:border-emerald-600 rounded-xl text-xs sm:text-sm font-bold text-emerald-800 outline-none tabular-nums shadow-2xs"
                 />
               </div>
               <div>
@@ -701,7 +701,7 @@ export const AddProductModal: React.FC<AddProductModalProps> = ({
                   value={buyPrice}
                   onChange={(e) => setBuyPrice(formatThousands(e.target.value))}
                   placeholder="Contoh: 12.000"
-                  className="w-full h-11 px-3.5 bg-white border border-slate-300 focus:border-emerald-600 rounded-xl text-sm font-semibold text-slate-700 outline-none tabular-nums shadow-2xs"
+                  className="w-full h-9.5 px-3 bg-white border border-slate-300 focus:border-emerald-600 rounded-xl text-xs sm:text-sm font-semibold text-slate-700 outline-none tabular-nums shadow-2xs"
                 />
                 {buyPrice.trim() !== '' && !isNaN(parseThousands(buyPrice)) && sellPrice.trim() !== '' && !isNaN(parseThousands(sellPrice)) && (
                   <div className="mt-1 text-[11px] font-bold leading-tight truncate">
@@ -724,7 +724,7 @@ export const AddProductModal: React.FC<AddProductModalProps> = ({
             </div>
 
             {/* Jumlah Stok & Batas Stok */}
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-2 gap-2 sm:gap-2.5">
               <div>
                 <label className="block text-xs font-bold text-slate-800 mb-1">
                   Jumlah Stok:
@@ -736,7 +736,7 @@ export const AddProductModal: React.FC<AddProductModalProps> = ({
                   value={stock}
                   onChange={(e) => setStock(formatThousands(e.target.value))}
                   placeholder="10"
-                  className="w-full h-11 px-3.5 bg-white border border-slate-300 focus:border-emerald-600 rounded-xl text-sm font-bold text-slate-900 outline-none tabular-nums shadow-2xs"
+                  className="w-full h-9.5 px-3 bg-white border border-slate-300 focus:border-emerald-600 rounded-xl text-xs sm:text-sm font-bold text-slate-900 outline-none tabular-nums shadow-2xs"
                 />
               </div>
               <div>
@@ -750,14 +750,14 @@ export const AddProductModal: React.FC<AddProductModalProps> = ({
                   value={minStock}
                   onChange={(e) => setMinStock(formatThousands(e.target.value))}
                   placeholder="3"
-                  className="w-full h-11 px-3.5 bg-white border border-slate-300 focus:border-emerald-600 rounded-xl text-sm font-semibold text-amber-800 outline-none tabular-nums shadow-2xs"
+                  className="w-full h-9.5 px-3 bg-white border border-slate-300 focus:border-emerald-600 rounded-xl text-xs sm:text-sm font-semibold text-amber-800 outline-none tabular-nums shadow-2xs"
                 />
               </div>
             </div>
           </div>
 
           {/* CARD 3: PENEMPATAN */}
-          <div className="bg-slate-50/90 border border-slate-200/90 rounded-2xl p-3.5 sm:p-4 space-y-2">
+          <div className="bg-slate-50/90 border border-slate-200/90 rounded-xl p-2.5 sm:p-3 space-y-1.5">
             <label className="block text-xs font-bold text-slate-800">
               Penempatan
             </label>
@@ -771,7 +771,7 @@ export const AddProductModal: React.FC<AddProductModalProps> = ({
                 onBlur={() => setTimeout(() => setIsShelfFocused(false), 200)}
                 onChange={(e) => setShelf(e.target.value)}
                 placeholder="Contoh: Rak 1, Etalase Depan, Meja Kasir..."
-                className="w-full h-11 px-3.5 bg-white border border-slate-300 focus:border-emerald-600 rounded-xl text-xs sm:text-sm font-semibold text-slate-900 outline-none transition-all shadow-2xs"
+                className="w-full h-9.5 px-3 bg-white border border-slate-300 focus:border-emerald-600 rounded-xl text-xs sm:text-sm font-semibold text-slate-900 outline-none transition-all shadow-2xs"
               />
               {isShelfFocused && shelfSuggestions.length > 0 && (
                 <div className="absolute left-0 right-0 top-full mt-1.5 z-20 bg-white border border-slate-200 rounded-xl shadow-lg max-h-48 overflow-y-auto divide-y divide-slate-100 animate-in fade-in zoom-in-95 duration-100">
@@ -798,10 +798,10 @@ export const AddProductModal: React.FC<AddProductModalProps> = ({
           </div>
 
           {/* SUBMIT CTA */}
-          <div className="pt-2">
+          <div className="pt-1 pb-1">
             <button
               type="submit"
-              className="w-full h-12 bg-emerald-700 hover:bg-emerald-800 active:scale-[0.98] text-white rounded-xl font-bold text-sm flex items-center justify-center gap-2 shadow-sm shadow-emerald-800/20 transition-all cursor-pointer"
+              className="w-full h-10.5 sm:h-11 bg-emerald-700 hover:bg-emerald-800 active:scale-[0.98] text-white rounded-xl font-bold text-xs sm:text-sm flex items-center justify-center gap-2 shadow-sm shadow-emerald-800/20 transition-all cursor-pointer"
             >
               <Check className="w-4 h-4 stroke-[2.5]" />
               <span>{initialProduct ? 'Simpan Perubahan' : 'Tambahkan ke Toko'}</span>

@@ -468,8 +468,8 @@ export const SalesHistoryView: React.FC<SalesHistoryViewProps> = ({
         </div>
 
         {/* Visual Bar Chart */}
-        <div className="pt-2">
-          <div className="grid grid-cols-7 gap-1.5 sm:gap-3 items-end h-40 sm:h-52 pb-1">
+        <div className="pt-1">
+          <div className="grid grid-cols-7 gap-1.5 sm:gap-3 items-end h-44 sm:h-56 pt-3 pb-1">
             {last7DaysData.map((d, idx) => {
               const isSelected = selectedDayIndex === idx;
               const heightPercent = maxRevenue > 0 ? Math.max(12, Math.round((d.revenue / maxRevenue) * 100)) : 12;
@@ -484,12 +484,12 @@ export const SalesHistoryView: React.FC<SalesHistoryViewProps> = ({
                 >
                   {/* Tooltip / Value on top of bar */}
                   <div
-                    className={`text-[9px] sm:text-[10px] font-bold mb-1.5 transition-all truncate text-center ${
+                    className={`text-[10px] sm:text-[11px] font-bold leading-relaxed py-0.5 mb-1 transition-all truncate text-center shrink-0 ${
                       isSelected
                         ? 'text-emerald-900 scale-105 font-black'
                         : hasSales
                         ? 'text-slate-700'
-                        : 'text-slate-300'
+                        : 'text-slate-400'
                     }`}
                   >
                     {hasSales ? (
@@ -503,7 +503,7 @@ export const SalesHistoryView: React.FC<SalesHistoryViewProps> = ({
 
                   {/* Vertical Bar */}
                   <div
-                    className={`w-full max-w-[42px] sm:max-w-[50px] bg-slate-100 rounded-t-xl overflow-hidden flex items-end h-full transition-all ${
+                    className={`w-full max-w-[42px] sm:max-w-[50px] bg-slate-100 rounded-t-xl overflow-hidden flex items-end flex-1 transition-all ${
                       d.isToday ? 'border-2 border-emerald-500 ring-2 ring-emerald-500/30 shadow-xs' : ''
                     }`}
                   >

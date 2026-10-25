@@ -103,9 +103,18 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
     }
   }, [activeStoreId, activeStore]);
 
-  const totalAssetValue = products.reduce((acc, p) => acc + p.buyPrice * p.stock, 0);
-  const totalPotentialSales = products.reduce((acc, p) => acc + p.sellPrice * p.stock, 0);
-  const potentialProfit = totalPotentialSales - totalAssetValue;
+  const totalAssetValue = products.reduce((acc, p) => acc + p.buyPrice * Math.max(0, p.stock), 0);
+  let potentialGain = 0;
+  let potentialLoss = 0;
+  products.forEach((p) => {
+    const stock = Math.max(0, p.stock);
+    const diff = (p.sellPrice - p.buyPrice) * stock;
+    if (diff > 0) {
+      potentialGain += diff;
+    } else if (diff < 0) {
+      potentialLoss += Math.abs(diff);
+    }
+  });
 
   const handleLogoUpload = async (e: React.ChangeEvent<HTMLInputElement>, isNewStore = false) => {
     const file = e.target.files?.[0];
@@ -506,10 +515,10 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
           </p>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 sm:gap-3 pt-0.5">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5 sm:gap-3 pt-0.5">
           <div className="bg-slate-50 border border-slate-200 p-3 sm:p-4 rounded-2xl space-y-1">
             <span className="text-xs text-slate-500 font-medium leading-snug block truncate">
-              Total Nilai Modal (Harga Beli):
+              Total Nilai Modal:
             </span>
             <div className="text-base sm:text-xl font-black text-slate-900 tabular-nums leading-snug truncate">
               {formatRupiah(totalAssetValue)}
@@ -520,7 +529,15 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
               Potensi Keuntungan:
             </span>
             <div className="text-base sm:text-xl font-black text-emerald-800 tabular-nums leading-snug truncate">
-              +{formatRupiah(potentialProfit)}
+              +{formatRupiah(potentialGain)}
+            </div>
+          </div>
+          <div className="bg-rose-50 border border-rose-100 p-3 sm:p-4 rounded-2xl space-y-1">
+            <span className="text-xs text-rose-700 font-medium leading-snug block truncate">
+              Potensi Kerugian:
+            </span>
+            <div className="text-base sm:text-xl font-black text-rose-700 tabular-nums leading-snug truncate">
+              -{formatRupiah(potentialLoss)}
             </div>
           </div>
         </div>

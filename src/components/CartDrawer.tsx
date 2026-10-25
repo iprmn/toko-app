@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { X, Plus, Minus, ShoppingBag, CheckCircle2, RotateCcw, Copy } from 'lucide-react';
+import { X, Plus, Minus, ShoppingBag, CheckCircle2, RotateCcw, Copy, Check } from 'lucide-react';
 import { CartItem } from '../types/store';
 import { formatRupiah, formatNumber, formatThousands, parseThousands } from '../utils/format';
 
@@ -127,11 +127,16 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
         {/* Content Body: Either Receipt Success OR Cart Items */}
         {lastReceipt ? (
           /* Struk / Berhasil Selesai */
-          <div className="p-6 overflow-y-auto flex flex-col items-center text-center">
-            <div className="w-16 h-16 rounded-full bg-emerald-100 text-emerald-700 flex items-center justify-center mb-3">
-              <CheckCircle2 className="w-10 h-10" />
+          <div className="p-6 overflow-y-auto flex flex-col items-center text-center animate-in fade-in duration-300">
+            {/* Animated Check Icon with bouncing spring and pulsing halo */}
+            <div className="relative mb-3.5 flex items-center justify-center">
+              <div className="absolute w-20 h-20 rounded-full bg-emerald-400/35 animate-success-halo" />
+              <div className="absolute w-16 h-16 rounded-full bg-emerald-500/20 animate-ping" />
+              <div className="relative w-16 h-16 rounded-full bg-emerald-600 text-white flex items-center justify-center shadow-lg shadow-emerald-600/35 animate-success-pop">
+                <Check className="w-9 h-9 stroke-[3]" />
+              </div>
             </div>
-            <h3 className="text-xl font-black text-slate-900">
+            <h3 className="text-xl font-black text-slate-900 animate-in fade-in slide-in-from-bottom-2 duration-300">
               Penjualan Berhasil Dicatat!
             </h3>
             <p className="text-xs text-slate-500 mt-1">
@@ -359,7 +364,7 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
               {/* Uang Diterima / Tunai dari Pembeli */}
               <div>
                 <label className="block text-xs font-bold text-slate-700 mb-1.5">
-                  💵 Uang Pembali:
+                  💵 Uang Pembeli:
                 </label>
                 <div className="relative">
                   <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-500 font-bold text-xs">
