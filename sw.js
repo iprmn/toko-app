@@ -1,4 +1,4 @@
-const CACHE_NAME = "toko-app-pwa-v1792905930530";
+const CACHE_NAME = "toko-app-pwa-v1792916857592";
 const PRECACHE_ASSETS = [
   "./",
   "./index.html",
@@ -6,7 +6,7 @@ const PRECACHE_ASSETS = [
   "./apple-touch-icon.png",
   "./icon-192.png",
   "./icon-512.png",
-  "./assets/index-BQda9-2e.js",
+  "./assets/index-CmHZ1mKD.js",
   "./assets/style-DmaiEar0.css"
 ];
 
