@@ -154,7 +154,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({
             >
               {availableStock}
             </span>
-            <span className="text-[9.5px] sm:text-[10px] font-medium text-slate-400 capitalize mt-0.5 leading-none truncate">
+            <span className="text-[9.5px] sm:text-[10px] font-medium text-slate-400 capitalize mt-0.5 leading-normal truncate">
               {product.unit}
             </span>
           </div>
