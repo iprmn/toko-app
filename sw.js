@@ -1,4 +1,4 @@
-const CACHE_NAME = "toko-app-pwa-v1792986812219";
+const CACHE_NAME = "toko-app-pwa-v1792987880081";
 const PRECACHE_ASSETS = [
   "./",
   "./index.html",
@@ -6,8 +6,8 @@ const PRECACHE_ASSETS = [
   "./apple-touch-icon.png",
   "./icon-192.png",
   "./icon-512.png",
-  "./assets/index-BshIKRx8.js",
-  "./assets/style-YEwgOxhD.css"
+  "./assets/index-BlOivWzR.js",
+  "./assets/style-B79XqB5s.css"
 ];
 
 self.addEventListener("install", (event) => {
