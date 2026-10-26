@@ -83,9 +83,9 @@ export const ProductCard: React.FC<ProductCardProps> = ({
           )}
         </div>
 
-        {/* Product Visual Container (Compact) */}
+        {/* Product Visual Container (1:1 Square Ratio) */}
         <div
-          className={`w-full h-18 sm:h-24 rounded-lg sm:rounded-xl ${
+          className={`w-full aspect-square rounded-lg sm:rounded-xl ${
             isEffectivelyOutOfStock ? 'bg-slate-200/70' : preset.bg
           } flex items-center justify-center relative select-none overflow-hidden`}
         >
@@ -98,7 +98,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({
               }`}
             />
           ) : (
-            <span className={`text-2xl sm:text-4xl drop-shadow-2xs ${isEffectivelyOutOfStock ? 'opacity-60' : ''}`}>
+            <span className={`text-3xl sm:text-5xl drop-shadow-2xs ${isEffectivelyOutOfStock ? 'opacity-60' : ''}`}>
               {preset.icon}
             </span>
           )}
@@ -240,7 +240,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({
 
             {/* Product Visual Container */}
             <div
-              className={`w-full h-40 rounded-xl ${
+              className={`w-full aspect-square rounded-xl ${
                 isEffectivelyOutOfStock ? 'bg-slate-200/70' : preset.bg
               } flex items-center justify-center relative select-none overflow-hidden`}
             >
@@ -253,7 +253,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({
                   }`}
                 />
               ) : (
-                <span className={`text-5xl drop-shadow-2xs ${isEffectivelyOutOfStock ? 'opacity-60' : ''}`}>
+                <span className={`text-6xl drop-shadow-2xs ${isEffectivelyOutOfStock ? 'opacity-60' : ''}`}>
                   {preset.icon}
                 </span>
               )}
@@ -305,7 +305,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({
                 >
                   {availableStock}
                 </span>
-                <span className="text-xs font-medium text-slate-400 capitalize mt-0.5 leading-none">
+                <span className="text-xs font-medium text-slate-400 capitalize mt-0.5 leading-normal">
                   {product.unit}
                 </span>
               </div>
