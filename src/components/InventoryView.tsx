@@ -596,71 +596,97 @@ export const InventoryView: React.FC<InventoryViewProps> = ({
                     : 'border-stone-200/90 shadow-sm hover:shadow-md'
                 }`}
               >
-                {/* Bagian 1: Checkbox Seleksi, Icon / Foto, Nama Barang & Harga Jual/Beli di bawah judul */}
-                <div className="flex items-center gap-3 w-full sm:w-auto sm:flex-1 min-w-0">
-                  {isSelectionMode && (
+                {/* Bagian 1: Header Barang (Foto + Judul) & Info Harga Jual/Beli/Margin */}
+                <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3 w-full sm:w-auto sm:flex-1 min-w-0">
+                  <div className="flex items-center gap-2.5 sm:gap-3 w-full sm:w-auto sm:flex-1 min-w-0">
+                    {isSelectionMode && (
+                      <div
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          toggleSelect(p.id);
+                        }}
+                        onPointerDown={(e) => e.stopPropagation()}
+                        className={`w-6 h-6 rounded-lg flex items-center justify-center shrink-0 cursor-pointer transition-all ${
+                          isSelected
+                            ? 'bg-emerald-700 text-white shadow-2xs'
+                            : 'border-2 border-slate-300 bg-white hover:border-emerald-600'
+                        }`}
+                      >
+                        {isSelected && <Check className="w-4 h-4 stroke-[3]" />}
+                      </div>
+                    )}
+
                     <div
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        toggleSelect(p.id);
-                      }}
-                      onPointerDown={(e) => e.stopPropagation()}
-                      className={`w-6 h-6 rounded-lg flex items-center justify-center shrink-0 cursor-pointer transition-all ${
-                        isSelected
-                          ? 'bg-emerald-700 text-white shadow-2xs'
-                          : 'border-2 border-slate-300 bg-white hover:border-emerald-600'
+                      className={`w-11 h-11 sm:w-12 sm:h-12 rounded-xl ${
+                        preset.bg
+                      } flex items-center justify-center text-xl sm:text-2xl shrink-0 overflow-hidden relative shadow-2xs ${
+                        isOutOfStock ? 'opacity-60 grayscale-[0.5]' : ''
                       }`}
                     >
-                      {isSelected && <Check className="w-4 h-4 stroke-[3]" />}
-                    </div>
-                  )}
-
-                  <div
-                    className={`w-11 h-11 sm:w-12 sm:h-12 rounded-xl ${
-                      preset.bg
-                    } flex items-center justify-center text-xl sm:text-2xl shrink-0 overflow-hidden relative shadow-2xs ${
-                      isOutOfStock ? 'opacity-60 grayscale-[0.5]' : ''
-                    }`}
-                  >
-                    {p.imageUrl ? (
-                      <img
-                        src={p.imageUrl}
-                        alt={p.name}
-                        className="w-full h-full object-cover"
-                      />
-                    ) : (
-                      <span>{preset.icon}</span>
-                    )}
-                  </div>
-
-                  <div className="min-w-0 flex-1">
-                    <div className="flex items-center gap-1.5 flex-wrap">
-                      <h4 className="text-sm sm:text-base font-bold text-slate-900 break-words leading-snug">
-                        {p.name}
-                      </h4>
-                      {isHighlighted && (
-                        <span className="inline-flex items-center gap-1 text-[10px] font-bold text-emerald-800 bg-emerald-100 px-2 py-0.5 rounded-full border border-emerald-300 animate-pulse">
-                          <span>💧</span> Tambah stok di sini
-                        </span>
+                      {p.imageUrl ? (
+                        <img
+                          src={p.imageUrl}
+                          alt={p.name}
+                          className="w-full h-full object-cover"
+                        />
+                      ) : (
+                        <span>{preset.icon}</span>
                       )}
                     </div>
-                    {/* Harga Jual dan Beli di bawah judul produk beserta status untung/rugi */}
-                    <div className="flex items-center gap-2 sm:gap-2.5 flex-wrap mt-1 sm:mt-1.5 text-[11px] sm:text-xs leading-normal">
-                      <span className="text-slate-600 font-semibold">
-                        Jual:{' '}
-                        <span className="text-emerald-700 font-extrabold tabular-nums">
-                          {formatRupiah(p.sellPrice)}
+
+                    <div className="min-w-0 flex-1">
+                      <div className="flex items-center gap-1.5 flex-wrap">
+                        <h4 className="text-sm sm:text-base font-bold text-slate-900 break-words leading-snug">
+                          {p.name}
+                        </h4>
+                        {isHighlighted && (
+                          <span className="inline-flex items-center gap-1 text-[10px] font-bold text-emerald-800 bg-emerald-100 px-2 py-0.5 rounded-full border border-emerald-300 animate-pulse">
+                            <span>💧</span> Tambah stok di sini
+                          </span>
+                        )}
+                      </div>
+
+                      {/* Tampilan Desktop/Tablet: Harga sejajar di bawah nama produk */}
+                      <div className="hidden sm:flex items-center gap-2 sm:gap-2.5 flex-wrap mt-1 text-xs leading-normal">
+                        <span className="text-slate-600 font-semibold whitespace-nowrap">
+                          Jual:{' '}
+                          <span className="text-emerald-700 font-extrabold tabular-nums">
+                            {formatRupiah(p.sellPrice)}
+                          </span>
                         </span>
-                      </span>
-                      <span className="text-slate-300">|</span>
-                      <span className="text-amber-900/80 font-semibold">
-                        Beli:{' '}
-                        <span className="text-amber-800 font-extrabold tabular-nums">
-                          {formatRupiah(p.buyPrice)}
+                        <span className="text-slate-300 select-none">|</span>
+                        <span className="text-amber-900/80 font-semibold whitespace-nowrap">
+                          Beli:{' '}
+                          <span className="text-amber-800 font-extrabold tabular-nums">
+                            {formatRupiah(p.buyPrice)}
+                          </span>
                         </span>
+                        <span className="text-slate-300 select-none">|</span>
+                        <div className="whitespace-nowrap">
+                          {renderProfitBadge(p.sellPrice, p.buyPrice, 'text-xs')}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Tampilan Mobile: Strip Full Width Khusus Harga & Status Untung/Rugi Tanpa Terpotong */}
+                  <div className="sm:hidden w-full bg-slate-50 border border-slate-200/90 rounded-lg px-2.5 py-1.5 flex items-center justify-between gap-1 text-[10.5px] xs:text-[11px] leading-normal whitespace-nowrap">
+                    <span className="text-slate-600 font-semibold truncate shrink-0">
+                      Jual:{' '}
+                      <span className="text-emerald-700 font-extrabold tabular-nums">
+                        {formatRupiah(p.sellPrice)}
                       </span>
-                      <span className="text-slate-300">|</span>
-                      {renderProfitBadge(p.sellPrice, p.buyPrice, 'text-[11px] sm:text-xs')}
+                    </span>
+                    <span className="text-slate-300 select-none shrink-0">|</span>
+                    <span className="text-amber-900/80 font-semibold truncate shrink-0">
+                      Beli:{' '}
+                      <span className="text-amber-800 font-extrabold tabular-nums">
+                        {formatRupiah(p.buyPrice)}
+                      </span>
+                    </span>
+                    <span className="text-slate-300 select-none shrink-0">|</span>
+                    <div className="shrink-0 truncate">
+                      {renderProfitBadge(p.sellPrice, p.buyPrice, 'text-[10.5px] xs:text-[11px]')}
                     </div>
                   </div>
                 </div>
