@@ -25,9 +25,9 @@
     <div id="root"></div>
       <script>
 (function() {
-  var BUILTIN_VERSION = 1792991084125;
-  var BUILTIN_JS = "./assets/index-CZKsfaLC.js";
-  var BUILTIN_CSS = "./assets/style-Cj1SwEs4.css";
+  var BUILTIN_VERSION = 1792991705781;
+  var BUILTIN_JS = "./assets/index-BKbF91J3.js";
+  var BUILTIN_CSS = "./assets/style-CwkFQm4P.css";
   var REMOTE_BASE = "https://iprmn.github.io/toko-app/";
   var OTA_DB_NAME = "toko_ota_cache_db";
   var OTA_STORE_NAME = "bundles";
@@ -39,6 +39,7 @@
 
   function injectBuiltin() {
     window.__TOKO_ACTIVE_VERSION__ = BUILTIN_VERSION;
+    window.__TOKO_ACTIVE_JS_PATH__ = "assets/index-BKbF91J3.js";
     var link = document.createElement("link");
     link.rel = "stylesheet";
     link.href = BUILTIN_CSS;
@@ -111,6 +112,7 @@
 
   function injectOtaBundle(bundle) {
     window.__TOKO_ACTIVE_VERSION__ = bundle.version;
+    if (bundle.jsPath) window.__TOKO_ACTIVE_JS_PATH__ = bundle.jsPath;
     var style = document.createElement("style");
     style.id = "toko-ota-css";
     style.textContent = bundle.css;
@@ -146,24 +148,32 @@
     });
   }
 
-  function checkAndDownloadRemote(minVersion, timeoutMs) {
+  function checkAndDownloadRemote(minVersion, metaTimeoutMs, assetTimeoutMs) {
     if (!navigator.onLine) return Promise.resolve(null);
+    var activeJsPath = window.__TOKO_ACTIVE_JS_PATH__ || "";
+    var dlTimeout = assetTimeoutMs || metaTimeoutMs || 10000;
     var metaUrl = REMOTE_BASE + "version.json?t=" + Date.now();
-    return fetchWithTimeout(metaUrl, timeoutMs)
+    return fetchWithTimeout(metaUrl, metaTimeoutMs || 3500)
       .then(function(res) { return res.json(); })
       .then(function(meta) {
-        if (!meta || !meta.version || meta.version <= minVersion) {
+        if (!meta || !meta.version) {
+          return null;
+        }
+        var isNewerVersion = meta.version > minVersion;
+        var isDifferentHash = activeJsPath && meta.js && meta.js !== activeJsPath && meta.version >= minVersion - 120000;
+        if (!isNewerVersion && !isDifferentHash) {
           return null;
         }
         return Promise.all([
-          fetchWithTimeout(REMOTE_BASE + meta.css + "?v=" + meta.version, timeoutMs).then(function(r) { return r.text(); }),
-          fetchWithTimeout(REMOTE_BASE + meta.js + "?v=" + meta.version, timeoutMs).then(function(r) { return r.text(); })
+          fetchWithTimeout(REMOTE_BASE + meta.css + "?v=" + meta.version, dlTimeout).then(function(r) { return r.text(); }),
+          fetchWithTimeout(REMOTE_BASE + meta.js + "?v=" + meta.version, dlTimeout).then(function(r) { return r.text(); })
         ]).then(function(results) {
           var cssText = results[0];
           var jsText = results[1];
           if (!jsText || jsText.length < 1000) return null;
           var newBundle = {
             version: meta.version,
+            jsPath: meta.js,
             css: cssText,
             js: jsText,
             updatedAt: Date.now()
@@ -176,17 +186,29 @@
       .catch(function() { return null; });
   }
 
+  function isUserEditingInput() {
+    var el = document.activeElement;
+    if (!el) return false;
+    var tag = (el.tagName || "").toUpperCase();
+    return tag === "INPUT" || tag === "TEXTAREA" || tag === "SELECT" || el.isContentEditable;
+  }
+
   function showUpdateReadyBanner() {
     if (document.getElementById("toko-ota-banner")) return;
     var banner = document.createElement("button");
     banner.id = "toko-ota-banner";
     banner.type = "button";
     banner.style.cssText = "position:fixed;top:14px;left:50%;transform:translateX(-50%);z-index:9999;background:#065f46;color:#ffffff;font-family:sans-serif;font-size:12px;font-weight:700;padding:10px 16px;border-radius:9999px;border:1px solid #34d399;box-shadow:0 10px 25px rgba(0,0,0,0.25);display:flex;align-items:center;gap:8px;cursor:pointer;white-space:nowrap;";
-    banner.innerHTML = "<span style='width:8px;height:8px;border-radius:9999px;background:#34d399;display:inline-block;'></span><span>Update baru siap digunakan — Ketuk untuk Muat Ulang</span>";
+    banner.innerHTML = "<span style='width:8px;height:8px;border-radius:9999px;background:#34d399;display:inline-block;'></span><span>Memperbarui otomatis ke versi terbaru...</span>";
     banner.onclick = function() {
       window.location.reload();
     };
     document.body.appendChild(banner);
+    if (!isUserEditingInput()) {
+      setTimeout(function() {
+        window.location.reload();
+      }, 900);
+    }
   }
 
   var isCheckingBg = false;
@@ -194,9 +216,9 @@
     if (isCheckingBg || !navigator.onLine) return;
     isCheckingBg = true;
     var activeVer = window.__TOKO_ACTIVE_VERSION__ || BUILTIN_VERSION;
-    checkAndDownloadRemote(activeVer, 12000).then(function(newBundle) {
+    checkAndDownloadRemote(activeVer, 5000, 15000).then(function(newBundle) {
       isCheckingBg = false;
-      if (newBundle && newBundle.version > activeVer) {
+      if (newBundle && (newBundle.version > activeVer || (newBundle.jsPath && newBundle.jsPath !== window.__TOKO_ACTIVE_JS_PATH__))) {
         showUpdateReadyBanner();
       }
     }).catch(function() {
@@ -207,19 +229,25 @@
   // Startup flow for Android APK:
   getCachedBundle().then(function(cached) {
     var bestLocalVersion = (cached && cached.version > BUILTIN_VERSION) ? cached.version : BUILTIN_VERSION;
+    if (cached && cached.version > BUILTIN_VERSION && cached.jsPath) {
+      window.__TOKO_ACTIVE_JS_PATH__ = cached.jsPath;
+    } else {
+      window.__TOKO_ACTIVE_JS_PATH__ = "assets/index-BKbF91J3.js";
+    }
 
-    // Try fast 2-second OTA check on startup if online so updates apply immediately
-    checkAndDownloadRemote(bestLocalVersion, 2200).then(function(freshBundle) {
+    // Try fast OTA metadata check on startup (3.5s) and allow up to 10s for downloading bundle if update exists
+    checkAndDownloadRemote(bestLocalVersion, 3500, 10000).then(function(freshBundle) {
       if (freshBundle) {
         injectOtaBundle(freshBundle);
       } else if (cached && cached.version > BUILTIN_VERSION && cached.js && cached.css) {
         injectOtaBundle(cached);
-        setTimeout(triggerBackgroundCheck, 4000);
+        setTimeout(triggerBackgroundCheck, 3500);
       } else {
         injectBuiltin();
-        setTimeout(triggerBackgroundCheck, 4000);
+        setTimeout(triggerBackgroundCheck, 3500);
       }
 
+      setInterval(triggerBackgroundCheck, 25000);
       window.addEventListener("online", triggerBackgroundCheck);
       document.addEventListener("visibilitychange", function() {
         if (document.visibilityState === "visible") {
