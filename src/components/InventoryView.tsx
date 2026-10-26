@@ -588,7 +588,7 @@ export const InventoryView: React.FC<InventoryViewProps> = ({
                     onEditProduct(p);
                   }
                 }}
-                className={`relative bg-white rounded-xl sm:rounded-2xl px-3 py-3.5 sm:p-4 border transition-all flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4 min-h-[144px] sm:min-h-0 select-none cursor-pointer ${
+                className={`relative bg-white rounded-xl lg:rounded-2xl px-3 py-3.5 lg:p-4 border transition-all flex flex-col lg:flex-row lg:items-center justify-between gap-2.5 lg:gap-4 min-h-0 select-none cursor-pointer ${
                   isSelected
                     ? 'ring-2 ring-emerald-600 bg-emerald-50/50 border-emerald-300 shadow-md'
                     : isHighlighted
@@ -597,8 +597,8 @@ export const InventoryView: React.FC<InventoryViewProps> = ({
                 }`}
               >
                 {/* Bagian 1: Header Barang (Foto + Judul) & Info Harga Jual/Beli/Margin */}
-                <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3 w-full sm:w-auto sm:flex-1 min-w-0">
-                  <div className="flex items-center gap-2.5 sm:gap-3 w-full sm:w-auto sm:flex-1 min-w-0">
+                <div className="flex flex-col lg:flex-row lg:items-center gap-2 lg:gap-3 w-full lg:w-auto lg:flex-1 min-w-0">
+                  <div className="flex items-center gap-2.5 lg:gap-3 w-full lg:w-auto lg:flex-1 min-w-0">
                     {isSelectionMode && (
                       <div
                         onClick={(e) => {
@@ -617,9 +617,9 @@ export const InventoryView: React.FC<InventoryViewProps> = ({
                     )}
 
                     <div
-                      className={`w-11 h-11 sm:w-12 sm:h-12 rounded-xl ${
+                      className={`w-11 h-11 lg:w-12 lg:h-12 rounded-xl ${
                         preset.bg
-                      } flex items-center justify-center text-xl sm:text-2xl shrink-0 overflow-hidden relative shadow-2xs ${
+                      } flex items-center justify-center text-xl lg:text-2xl shrink-0 overflow-hidden relative shadow-2xs ${
                         isOutOfStock ? 'opacity-60 grayscale-[0.5]' : ''
                       }`}
                     >
@@ -636,7 +636,7 @@ export const InventoryView: React.FC<InventoryViewProps> = ({
 
                     <div className="min-w-0 flex-1">
                       <div className="flex items-center gap-1.5 flex-wrap">
-                        <h4 className="text-sm sm:text-base font-bold text-slate-900 break-words leading-snug">
+                        <h4 className="text-sm lg:text-base font-bold text-slate-900 break-words leading-snug">
                           {p.name}
                         </h4>
                         {isHighlighted && (
@@ -646,8 +646,8 @@ export const InventoryView: React.FC<InventoryViewProps> = ({
                         )}
                       </div>
 
-                      {/* Tampilan Desktop/Tablet: Harga sejajar & rapi di bawah nama produk dengan container soft badge */}
-                      <div className="hidden sm:inline-flex items-center gap-2.5 mt-1.5 px-2.5 py-1 bg-slate-50 border border-slate-200/90 rounded-lg text-xs leading-normal whitespace-nowrap shadow-2xs">
+                      {/* Tampilan Web / Tab Landscape: Harga sejajar & rapi di bawah nama produk dengan container soft badge */}
+                      <div className="hidden lg:inline-flex items-center gap-2.5 mt-1.5 px-2.5 py-1 bg-slate-50 border border-slate-200/90 rounded-lg text-xs leading-normal whitespace-nowrap shadow-2xs">
                         <span className="text-slate-600 font-semibold">
                           Jual:{' '}
                           <span className="text-emerald-700 font-extrabold tabular-nums">
@@ -669,8 +669,8 @@ export const InventoryView: React.FC<InventoryViewProps> = ({
                     </div>
                   </div>
 
-                  {/* Tampilan Mobile: Strip Full Width Khusus Harga & Status Untung/Rugi Tanpa Terpotong */}
-                  <div className="sm:hidden w-full bg-slate-50 border border-slate-200/90 rounded-lg px-2.5 py-1.5 flex items-center justify-between gap-1 text-[10.5px] xs:text-[11px] leading-normal whitespace-nowrap">
+                  {/* Tampilan HP & Tab Portrait (Saat space sempit): Strip Full Width Khusus Harga & Status Untung/Rugi */}
+                  <div className="lg:hidden w-full bg-slate-50 border border-slate-200/90 rounded-lg px-2.5 py-1.5 flex items-center justify-between gap-1 text-[10.5px] xs:text-[11px] sm:text-xs leading-normal whitespace-nowrap">
                     <span className="text-slate-600 font-semibold truncate shrink-0">
                       Jual:{' '}
                       <span className="text-emerald-700 font-extrabold tabular-nums">
@@ -686,27 +686,27 @@ export const InventoryView: React.FC<InventoryViewProps> = ({
                     </span>
                     <span className="text-slate-300 select-none shrink-0">|</span>
                     <div className="shrink-0 truncate">
-                      {renderProfitBadge(p.sellPrice, p.buyPrice, 'text-[10.5px] xs:text-[11px]')}
+                      {renderProfitBadge(p.sellPrice, p.buyPrice, 'text-[10.5px] xs:text-[11px] sm:text-xs')}
                     </div>
                   </div>
                 </div>
 
                 {/* Bagian 2: Chip Info Rak & Chip Kategori */}
-                <div className="w-full sm:w-auto border-t border-slate-300 sm:border-t-0 pt-2 sm:pt-0 flex flex-row sm:flex-col items-center sm:items-end justify-between sm:justify-center gap-2 sm:gap-1.5 shrink-0">
+                <div className="w-full lg:w-auto border-t border-slate-200/80 lg:border-t-0 pt-2 lg:pt-0 flex flex-row lg:flex-col items-center lg:items-end justify-between lg:justify-center gap-2 lg:gap-1.5 shrink-0">
                   <span
-                    className="inline-flex items-center justify-center max-w-[60%] sm:max-w-none sm:w-44 text-center text-[10px] font-bold text-amber-800 bg-amber-50 px-2.5 py-0.5 sm:py-1 rounded border border-amber-200/90 shadow-2xs truncate shrink-0"
+                    className="inline-flex items-center justify-center max-w-[60%] lg:max-w-none lg:w-44 text-center text-[10px] lg:text-[11px] font-bold text-amber-800 bg-amber-50 px-2.5 py-0.5 lg:py-1 rounded border border-amber-200/90 shadow-2xs truncate shrink-0"
                     title={`Rak / Etalase: ${shelfLabel}`}
                   >
                     🏷️ {shelfLabel}
                   </span>
-                  <span className="inline-flex items-center justify-center min-w-[80px] sm:w-44 text-center text-[10px] text-slate-700 bg-slate-100 px-2 py-0.5 sm:py-1 rounded uppercase font-bold tracking-wider border border-slate-300 shadow-2xs whitespace-nowrap shrink-0">
+                  <span className="inline-flex items-center justify-center min-w-[80px] lg:w-44 text-center text-[10px] lg:text-[11px] text-slate-700 bg-slate-100 px-2 py-0.5 lg:py-1 rounded uppercase font-bold tracking-wider border border-slate-300 shadow-2xs whitespace-nowrap shrink-0">
                     {p.category}
                   </span>
                 </div>
 
                 {/* Bagian 3: Status & Stepper Stok */}
                 <div
-                  className="flex items-center justify-between sm:justify-end gap-2 sm:gap-3 pt-2 sm:pt-0 border-t border-slate-300 sm:border-t-0 w-full sm:w-auto shrink-0"
+                  className="flex items-center justify-between lg:justify-end gap-2 lg:gap-3 pt-2 lg:pt-0 border-t border-slate-200/80 lg:border-t-0 w-full lg:w-auto shrink-0"
                   onPointerDown={(e) => e.stopPropagation()}
                   onClick={(e) => e.stopPropagation()}
                 >
