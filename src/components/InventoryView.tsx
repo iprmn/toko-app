@@ -31,6 +31,29 @@ interface InventoryViewProps {
   onClearHighlight?: () => void;
 }
 
+const renderProfitBadge = (sellPrice: number, buyPrice: number, sizeClass = 'text-[11px] sm:text-xs') => {
+  const diff = sellPrice - buyPrice;
+  if (diff > 0) {
+    return (
+      <span className={`${sizeClass} text-emerald-600 font-bold truncate leading-tight`}>
+        Untung + {formatRupiah(diff)}
+      </span>
+    );
+  }
+  if (diff < 0) {
+    return (
+      <span className={`${sizeClass} text-rose-600 font-bold truncate leading-tight`}>
+        Rugi - {formatRupiah(Math.abs(diff))}
+      </span>
+    );
+  }
+  return (
+    <span className={`${sizeClass} text-amber-800 font-bold truncate leading-tight`}>
+      Tidak untung
+    </span>
+  );
+};
+
 export const InventoryView: React.FC<InventoryViewProps> = ({
   products,
   initialStatusFilter = 'all',
@@ -621,7 +644,7 @@ export const InventoryView: React.FC<InventoryViewProps> = ({
                         </span>
                       )}
                     </div>
-                    {/* Harga Jual dan Beli di bawah judul produk */}
+                    {/* Harga Jual dan Beli di bawah judul produk beserta status untung/rugi */}
                     <div className="flex items-center gap-2 sm:gap-2.5 flex-wrap mt-1 sm:mt-1.5 text-[11px] sm:text-xs leading-normal">
                       <span className="text-slate-600 font-semibold">
                         Jual:{' '}
@@ -636,6 +659,8 @@ export const InventoryView: React.FC<InventoryViewProps> = ({
                           {formatRupiah(p.buyPrice)}
                         </span>
                       </span>
+                      <span className="text-slate-300">|</span>
+                      {renderProfitBadge(p.sellPrice, p.buyPrice, 'text-[11px] sm:text-xs')}
                     </div>
                   </div>
                 </div>

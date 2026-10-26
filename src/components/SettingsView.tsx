@@ -1,5 +1,5 @@
 import React, { useState, useRef } from 'react';
-import { Store, Save, Plus, Trash2, ShieldAlert, Camera } from 'lucide-react';
+import { Store, Save, Plus, Trash2, ShieldAlert, Camera, ChevronDown } from 'lucide-react';
 import { StoreAccount, Product, Transaction } from '../types/store';
 import { formatRupiah, formatRupiahFull } from '../utils/format';
 
@@ -104,17 +104,33 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
   }, [activeStoreId, activeStore]);
 
   const totalAssetValue = products.reduce((acc, p) => acc + p.buyPrice * Math.max(0, p.stock), 0);
+  
+  const [isProfitDetailOpen, setIsProfitDetailOpen] = useState(false);
+  const [detailFilter, setDetailFilter] = useState<'all' | 'profit' | 'loss' | 'neutral'>('all');
+
+  const profitableProducts: Array<{ product: Product; profitPerUnit: number; totalProfit: number }> = [];
+  const lossProducts: Array<{ product: Product; lossPerUnit: number; totalLoss: number }> = [];
+  const neutralProducts: Array<{ product: Product }> = [];
+
   let potentialGain = 0;
   let potentialLoss = 0;
   products.forEach((p) => {
     const stock = Math.max(0, p.stock);
-    const diff = (p.sellPrice - p.buyPrice) * stock;
+    const diff = p.sellPrice - p.buyPrice;
     if (diff > 0) {
-      potentialGain += diff;
+      const totalDiff = diff * stock;
+      potentialGain += totalDiff;
+      profitableProducts.push({ product: p, profitPerUnit: diff, totalProfit: totalDiff });
     } else if (diff < 0) {
-      potentialLoss += Math.abs(diff);
+      const totalDiff = Math.abs(diff) * stock;
+      potentialLoss += totalDiff;
+      lossProducts.push({ product: p, lossPerUnit: Math.abs(diff), totalLoss: totalDiff });
+    } else {
+      neutralProducts.push({ product: p });
     }
   });
+
+  const netProfit = potentialGain - potentialLoss;
 
   const handleLogoUpload = async (e: React.ChangeEvent<HTMLInputElement>, isNewStore = false) => {
     const file = e.target.files?.[0];
@@ -515,7 +531,8 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
           </p>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5 sm:gap-3 pt-0.5">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 sm:gap-3 pt-0.5">
+          {/* Card 1: Total Nilai Modal */}
           <div className="bg-slate-50 border border-slate-200 p-3 sm:p-4 rounded-2xl space-y-1">
             <span className="text-xs text-slate-500 font-medium leading-snug block truncate">
               Total Nilai Modal:
@@ -524,23 +541,328 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
               {formatRupiahFull(totalAssetValue)}
             </div>
           </div>
-          <div className="bg-emerald-50 border border-emerald-100 p-3 sm:p-4 rounded-2xl space-y-1">
-            <span className="text-xs text-emerald-800 font-medium leading-snug block truncate">
-              Potensi Keuntungan:
-            </span>
-            <div className="text-base sm:text-xl font-black text-emerald-800 tabular-nums leading-snug truncate">
-              +{formatRupiahFull(potentialGain)}
+
+          {/* Card 2: Total Keuntungan (Bisa Untung / Rugi) dengan Dropdown Detail */}
+          <div
+            onClick={() => setIsProfitDetailOpen(!isProfitDetailOpen)}
+            className={`p-3 sm:p-4 rounded-2xl border transition-all cursor-pointer space-y-1 select-none ${
+              netProfit > 0
+                ? 'bg-emerald-50/80 border-emerald-200 hover:border-emerald-300 ring-1 ring-emerald-500/10'
+                : netProfit < 0
+                ? 'bg-rose-50/80 border-rose-200 hover:border-rose-300 ring-1 ring-rose-500/10'
+                : 'bg-slate-50 border-slate-200 hover:border-slate-300'
+            }`}
+          >
+            <div className="flex items-center justify-between gap-2">
+              <span
+                className={`text-xs font-bold leading-snug block truncate ${
+                  netProfit > 0
+                    ? 'text-emerald-800'
+                    : netProfit < 0
+                    ? 'text-rose-700'
+                    : 'text-slate-600'
+                }`}
+              >
+                Total Keuntungan:
+              </span>
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setIsProfitDetailOpen(!isProfitDetailOpen);
+                }}
+                className={`inline-flex items-center gap-1 text-[10px] sm:text-[11px] font-bold px-2 py-0.5 rounded-lg border transition-all shrink-0 cursor-pointer ${
+                  netProfit > 0
+                    ? 'bg-emerald-100 text-emerald-800 border-emerald-300 hover:bg-emerald-200'
+                    : netProfit < 0
+                    ? 'bg-rose-100 text-rose-700 border-rose-300 hover:bg-rose-200'
+                    : 'bg-slate-200/80 text-slate-700 border-slate-300 hover:bg-slate-300'
+                }`}
+              >
+                <span>{isProfitDetailOpen ? 'Tutup Detail' : 'Lihat Detail'}</span>
+                <ChevronDown
+                  className={`w-3.5 h-3.5 transition-transform duration-200 ${
+                    isProfitDetailOpen ? 'rotate-180' : ''
+                  }`}
+                />
+              </button>
             </div>
-          </div>
-          <div className="bg-rose-50 border border-rose-100 p-3 sm:p-4 rounded-2xl space-y-1">
-            <span className="text-xs text-rose-700 font-medium leading-snug block truncate">
-              Potensi Kerugian:
-            </span>
-            <div className="text-base sm:text-xl font-black text-rose-700 tabular-nums leading-snug truncate">
-              -{formatRupiahFull(potentialLoss)}
+            <div
+              className={`text-base sm:text-xl font-black tabular-nums leading-snug truncate ${
+                netProfit > 0
+                  ? 'text-emerald-800'
+                  : netProfit < 0
+                  ? 'text-rose-700'
+                  : 'text-slate-900'
+              }`}
+            >
+              {netProfit > 0
+                ? `+${formatRupiahFull(netProfit)}`
+                : netProfit < 0
+                ? `-${formatRupiahFull(Math.abs(netProfit))}`
+                : 'Rp 0'}
             </div>
           </div>
         </div>
+
+        {/* Dropdown Rincian: Barang Untung, Barang Rugi, Barang Tidak Untung */}
+        {isProfitDetailOpen && (
+          <div className="mt-3 p-3 sm:p-4 rounded-2xl bg-slate-50 border border-slate-200/90 space-y-3 animate-in fade-in slide-in-from-top-2 duration-200">
+            {/* Header info & Filter Tabs */}
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-200 pb-2.5">
+              <div className="flex items-center gap-2">
+                <span className="text-xs font-bold text-slate-800">
+                  Rincian Profitabilitas Stok:
+                </span>
+                <span className="text-[11px] text-slate-500 font-medium">
+                  ({products.length} total barang)
+                </span>
+              </div>
+
+              {/* 4 Filter Pills */}
+              <div className="flex items-center gap-1.5 overflow-x-auto pb-1 sm:pb-0">
+                <button
+                  type="button"
+                  onClick={() => setDetailFilter('all')}
+                  className={`px-2.5 py-1 rounded-lg text-[10px] sm:text-xs font-bold transition-all cursor-pointer whitespace-nowrap ${
+                    detailFilter === 'all'
+                      ? 'bg-slate-800 text-white shadow-2xs'
+                      : 'bg-white text-slate-600 hover:bg-slate-100 border border-slate-200'
+                  }`}
+                >
+                  Semua ({products.length})
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setDetailFilter('profit')}
+                  className={`px-2.5 py-1 rounded-lg text-[10px] sm:text-xs font-bold transition-all cursor-pointer whitespace-nowrap ${
+                    detailFilter === 'profit'
+                      ? 'bg-emerald-700 text-white shadow-2xs'
+                      : 'bg-emerald-50 text-emerald-800 hover:bg-emerald-100 border border-emerald-200'
+                  }`}
+                >
+                  Untung ({profitableProducts.length})
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setDetailFilter('loss')}
+                  className={`px-2.5 py-1 rounded-lg text-[10px] sm:text-xs font-bold transition-all cursor-pointer whitespace-nowrap ${
+                    detailFilter === 'loss'
+                      ? 'bg-rose-700 text-white shadow-2xs'
+                      : 'bg-rose-50 text-rose-700 hover:bg-rose-100 border border-rose-200'
+                  }`}
+                >
+                  Rugi ({lossProducts.length})
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setDetailFilter('neutral')}
+                  className={`px-2.5 py-1 rounded-lg text-[10px] sm:text-xs font-bold transition-all cursor-pointer whitespace-nowrap ${
+                    detailFilter === 'neutral'
+                      ? 'bg-amber-800 text-white shadow-2xs'
+                      : 'bg-amber-50 text-amber-900 hover:bg-amber-100 border border-amber-200'
+                  }`}
+                >
+                  Tidak Untung ({neutralProducts.length})
+                </button>
+              </div>
+            </div>
+
+            {/* 3 Summary Mini-Cards */}
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+              {/* 1. Barang Untung */}
+              <div
+                onClick={() => setDetailFilter('profit')}
+                className={`p-2.5 rounded-xl space-y-0.5 border cursor-pointer transition-all ${
+                  detailFilter === 'profit'
+                    ? 'bg-emerald-100/80 border-emerald-400 ring-2 ring-emerald-600/20'
+                    : 'bg-emerald-50/90 border-emerald-200/90 hover:bg-emerald-100/60'
+                }`}
+              >
+                <div className="flex items-center justify-between text-xs">
+                  <span className="font-bold text-emerald-900">Barang Untung</span>
+                  <span className="text-[10px] font-bold bg-emerald-200/80 text-emerald-900 px-1.5 py-0.2 rounded-full">
+                    {profitableProducts.length}
+                  </span>
+                </div>
+                <div className="text-sm sm:text-base font-black text-emerald-800 tabular-nums">
+                  +{formatRupiahFull(potentialGain)}
+                </div>
+              </div>
+
+              {/* 2. Barang Rugi */}
+              <div
+                onClick={() => setDetailFilter('loss')}
+                className={`p-2.5 rounded-xl space-y-0.5 border cursor-pointer transition-all ${
+                  detailFilter === 'loss'
+                    ? 'bg-rose-100/80 border-rose-400 ring-2 ring-rose-600/20'
+                    : 'bg-rose-50/90 border-rose-200/90 hover:bg-rose-100/60'
+                }`}
+              >
+                <div className="flex items-center justify-between text-xs">
+                  <span className="font-bold text-rose-900">Barang Rugi</span>
+                  <span className="text-[10px] font-bold bg-rose-200/80 text-rose-900 px-1.5 py-0.2 rounded-full">
+                    {lossProducts.length}
+                  </span>
+                </div>
+                <div className="text-sm sm:text-base font-black text-rose-700 tabular-nums">
+                  -{formatRupiahFull(potentialLoss)}
+                </div>
+              </div>
+
+              {/* 3. Barang Tidak Untung */}
+              <div
+                onClick={() => setDetailFilter('neutral')}
+                className={`p-2.5 rounded-xl space-y-0.5 border cursor-pointer transition-all ${
+                  detailFilter === 'neutral'
+                    ? 'bg-amber-100/80 border-amber-400 ring-2 ring-amber-600/20'
+                    : 'bg-amber-50/90 border-amber-200/90 hover:bg-amber-100/60'
+                }`}
+              >
+                <div className="flex items-center justify-between text-xs">
+                  <span className="font-bold text-amber-900">Barang Tidak Untung</span>
+                  <span className="text-[10px] font-bold bg-amber-200/80 text-amber-900 px-1.5 py-0.2 rounded-full">
+                    {neutralProducts.length}
+                  </span>
+                </div>
+                <div className="text-sm sm:text-base font-black text-amber-800 tabular-nums">
+                  Rp 0
+                </div>
+              </div>
+            </div>
+
+            {/* List Barang sesuai filter */}
+            <div className="space-y-1.5 max-h-64 sm:max-h-80 overflow-y-auto pr-1">
+              {/* Rincian Barang Untung */}
+              {(detailFilter === 'all' || detailFilter === 'profit') && (
+                <div className="space-y-1">
+                  {detailFilter === 'all' && (
+                    <div className="text-[11px] font-bold text-emerald-800 uppercase tracking-wider px-1 pt-1">
+                      🟢 Barang Untung ({profitableProducts.length})
+                    </div>
+                  )}
+                  {profitableProducts.length === 0 ? (
+                    <div className="p-2 text-center text-xs text-slate-400 bg-white rounded-xl border border-slate-200">
+                      Tidak ada barang dengan margin untung
+                    </div>
+                  ) : (
+                    profitableProducts.map(({ product: p, profitPerUnit, totalProfit }) => (
+                      <div
+                        key={`profit-${p.id}`}
+                        className="bg-white border border-emerald-100 hover:border-emerald-200 p-2 sm:p-2.5 rounded-xl flex items-center justify-between gap-2 text-xs"
+                      >
+                        <div className="min-w-0 flex-1">
+                          <div className="font-bold text-slate-800 truncate">{p.name}</div>
+                          <div className="text-[11px] text-slate-500 flex items-center gap-1.5 sm:gap-2 flex-wrap mt-0.5">
+                            <span>Beli: {formatRupiahFull(p.buyPrice)}</span>
+                            <span>•</span>
+                            <span>Jual: {formatRupiahFull(p.sellPrice)}</span>
+                            <span>•</span>
+                            <span className="text-emerald-700 font-bold">
+                              Untung + {formatRupiahFull(profitPerUnit)}
+                            </span>
+                          </div>
+                        </div>
+                        <div className="text-right shrink-0">
+                          <div className="font-black text-emerald-800 tabular-nums text-xs sm:text-sm">
+                            +{formatRupiahFull(totalProfit)}
+                          </div>
+                          <div className="text-[10px] text-slate-400">
+                            Stok: {p.stock} {p.unit}
+                          </div>
+                        </div>
+                      </div>
+                    ))
+                  )}
+                </div>
+              )}
+
+              {/* Rincian Barang Rugi */}
+              {(detailFilter === 'all' || detailFilter === 'loss') && (
+                <div className="space-y-1 pt-1.5">
+                  {detailFilter === 'all' && (
+                    <div className="text-[11px] font-bold text-rose-700 uppercase tracking-wider px-1 pt-1">
+                      🔴 Barang Rugi ({lossProducts.length})
+                    </div>
+                  )}
+                  {lossProducts.length === 0 ? (
+                    <div className="p-2 text-center text-xs text-slate-400 bg-white rounded-xl border border-slate-200">
+                      Tidak ada barang rugi (Aman)
+                    </div>
+                  ) : (
+                    lossProducts.map(({ product: p, lossPerUnit, totalLoss }) => (
+                      <div
+                        key={`loss-${p.id}`}
+                        className="bg-white border border-rose-100 hover:border-rose-200 p-2 sm:p-2.5 rounded-xl flex items-center justify-between gap-2 text-xs"
+                      >
+                        <div className="min-w-0 flex-1">
+                          <div className="font-bold text-slate-800 truncate">{p.name}</div>
+                          <div className="text-[11px] text-slate-500 flex items-center gap-1.5 sm:gap-2 flex-wrap mt-0.5">
+                            <span>Beli: {formatRupiahFull(p.buyPrice)}</span>
+                            <span>•</span>
+                            <span>Jual: {formatRupiahFull(p.sellPrice)}</span>
+                            <span>•</span>
+                            <span className="text-rose-600 font-bold">
+                              Rugi - {formatRupiahFull(lossPerUnit)}
+                            </span>
+                          </div>
+                        </div>
+                        <div className="text-right shrink-0">
+                          <div className="font-black text-rose-700 tabular-nums text-xs sm:text-sm">
+                            -{formatRupiahFull(totalLoss)}
+                          </div>
+                          <div className="text-[10px] text-slate-400">
+                            Stok: {p.stock} {p.unit}
+                          </div>
+                        </div>
+                      </div>
+                    ))
+                  )}
+                </div>
+              )}
+
+              {/* Rincian Barang Tidak Untung */}
+              {(detailFilter === 'all' || detailFilter === 'neutral') && (
+                <div className="space-y-1 pt-1.5">
+                  {detailFilter === 'all' && (
+                    <div className="text-[11px] font-bold text-amber-800 uppercase tracking-wider px-1 pt-1">
+                      ⚖️ Barang Tidak Untung ({neutralProducts.length})
+                    </div>
+                  )}
+                  {neutralProducts.length === 0 ? (
+                    <div className="p-2 text-center text-xs text-slate-400 bg-white rounded-xl border border-slate-200">
+                      Tidak ada barang tidak untung
+                    </div>
+                  ) : (
+                    neutralProducts.map(({ product: p }) => (
+                      <div
+                        key={`neutral-${p.id}`}
+                        className="bg-white border border-amber-100 hover:border-amber-200 p-2 sm:p-2.5 rounded-xl flex items-center justify-between gap-2 text-xs"
+                      >
+                        <div className="min-w-0 flex-1">
+                          <div className="font-bold text-slate-800 truncate">{p.name}</div>
+                          <div className="text-[11px] text-slate-500 flex items-center gap-1.5 sm:gap-2 flex-wrap mt-0.5">
+                            <span>Harga Beli = Jual: {formatRupiahFull(p.sellPrice)}</span>
+                            <span>•</span>
+                            <span className="text-amber-800 font-bold">Tidak untung</span>
+                          </div>
+                        </div>
+                        <div className="text-right shrink-0">
+                          <div className="font-bold text-slate-700 tabular-nums text-xs sm:text-sm">
+                            Rp 0
+                          </div>
+                          <div className="text-[10px] text-slate-400">
+                            Stok: {p.stock} {p.unit}
+                          </div>
+                        </div>
+                      </div>
+                    ))
+                  )}
+                </div>
+              )}
+            </div>
+          </div>
+        )}
       </div>
 
       {/* 4. ATUR UKURAN HURUF (CHECKPOINT BAR 4 UKURAN) */}
