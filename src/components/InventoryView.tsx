@@ -588,7 +588,7 @@ export const InventoryView: React.FC<InventoryViewProps> = ({
                     onEditProduct(p);
                   }
                 }}
-                className={`relative bg-white rounded-xl sm:rounded-2xl px-3 py-3.5 sm:p-4 border transition-all flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4 min-h-[144px] sm:min-h-0 select-none cursor-pointer ${
+                className={`relative bg-white rounded-xl sm:rounded-2xl px-3 py-3.5 sm:p-4 border transition-all flex flex-col gap-2.5 sm:gap-3 select-none cursor-pointer ${
                   isSelected
                     ? 'ring-2 ring-emerald-600 bg-emerald-50/50 border-emerald-300 shadow-md'
                     : isHighlighted
@@ -596,117 +596,94 @@ export const InventoryView: React.FC<InventoryViewProps> = ({
                     : 'border-stone-200/90 shadow-sm hover:shadow-md'
                 }`}
               >
-                {/* Bagian 1: Header Barang (Foto + Judul) & Info Harga Jual/Beli/Margin */}
-                <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3 w-full sm:w-auto sm:flex-1 min-w-0">
-                  <div className="flex items-center gap-2.5 sm:gap-3 w-full sm:w-auto sm:flex-1 min-w-0">
-                    {isSelectionMode && (
-                      <div
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          toggleSelect(p.id);
-                        }}
-                        onPointerDown={(e) => e.stopPropagation()}
-                        className={`w-6 h-6 rounded-lg flex items-center justify-center shrink-0 cursor-pointer transition-all ${
-                          isSelected
-                            ? 'bg-emerald-700 text-white shadow-2xs'
-                            : 'border-2 border-slate-300 bg-white hover:border-emerald-600'
-                        }`}
-                      >
-                        {isSelected && <Check className="w-4 h-4 stroke-[3]" />}
-                      </div>
-                    )}
-
+                {/* Bagian 1: Header Barang (Foto + Judul) */}
+                <div className="flex items-center gap-2.5 sm:gap-3 w-full min-w-0">
+                  {isSelectionMode && (
                     <div
-                      className={`w-11 h-11 sm:w-12 sm:h-12 rounded-xl ${
-                        preset.bg
-                      } flex items-center justify-center text-xl sm:text-2xl shrink-0 overflow-hidden relative shadow-2xs ${
-                        isOutOfStock ? 'opacity-60 grayscale-[0.5]' : ''
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        toggleSelect(p.id);
+                      }}
+                      onPointerDown={(e) => e.stopPropagation()}
+                      className={`w-6 h-6 rounded-lg flex items-center justify-center shrink-0 cursor-pointer transition-all ${
+                        isSelected
+                          ? 'bg-emerald-700 text-white shadow-2xs'
+                          : 'border-2 border-slate-300 bg-white hover:border-emerald-600'
                       }`}
                     >
-                      {p.imageUrl ? (
-                        <img
-                          src={p.imageUrl}
-                          alt={p.name}
-                          className="w-full h-full object-cover"
-                        />
-                      ) : (
-                        <span>{preset.icon}</span>
-                      )}
+                      {isSelected && <Check className="w-4 h-4 stroke-[3]" />}
                     </div>
+                  )}
 
-                    <div className="min-w-0 flex-1">
-                      <div className="flex items-center gap-1.5 flex-wrap">
-                        <h4 className="text-sm sm:text-base font-bold text-slate-900 break-words leading-snug">
-                          {p.name}
-                        </h4>
-                        {isHighlighted && (
-                          <span className="inline-flex items-center gap-1 text-[10px] font-bold text-emerald-800 bg-emerald-100 px-2 py-0.5 rounded-full border border-emerald-300 animate-pulse">
-                            <span>💧</span> Tambah stok di sini
-                          </span>
-                        )}
-                      </div>
-
-                      {/* Tampilan Desktop/Tablet: Harga sejajar di bawah nama produk */}
-                      <div className="hidden sm:flex items-center gap-2 sm:gap-2.5 flex-wrap mt-1 text-xs leading-normal">
-                        <span className="text-slate-600 font-semibold whitespace-nowrap">
-                          Jual:{' '}
-                          <span className="text-emerald-700 font-extrabold tabular-nums">
-                            {formatRupiah(p.sellPrice)}
-                          </span>
-                        </span>
-                        <span className="text-slate-300 select-none">|</span>
-                        <span className="text-amber-900/80 font-semibold whitespace-nowrap">
-                          Beli:{' '}
-                          <span className="text-amber-800 font-extrabold tabular-nums">
-                            {formatRupiah(p.buyPrice)}
-                          </span>
-                        </span>
-                        <span className="text-slate-300 select-none">|</span>
-                        <div className="whitespace-nowrap">
-                          {renderProfitBadge(p.sellPrice, p.buyPrice, 'text-xs')}
-                        </div>
-                      </div>
-                    </div>
+                  <div
+                    className={`w-11 h-11 sm:w-12 sm:h-12 rounded-xl ${
+                      preset.bg
+                    } flex items-center justify-center text-xl sm:text-2xl shrink-0 overflow-hidden relative shadow-2xs ${
+                      isOutOfStock ? 'opacity-60 grayscale-[0.5]' : ''
+                    }`}
+                  >
+                    {p.imageUrl ? (
+                      <img
+                        src={p.imageUrl}
+                        alt={p.name}
+                        className="w-full h-full object-cover"
+                      />
+                    ) : (
+                      <span>{preset.icon}</span>
+                    )}
                   </div>
 
-                  {/* Tampilan Mobile: Strip Full Width Khusus Harga & Status Untung/Rugi Tanpa Terpotong */}
-                  <div className="sm:hidden w-full bg-slate-50 border border-slate-200/90 rounded-lg px-2.5 py-1.5 flex items-center justify-between gap-1 text-[10.5px] xs:text-[11px] leading-normal whitespace-nowrap">
-                    <span className="text-slate-600 font-semibold truncate shrink-0">
-                      Jual:{' '}
-                      <span className="text-emerald-700 font-extrabold tabular-nums">
-                        {formatRupiah(p.sellPrice)}
-                      </span>
-                    </span>
-                    <span className="text-slate-300 select-none shrink-0">|</span>
-                    <span className="text-amber-900/80 font-semibold truncate shrink-0">
-                      Beli:{' '}
-                      <span className="text-amber-800 font-extrabold tabular-nums">
-                        {formatRupiah(p.buyPrice)}
-                      </span>
-                    </span>
-                    <span className="text-slate-300 select-none shrink-0">|</span>
-                    <div className="shrink-0 truncate">
-                      {renderProfitBadge(p.sellPrice, p.buyPrice, 'text-[10.5px] xs:text-[11px]')}
+                  <div className="min-w-0 flex-1">
+                    <div className="flex items-center gap-1.5 flex-wrap">
+                      <h4 className="text-sm sm:text-base font-bold text-slate-900 break-words leading-snug">
+                        {p.name}
+                      </h4>
+                      {isHighlighted && (
+                        <span className="inline-flex items-center gap-1 text-[10px] font-bold text-emerald-800 bg-emerald-100 px-2 py-0.5 rounded-full border border-emerald-300 animate-pulse">
+                          <span>💧</span> Tambah stok di sini
+                        </span>
+                      )}
                     </div>
                   </div>
                 </div>
 
-                {/* Bagian 2: Chip Info Rak & Chip Kategori */}
-                <div className="w-full sm:w-auto border-t border-slate-300 sm:border-t-0 pt-2 sm:pt-0 flex flex-row sm:flex-col items-center sm:items-end justify-between sm:justify-center gap-2 sm:gap-1.5 shrink-0">
+                {/* Bagian 2: Strip Full Width Khusus Harga & Status Untung/Rugi Tanpa Terpotong (Sama di HP & Tab) */}
+                <div className="w-full bg-slate-50 border border-slate-200/90 rounded-lg sm:rounded-xl px-2.5 sm:px-3 py-1.5 flex items-center justify-between gap-1 sm:gap-2 text-[10.5px] xs:text-[11px] sm:text-xs leading-normal whitespace-nowrap">
+                  <span className="text-slate-600 font-semibold truncate shrink-0">
+                    Jual:{' '}
+                    <span className="text-emerald-700 font-extrabold tabular-nums">
+                      {formatRupiah(p.sellPrice)}
+                    </span>
+                  </span>
+                  <span className="text-slate-300 select-none shrink-0">|</span>
+                  <span className="text-amber-900/80 font-semibold truncate shrink-0">
+                    Beli:{' '}
+                    <span className="text-amber-800 font-extrabold tabular-nums">
+                      {formatRupiah(p.buyPrice)}
+                    </span>
+                  </span>
+                  <span className="text-slate-300 select-none shrink-0">|</span>
+                  <div className="shrink-0 truncate">
+                    {renderProfitBadge(p.sellPrice, p.buyPrice, 'text-[10.5px] xs:text-[11px] sm:text-xs')}
+                  </div>
+                </div>
+
+                {/* Bagian 3: Chip Info Rak & Chip Kategori */}
+                <div className="w-full border-t border-slate-200/80 pt-2 flex flex-row items-center justify-between gap-2 shrink-0">
                   <span
-                    className="inline-flex items-center justify-center max-w-[60%] sm:max-w-none sm:w-44 text-center text-[10px] font-bold text-amber-800 bg-amber-50 px-2.5 py-0.5 sm:py-1 rounded border border-amber-200/90 shadow-2xs truncate shrink-0"
+                    className="inline-flex items-center justify-center max-w-[60%] sm:max-w-none text-center text-[10px] sm:text-[11px] font-bold text-amber-800 bg-amber-50 px-2.5 py-0.5 sm:py-1 rounded border border-amber-200/90 shadow-2xs truncate shrink-0"
                     title={`Rak / Etalase: ${shelfLabel}`}
                   >
                     🏷️ {shelfLabel}
                   </span>
-                  <span className="inline-flex items-center justify-center min-w-[80px] sm:w-44 text-center text-[10px] text-slate-700 bg-slate-100 px-2 py-0.5 sm:py-1 rounded uppercase font-bold tracking-wider border border-slate-300 shadow-2xs whitespace-nowrap shrink-0">
+                  <span className="inline-flex items-center justify-center min-w-[80px] text-center text-[10px] sm:text-[11px] text-slate-700 bg-slate-100 px-2 py-0.5 sm:py-1 rounded uppercase font-bold tracking-wider border border-slate-300 shadow-2xs whitespace-nowrap shrink-0">
                     {p.category}
                   </span>
                 </div>
 
-                {/* Bagian 3: Status & Stepper Stok */}
+                {/* Bagian 4: Status & Stepper Stok */}
                 <div
-                  className="flex items-center justify-between sm:justify-end gap-2 sm:gap-3 pt-2 sm:pt-0 border-t border-slate-300 sm:border-t-0 w-full sm:w-auto shrink-0"
+                  className="flex items-center justify-between gap-2 pt-2 border-t border-slate-200/80 w-full shrink-0"
                   onPointerDown={(e) => e.stopPropagation()}
                   onClick={(e) => e.stopPropagation()}
                 >

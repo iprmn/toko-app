@@ -118,7 +118,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({
           )}
 
           <h4
-            className={`text-[11.5px] sm:text-sm font-bold line-clamp-1 leading-snug ${
+            className={`text-[13px] sm:text-base font-bold line-clamp-1 leading-snug ${
               isEffectivelyOutOfStock ? 'text-slate-600' : 'text-slate-900'
             }`}
             title={product.name}
@@ -128,7 +128,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({
 
           <div>
             <div
-              className={`text-[13px] sm:text-base font-black tabular-nums leading-tight ${
+              className={`text-[11.5px] sm:text-sm font-black tabular-nums leading-tight ${
                 isEffectivelyOutOfStock ? 'text-slate-600' : 'text-emerald-800'
               }`}
             >

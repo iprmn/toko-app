@@ -608,64 +608,52 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
         {/* Dropdown Rincian: Barang Untung, Barang Rugi, Barang Tidak Untung */}
         {isProfitDetailOpen && (
           <div className="mt-3 p-3 sm:p-4 rounded-2xl bg-slate-50 border border-slate-200/90 space-y-3 animate-in fade-in slide-in-from-top-2 duration-200">
-            {/* Header info & Filter Tabs */}
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-200 pb-2.5">
-              <div className="flex items-center gap-2">
-                <span className="text-xs font-bold text-slate-800">
-                  Rincian Profitabilitas Stok:
-                </span>
-                <span className="text-[11px] text-slate-500 font-medium">
-                  ({products.length} total barang)
-                </span>
-              </div>
-
-              {/* 4 Filter Pills */}
-              <div className="flex items-center gap-1.5 overflow-x-auto pb-1 sm:pb-0">
-                <button
-                  type="button"
-                  onClick={() => setDetailFilter('all')}
-                  className={`px-2.5 py-1 rounded-lg text-[10px] sm:text-xs font-bold transition-all cursor-pointer whitespace-nowrap ${
-                    detailFilter === 'all'
-                      ? 'bg-slate-800 text-white shadow-2xs'
-                      : 'bg-white text-slate-600 hover:bg-slate-100 border border-slate-200'
-                  }`}
-                >
-                  Semua ({products.length})
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setDetailFilter('profit')}
-                  className={`px-2.5 py-1 rounded-lg text-[10px] sm:text-xs font-bold transition-all cursor-pointer whitespace-nowrap ${
-                    detailFilter === 'profit'
-                      ? 'bg-emerald-700 text-white shadow-2xs'
-                      : 'bg-emerald-50 text-emerald-800 hover:bg-emerald-100 border border-emerald-200'
-                  }`}
-                >
-                  Untung ({profitableProducts.length})
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setDetailFilter('loss')}
-                  className={`px-2.5 py-1 rounded-lg text-[10px] sm:text-xs font-bold transition-all cursor-pointer whitespace-nowrap ${
-                    detailFilter === 'loss'
-                      ? 'bg-rose-700 text-white shadow-2xs'
-                      : 'bg-rose-50 text-rose-700 hover:bg-rose-100 border border-rose-200'
-                  }`}
-                >
-                  Rugi ({lossProducts.length})
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setDetailFilter('neutral')}
-                  className={`px-2.5 py-1 rounded-lg text-[10px] sm:text-xs font-bold transition-all cursor-pointer whitespace-nowrap ${
-                    detailFilter === 'neutral'
-                      ? 'bg-amber-800 text-white shadow-2xs'
-                      : 'bg-amber-50 text-amber-900 hover:bg-amber-100 border border-amber-200'
-                  }`}
-                >
-                  Tidak Untung ({neutralProducts.length})
-                </button>
-              </div>
+            {/* 4 Filter Pills */}
+            <div className="flex items-center gap-1.5 overflow-x-auto pb-2 border-b border-slate-200 no-scrollbar">
+              <button
+                type="button"
+                onClick={() => setDetailFilter('all')}
+                className={`px-2.5 py-1 rounded-lg text-[10px] sm:text-xs font-bold transition-all cursor-pointer whitespace-nowrap ${
+                  detailFilter === 'all'
+                    ? 'bg-slate-800 text-white shadow-2xs'
+                    : 'bg-white text-slate-600 hover:bg-slate-100 border border-slate-200'
+                }`}
+              >
+                Semua ({products.length})
+              </button>
+              <button
+                type="button"
+                onClick={() => setDetailFilter('profit')}
+                className={`px-2.5 py-1 rounded-lg text-[10px] sm:text-xs font-bold transition-all cursor-pointer whitespace-nowrap ${
+                  detailFilter === 'profit'
+                    ? 'bg-emerald-700 text-white shadow-2xs'
+                    : 'bg-emerald-50 text-emerald-800 hover:bg-emerald-100 border border-emerald-200'
+                }`}
+              >
+                Untung ({profitableProducts.length})
+              </button>
+              <button
+                type="button"
+                onClick={() => setDetailFilter('loss')}
+                className={`px-2.5 py-1 rounded-lg text-[10px] sm:text-xs font-bold transition-all cursor-pointer whitespace-nowrap ${
+                  detailFilter === 'loss'
+                    ? 'bg-rose-700 text-white shadow-2xs'
+                    : 'bg-rose-50 text-rose-700 hover:bg-rose-100 border border-rose-200'
+                }`}
+              >
+                Rugi ({lossProducts.length})
+              </button>
+              <button
+                type="button"
+                onClick={() => setDetailFilter('neutral')}
+                className={`px-2.5 py-1 rounded-lg text-[10px] sm:text-xs font-bold transition-all cursor-pointer whitespace-nowrap ${
+                  detailFilter === 'neutral'
+                    ? 'bg-amber-800 text-white shadow-2xs'
+                    : 'bg-amber-50 text-amber-900 hover:bg-amber-100 border border-amber-200'
+                }`}
+              >
+                Tidak Untung ({neutralProducts.length})
+              </button>
             </div>
 
             {/* 3 Summary Mini-Cards */}
@@ -753,11 +741,11 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                       >
                         <div className="min-w-0 flex-1">
                           <div className="font-bold text-slate-800 truncate">{p.name}</div>
-                          <div className="text-[11px] text-slate-500 flex items-center gap-1.5 sm:gap-2 flex-wrap mt-0.5">
+                          <div className="text-[11px] text-slate-500 flex flex-col sm:flex-row sm:items-center gap-0.5 sm:gap-2 mt-1 sm:mt-0.5 leading-snug">
                             <span>Beli: {formatRupiahFull(p.buyPrice)}</span>
-                            <span>•</span>
+                            <span className="hidden sm:inline text-slate-300">•</span>
                             <span>Jual: {formatRupiahFull(p.sellPrice)}</span>
-                            <span>•</span>
+                            <span className="hidden sm:inline text-slate-300">•</span>
                             <span className="text-emerald-700 font-bold">
                               Untung + {formatRupiahFull(profitPerUnit)}
                             </span>
@@ -797,11 +785,11 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                       >
                         <div className="min-w-0 flex-1">
                           <div className="font-bold text-slate-800 truncate">{p.name}</div>
-                          <div className="text-[11px] text-slate-500 flex items-center gap-1.5 sm:gap-2 flex-wrap mt-0.5">
+                          <div className="text-[11px] text-slate-500 flex flex-col sm:flex-row sm:items-center gap-0.5 sm:gap-2 mt-1 sm:mt-0.5 leading-snug">
                             <span>Beli: {formatRupiahFull(p.buyPrice)}</span>
-                            <span>•</span>
+                            <span className="hidden sm:inline text-slate-300">•</span>
                             <span>Jual: {formatRupiahFull(p.sellPrice)}</span>
-                            <span>•</span>
+                            <span className="hidden sm:inline text-slate-300">•</span>
                             <span className="text-rose-600 font-bold">
                               Rugi - {formatRupiahFull(lossPerUnit)}
                             </span>

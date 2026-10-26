@@ -274,15 +274,27 @@ export const AddProductModal: React.FC<AddProductModalProps> = ({
       alert('Nama barang wajib diisi!');
       return;
     }
+    if (name.trim().length > 30) {
+      alert('Nama barang maksimal 30 karakter!');
+      return;
+    }
 
     const finalCategory = customCategoryInput.trim() || category || currentDept.id;
     if (!finalCategory.trim()) {
       alert('Kategori barang wajib dipilih atau diisi!');
       return;
     }
+    if (finalCategory.trim().length > 10) {
+      alert('Kategori barang maksimal 10 karakter!');
+      return;
+    }
 
     if (!unit.trim()) {
       alert('Satuan barang wajib dipilih atau diisi!');
+      return;
+    }
+    if (unit.trim().length > 6) {
+      alert('Satuan barang maksimal 6 karakter!');
       return;
     }
 
@@ -586,24 +598,44 @@ export const AddProductModal: React.FC<AddProductModalProps> = ({
           <div className="bg-slate-50/90 border border-slate-200/90 rounded-xl p-2.5 sm:p-3 space-y-2 sm:space-y-2.5">
             {/* Nama Barang */}
             <div>
-              <label className="block text-xs font-bold text-slate-800 mb-1">
-                Nama Barang:
-              </label>
+              <div className="flex items-center justify-between mb-1">
+                <label className="text-xs font-bold text-slate-800">
+                  Nama Barang:
+                </label>
+                <span className={`text-[10px] font-bold ${name.length >= 30 ? 'text-rose-600' : 'text-slate-400'}`}>
+                  {name.length}/30
+                </span>
+              </div>
               <input
                 type="text"
                 required
+                maxLength={30}
                 value={name}
-                onChange={(e) => setName(e.target.value)}
+                onChange={(e) => setName(e.target.value.slice(0, 30))}
                 placeholder="Contoh: Beras Rojo 5kg, Kabel Data Type C, Kaos Polos..."
-                className="w-full h-9.5 px-3 bg-white border border-slate-300 focus:border-emerald-600 rounded-xl text-xs sm:text-sm font-semibold text-slate-900 outline-none shadow-2xs"
+                className={`w-full h-9.5 px-3 bg-white border rounded-xl text-xs sm:text-sm font-semibold text-slate-900 outline-none shadow-2xs transition-colors ${
+                  name.length >= 30 ? 'border-rose-400 focus:border-rose-600' : 'border-slate-300 focus:border-emerald-600'
+                }`}
               />
+              {name.length >= 30 && (
+                <p className="text-[10.5px] text-rose-600 font-bold mt-1 animate-in fade-in">
+                  ⚠️ Maksimal 30 karakter tercapai!
+                </p>
+              )}
             </div>
 
             {/* Pilihan Kategori (Scroll Kesamping) */}
             <div>
-              <label className="block text-xs font-bold text-slate-800 mb-1">
-                Pilihan Kategori:
-              </label>
+              <div className="flex items-center justify-between mb-1">
+                <label className="text-xs font-bold text-slate-800">
+                  Pilihan Kategori:
+                </label>
+                {customCategoryInput && (
+                  <span className={`text-[10px] font-bold ${customCategoryInput.length >= 10 ? 'text-rose-600' : 'text-slate-400'}`}>
+                    {customCategoryInput.length}/10
+                  </span>
+                )}
+              </div>
               <div className="flex items-center gap-1.5 overflow-x-auto pb-1 no-scrollbar shrink-0">
                 {currentDept.suggestedCategories.map((c) => {
                   const isSelected = category.toLowerCase() === c.id.toLowerCase() && !customCategoryInput;
@@ -628,21 +660,37 @@ export const AddProductModal: React.FC<AddProductModalProps> = ({
               </div>
               <input
                 type="text"
+                maxLength={10}
                 value={customCategoryInput}
                 onChange={(e) => {
-                  setCustomCategoryInput(e.target.value);
-                  setCategory(e.target.value.toLowerCase().replace(/\s+/g, '-'));
+                  const val = e.target.value.slice(0, 10);
+                  setCustomCategoryInput(val);
+                  setCategory(val.toLowerCase().replace(/\s+/g, '-'));
                 }}
-                placeholder="Atau ketik nama kategori baru..."
-                className="w-full h-8 px-2.5 mt-1 bg-white border border-slate-200 focus:border-emerald-600 rounded-lg text-xs font-medium text-slate-800 outline-none"
+                placeholder="Atau ketik nama kategori baru (max 10 huruf)..."
+                className={`w-full h-8 px-2.5 mt-1 bg-white border rounded-lg text-xs font-medium text-slate-800 outline-none transition-colors ${
+                  customCategoryInput.length >= 10 ? 'border-rose-400 focus:border-rose-600' : 'border-slate-200 focus:border-emerald-600'
+                }`}
               />
+              {customCategoryInput.length >= 10 && (
+                <p className="text-[10.5px] text-rose-600 font-bold mt-1 animate-in fade-in">
+                  ⚠️ Kategori maksimal 10 karakter!
+                </p>
+              )}
             </div>
 
             {/* Satuan Barang (Scroll Kesamping + Textbox Full Width) */}
             <div>
-              <label className="block text-xs font-bold text-slate-800 mb-1">
-                Satuan Barang:
-              </label>
+              <div className="flex items-center justify-between mb-1">
+                <label className="text-xs font-bold text-slate-800">
+                  Satuan Barang:
+                </label>
+                {unit && !currentDept.suggestedUnits.includes(unit) && (
+                  <span className={`text-[10px] font-bold ${unit.length >= 6 ? 'text-rose-600' : 'text-slate-400'}`}>
+                    {unit.length}/6
+                  </span>
+                )}
+              </div>
               <div className="flex items-center gap-1.5 overflow-x-auto pb-1 no-scrollbar shrink-0">
                 {currentDept.suggestedUnits.map((u) => {
                   const isSelected = unit.toLowerCase() === u.toLowerCase() && currentDept.suggestedUnits.includes(unit);
@@ -664,11 +712,19 @@ export const AddProductModal: React.FC<AddProductModalProps> = ({
               </div>
               <input
                 type="text"
+                maxLength={6}
                 value={currentDept.suggestedUnits.includes(unit) ? '' : unit}
-                onChange={(e) => setUnit(e.target.value)}
-                placeholder="+ Ketik satuan lain..."
-                className="w-full h-8 px-2.5 mt-1 bg-white border border-slate-200 focus:border-emerald-600 rounded-lg text-xs font-medium text-slate-800 outline-none"
+                onChange={(e) => setUnit(e.target.value.slice(0, 6))}
+                placeholder="+ Ketik satuan lain (max 6 huruf)..."
+                className={`w-full h-8 px-2.5 mt-1 bg-white border rounded-lg text-xs font-medium text-slate-800 outline-none transition-colors ${
+                  unit.length >= 6 && !currentDept.suggestedUnits.includes(unit) ? 'border-rose-400 focus:border-rose-600' : 'border-slate-200 focus:border-emerald-600'
+                }`}
               />
+              {unit.length >= 6 && !currentDept.suggestedUnits.includes(unit) && (
+                <p className="text-[10.5px] text-rose-600 font-bold mt-1 animate-in fade-in">
+                  ⚠️ Satuan maksimal 6 karakter!
+                </p>
+              )}
             </div>
           </div>
 
