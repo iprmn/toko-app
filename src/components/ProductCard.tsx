@@ -83,9 +83,9 @@ export const ProductCard: React.FC<ProductCardProps> = ({
           )}
         </div>
 
-        {/* Product Visual Container (1:1 Square Ratio) */}
+        {/* Product Visual Container (4:3 Ratio) */}
         <div
-          className={`w-full aspect-square rounded-lg sm:rounded-xl ${
+          className={`w-full aspect-[4/3] rounded-lg sm:rounded-xl ${
             isEffectivelyOutOfStock ? 'bg-slate-200/70' : preset.bg
           } flex items-center justify-center relative select-none overflow-hidden`}
         >
@@ -238,9 +238,9 @@ export const ProductCard: React.FC<ProductCardProps> = ({
               </div>
             </div>
 
-            {/* Product Visual Container */}
+            {/* Product Visual Container (4:3 Ratio) */}
             <div
-              className={`w-full aspect-square rounded-xl ${
+              className={`w-full aspect-[4/3] rounded-xl ${
                 isEffectivelyOutOfStock ? 'bg-slate-200/70' : preset.bg
               } flex items-center justify-center relative select-none overflow-hidden`}
             >
@@ -253,7 +253,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({
                   }`}
                 />
               ) : (
-                <span className={`text-6xl drop-shadow-2xs ${isEffectivelyOutOfStock ? 'opacity-60' : ''}`}>
+                <span className={`text-5xl sm:text-6xl drop-shadow-2xs ${isEffectivelyOutOfStock ? 'opacity-60' : ''}`}>
                   {preset.icon}
                 </span>
               )}
