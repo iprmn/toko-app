@@ -18,7 +18,7 @@ import {
 import { Product, CartItem, Transaction, StoreAccount } from './types/store';
 import { dataService } from './services/dataService';
 import { playSound } from './utils/sound';
-import { Plus, Package, Database } from 'lucide-react';
+import { Plus, Package, Database, RotateCcw, Sparkles } from 'lucide-react';
 
 // Helper to keep transactions within the current weekly cycle (Monday to Sunday) & last 7 days
 const prune7DaysTransactions = (txs: Transaction[]): Transaction[] => {
@@ -41,6 +41,7 @@ const prune7DaysTransactions = (txs: Transaction[]): Transaction[] => {
 export default function App() {
   // --- Database-Backed State (SQLite on Server / Device DB on Offline APK) ---
   const [isLoadingDb, setIsLoadingDb] = useState<boolean>(true);
+  const isDemo = useMemo(() => dataService.isDemo(), []);
   const [stores, setStores] = useState<StoreAccount[]>([]);
   const [activeStoreId, setActiveStoreId] = useState<string>('');
   const [productsMap, setProductsMap] = useState<{ [storeId: string]: Product[] }>({});
@@ -798,6 +799,41 @@ export default function App() {
     <div className="min-h-screen bg-[#e9eee7] text-slate-900 pb-28 sm:pb-24 selection:bg-emerald-700 selection:text-white leading-relaxed">
       {/* Main Content Area (Tanpa Navbar Putih di Atas) */}
       <main className="max-w-7xl mx-auto px-2.5 sm:px-6 pt-2.5 sm:pt-6 space-y-2 sm:space-y-2.5">
+        {isDemo && (
+          <div className="bg-amber-50 border-2 border-amber-300/90 text-amber-950 rounded-2xl px-3.5 py-2.5 shadow-2xs flex flex-wrap items-center justify-between gap-2">
+            <div className="flex items-center gap-2 min-w-0">
+              <span className="w-7 h-7 rounded-xl bg-amber-400/90 text-amber-950 flex items-center justify-center shrink-0 shadow-2xs">
+                <Sparkles className="w-4 h-4 stroke-[2.2]" />
+              </span>
+              <div className="text-xs sm:text-sm leading-snug">
+                <span className="font-extrabold">Mode Demo Publik (Data Sementara)</span>
+                <span className="hidden sm:inline text-amber-900/85">
+                  {' '}
+                  — Silakan bebas mencoba kasir, stok, laporan WA, &amp; multi-toko!
+                </span>
+              </div>
+            </div>
+            <button
+              type="button"
+              onClick={async () => {
+                if (soundEnabled) playSound.tap();
+                const fresh = await dataService.resetDemoData();
+                setStores(fresh.stores);
+                setActiveStoreId(fresh.activeStoreId);
+                setProductsMap(fresh.productsMap);
+                setTransactionsMap(fresh.transactionsMap);
+                setFontSizeLevel(fresh.fontSizeLevel);
+                setCart([]);
+                showToast('Data demo berhasil dikembalikan ke kondisi awal!');
+              }}
+              className="px-3 py-1.5 rounded-xl bg-amber-900 hover:bg-amber-950 text-amber-50 font-bold text-xs inline-flex items-center gap-1.5 cursor-pointer transition-all active:scale-95 shrink-0"
+            >
+              <RotateCcw className="w-3.5 h-3.5" />
+              <span>Reset Data Demo</span>
+            </button>
+          </div>
+        )}
+
         {/* TAB 1: ETALASE & KASIR */}
         {activeTab === 'catalog' && (
           <>

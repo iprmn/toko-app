@@ -370,6 +370,31 @@ self.addEventListener("fetch", (event) => {
 
       html = html.replace('</body>', `    ${otaLoaderScript}\n  </body>`);
       fs.writeFileSync(indexHtmlPath, html, 'utf8');
+
+      // Generate dedicated public demo entrypoints (dist/demo.html and dist/demo/index.html)
+      const demoHtml = html.replace(
+        '<head>',
+        '<head>\n    <script>window.__TOKO_FORCE_DEMO__ = true;</script>'
+      );
+      fs.writeFileSync(path.join(distDir, 'demo.html'), demoHtml, 'utf8');
+
+      const demoSubDir = path.join(distDir, 'demo');
+      if (!fs.existsSync(demoSubDir)) {
+        fs.mkdirSync(demoSubDir, { recursive: true });
+      }
+      const demoRedirectHtml = `<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Toko App — Demo Publik Interaktif</title>
+  <script>
+    window.location.replace("../?demo=1");
+  </script>
+</head>
+<body></body>
+</html>`;
+      fs.writeFileSync(path.join(demoSubDir, 'index.html'), demoRedirectHtml, 'utf8');
     },
   };
 }

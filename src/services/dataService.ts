@@ -1,6 +1,7 @@
 import { Capacitor } from '@capacitor/core';
 import { Product, StoreAccount, Transaction } from '../types/store';
 import { deviceDb } from './deviceDb';
+import { demoDb, isDemoMode } from './demoDb';
 
 let useDeviceLocalDb = true;
 
@@ -48,6 +49,14 @@ async function detectBackendMode(): Promise<boolean> {
 }
 
 export const dataService = {
+  isDemo(): boolean {
+    return isDemoMode();
+  },
+
+  async resetDemoData() {
+    return demoDb.reset();
+  },
+
   async bootstrap(): Promise<{
     stores: StoreAccount[];
     activeStoreId: string;
@@ -55,6 +64,10 @@ export const dataService = {
     productsMap: { [storeId: string]: Product[] };
     transactionsMap: { [storeId: string]: Transaction[] };
   }> {
+    if (isDemoMode()) {
+      return demoDb.bootstrap();
+    }
+
     try {
       localStorage.clear();
       sessionStorage.clear();
@@ -73,6 +86,10 @@ export const dataService = {
   },
 
   async setActiveStore(storeId: string): Promise<void> {
+    if (isDemoMode()) {
+      await demoDb.setActiveStore(storeId);
+      return;
+    }
     if (useDeviceLocalDb) {
       await deviceDb.setActiveStore(storeId);
       return;
@@ -85,6 +102,10 @@ export const dataService = {
   },
 
   async setFontSizeLevel(level: number): Promise<void> {
+    if (isDemoMode()) {
+      await demoDb.setFontSizeLevel(level);
+      return;
+    }
     if (useDeviceLocalDb) {
       await deviceDb.setFontSizeLevel(level);
       return;
@@ -97,6 +118,10 @@ export const dataService = {
   },
 
   async createStore(store: StoreAccount): Promise<boolean> {
+    if (isDemoMode()) {
+      await demoDb.createStore(store);
+      return true;
+    }
     if (useDeviceLocalDb) {
       await deviceDb.createStore(store);
       return true;
@@ -110,6 +135,10 @@ export const dataService = {
   },
 
   async updateStore(storeId: string, data: Partial<StoreAccount>): Promise<boolean> {
+    if (isDemoMode()) {
+      await demoDb.updateStore(storeId, data);
+      return true;
+    }
     if (useDeviceLocalDb) {
       await deviceDb.updateStore(storeId, data);
       return true;
@@ -123,6 +152,10 @@ export const dataService = {
   },
 
   async deleteStore(storeId: string): Promise<{ ok: boolean; activeStoreId?: string }> {
+    if (isDemoMode()) {
+      const activeStoreId = await demoDb.deleteStore(storeId);
+      return { ok: true, activeStoreId };
+    }
     if (useDeviceLocalDb) {
       const activeStoreId = await deviceDb.deleteStore(storeId);
       return { ok: true, activeStoreId };
@@ -136,6 +169,10 @@ export const dataService = {
   },
 
   async clearTransactions(storeId: string): Promise<boolean> {
+    if (isDemoMode()) {
+      await demoDb.clearTransactions(storeId);
+      return true;
+    }
     if (useDeviceLocalDb) {
       await deviceDb.clearTransactions(storeId);
       return true;
@@ -150,6 +187,10 @@ export const dataService = {
     storeId: string,
     tx: Transaction
   ): Promise<{ ok: boolean; products?: Product[]; transactions?: Transaction[] }> {
+    if (isDemoMode()) {
+      const data = await demoDb.recordTransaction(storeId, tx);
+      return { ok: true, ...data };
+    }
     if (useDeviceLocalDb) {
       const data = await deviceDb.recordTransaction(storeId, tx);
       return { ok: true, ...data };
@@ -168,6 +209,10 @@ export const dataService = {
     storeId: string,
     transactionId: string
   ): Promise<{ ok: boolean; products?: Product[]; transactions?: Transaction[] }> {
+    if (isDemoMode()) {
+      const data = await demoDb.cancelTransaction(storeId, transactionId);
+      return { ok: true, ...data };
+    }
     if (useDeviceLocalDb) {
       const data = await deviceDb.cancelTransaction(storeId, transactionId);
       return { ok: true, ...data };
@@ -189,6 +234,10 @@ export const dataService = {
     stock: number,
     updatedAt: string
   ): Promise<boolean> {
+    if (isDemoMode()) {
+      await demoDb.adjustStock(storeId, productId, stock, updatedAt);
+      return true;
+    }
     if (useDeviceLocalDb) {
       await deviceDb.adjustStock(storeId, productId, stock, updatedAt);
       return true;
@@ -205,6 +254,10 @@ export const dataService = {
   },
 
   async upsertProduct(storeId: string, product: Product): Promise<boolean> {
+    if (isDemoMode()) {
+      await demoDb.upsertProduct(storeId, product);
+      return true;
+    }
     if (useDeviceLocalDb) {
       await deviceDb.upsertProduct(storeId, product);
       return true;
@@ -218,6 +271,10 @@ export const dataService = {
   },
 
   async deleteProducts(storeId: string, productIds: string[]): Promise<boolean> {
+    if (isDemoMode()) {
+      await demoDb.deleteProducts(storeId, productIds);
+      return true;
+    }
     if (useDeviceLocalDb) {
       await deviceDb.deleteProducts(storeId, productIds);
       return true;
