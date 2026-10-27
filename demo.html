@@ -26,8 +26,8 @@
     <div id="root"></div>
       <script>
 (function() {
-  var BUILTIN_VERSION = 1793117851571;
-  var BUILTIN_JS = "./assets/index-BJYIbnGi.js";
+  var BUILTIN_VERSION = 1793119334169;
+  var BUILTIN_JS = "./assets/index-CRO4QUMA.js";
   var BUILTIN_CSS = "./assets/style-o-nj6k9I.css";
   var REMOTE_BASE = "https://iprmn.github.io/toko-app/";
   var OTA_DB_NAME = "toko_ota_cache_db";
@@ -40,7 +40,7 @@
 
   function injectBuiltin() {
     window.__TOKO_ACTIVE_VERSION__ = BUILTIN_VERSION;
-    window.__TOKO_ACTIVE_JS_PATH__ = "assets/index-BJYIbnGi.js";
+    window.__TOKO_ACTIVE_JS_PATH__ = "assets/index-CRO4QUMA.js";
     var link = document.createElement("link");
     link.rel = "stylesheet";
     link.href = BUILTIN_CSS;
@@ -233,7 +233,7 @@
     if (cached && cached.version > BUILTIN_VERSION && cached.jsPath) {
       window.__TOKO_ACTIVE_JS_PATH__ = cached.jsPath;
     } else {
-      window.__TOKO_ACTIVE_JS_PATH__ = "assets/index-BJYIbnGi.js";
+      window.__TOKO_ACTIVE_JS_PATH__ = "assets/index-CRO4QUMA.js";
     }
 
     // Try fast OTA metadata check on startup (3.5s) and allow up to 10s for downloading bundle if update exists
