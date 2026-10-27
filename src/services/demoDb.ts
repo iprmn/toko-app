@@ -17,6 +17,14 @@ export function isDemoMode(): boolean {
     if (hash === '#demo' || hash.startsWith('#demo?') || hash.startsWith('#/demo')) {
       return true;
     }
+    const hostname = (window.location.hostname || '').toLowerCase();
+    if (
+      hostname.includes('demo') ||
+      hostname.endsWith('.pages.dev') ||
+      hostname.endsWith('.workers.dev')
+    ) {
+      return true;
+    }
     const pathname = (window.location.pathname || '').toLowerCase();
     if (
       pathname.endsWith('/demo') ||
